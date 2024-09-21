@@ -65,17 +65,17 @@ func main() {
 	tcpServer.SetMessageCallback(tcpserver.OnMessage)
 	tcpServer.Start()
 	mainLoop, others := tcpServer.GetAllLoops()
-	tcpserver.SetUpEvLoopContext(mainLoop, &tcpserver.EvloopContext{
-		RelayCli:     relayCli,
-		AuthRouteCli: authRouteCli,
-		ConnMetrics:  &metrics.Conns,
-	})
+	evloopCtx := tcpserver.EvloopContext{
+		RelayCli:          relayCli,
+		AuthRouteCli:      authRouteCli,
+		ConnMetrics:       &metrics.Conns,
+		HeartbeatInterval: time.Millisecond * time.Duration(cfg.AppConfig.HeartbeatIntervalMs),
+		HeartbeatTimeout:  time.Millisecond * time.Duration(cfg.AppConfig.CloseConnIntervalMs),
+	}
+	// 注意这里是值传递, 有个拷贝的过程
+	tcpserver.SetUpEvLoopContext(mainLoop, evloopCtx)
 	for _, otherLoop := range others {
-		tcpserver.SetUpEvLoopContext(otherLoop, &tcpserver.EvloopContext{
-			RelayCli:     relayCli,
-			AuthRouteCli: authRouteCli,
-			ConnMetrics:  &metrics.Conns,
-		})
+		tcpserver.SetUpEvLoopContext(otherLoop, evloopCtx)
 	}
 	// 启动metrics上报
 	mainEvLoop.DoOnLoop(func(el eventloop.EventLoop) {

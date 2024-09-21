@@ -10,8 +10,8 @@ import (
 
 // 包 = 4字节包头 + 包体, 包头用小端
 
-// 包的长度有软限制
-var MaxDataLength = 4194304
+// 包的长度有软限制, 4m
+const MaxDataLength = 4194304
 
 // 封装一个包, 理论上length为0的包也能算包
 func PackData(data []byte) []byte {

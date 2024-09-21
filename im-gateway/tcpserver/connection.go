@@ -2,7 +2,6 @@ package tcpserver
 
 import (
 	"log"
-	"time"
 
 	goreactor "github.com/markity/go-reactor"
 )
@@ -13,16 +12,10 @@ func OnConn(conn goreactor.TCPConnection) {
 	conn.SetNoDelay(true)
 	conn.SetDisConnectedCallback(OnDisConn)
 
-	InitContext(conn)
-	// connCtx := GetConnContextFromConn(conn)
-	// connCtx.State.CommState
-
-	// 发送心跳包循环
-	conn.GetEventLoop().RunAt(time.Now(), time.Second, func(timerID int) {
-		// conn.Send()
-	})
+	SetUpConn(conn)
 }
 
 func OnDisConn(conn goreactor.TCPConnection) {
+	ReleaseConn(conn)
 	log.Printf("conn disconnected\n")
 }

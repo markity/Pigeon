@@ -1,11 +1,13 @@
 package protocol
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type PacketType int
 
 const (
-	PacketTypeHeartbeat = iota
+	PacketTypeHeartbeat PacketType = iota
 
 	PakcetTypeC2SLogin
 	PacketTypeS2CLoginResp
