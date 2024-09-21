@@ -12,13 +12,13 @@ import (
 
 type MetricsEtcdData struct {
 	Name                 string
-	Conns                uint64
+	Conns                int64
 	TCPAdvertiseAddrPort string
 	RPCAdvertiseAddrPort string
 }
 
 // metrics, event loop每次接收/关闭一个长连接都会原子操作这个变量
-var Conns atomic.Uint64
+var Conns atomic.Int64
 
 func GoLoopUpdateMetrics(etcdCli *clientv3.Client, cfg *MetricsEtcdData, interval time.Duration) {
 	// 创建一个lease, 不断续约

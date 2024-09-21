@@ -17,7 +17,7 @@ const connStateKey = "_ev_conn_state"
 type EvloopContext struct {
 	RelayCli          interface{}
 	AuthRouteCli      interface{}
-	ConnMetrics       *atomic.Uint64
+	ConnMetrics       *atomic.Int64
 	HeartbeatInterval time.Duration
 	HeartbeatTimeout  time.Duration
 
