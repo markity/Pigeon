@@ -1,0 +1,31 @@
+# grpc为内部集群提供接口, 如向某个session发送消息
+rpc-server:
+  host: 0.0.0.0
+  port: 3001
+
+# 接收客户端长连接, 这是reactor框架
+tcp-server:
+  host: 0.0.0.0
+  port: 3501
+  worker-num: 16
+
+# 做服务发现的, 可以用来服务发现im-auth-route的ipport以及im-relay的ipport
+# 也可以上报自己的metrics, 让ipconf感知到gateway的性能指标变化
+etcd:
+  -
+    host: 127.0.0.1
+    port: 2379
+
+# 业务相关配置
+app:
+  # 作为etcd的key名字使用
+  name: im-gateway-node-1
+  # 发送心跳间隔
+  heartbeat-interval-ms: 1000
+  # 若此时间内没有收到心跳, 则强制关闭连接
+  close-conn-interval-ms: 5000
+  # 上报metrics的时间间隔
+  metrics-update-interval-ms: 1000
+  # 告诉别的服务器连接这些地址
+  tcp-advertise-addrport: "127.0.0.1:3001"
+  rpc-advertise-addrport: "127.0.0.1:3501"

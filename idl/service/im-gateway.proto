@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+
+package imgateway;
+option go_package = "service/imgateway";
+
+message PushMessageReq {
+  string SessionId = 1;
+  bytes Data = 2;
+}
+
+message PushMessageResp {}
+
+service IMGateway {
+  rpc PushMessage(PushMessageReq) returns (PushMessageResp);
+}
