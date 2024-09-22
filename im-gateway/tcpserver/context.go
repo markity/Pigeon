@@ -2,8 +2,9 @@ package tcpserver
 
 import (
 	"log"
-	evlooproute "pigeon/im-gateway/evloop-route"
+	"pigeon/im-gateway/mq"
 	"pigeon/im-gateway/protocol"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -20,6 +21,7 @@ type EvloopContext struct {
 	ConnMetrics       *atomic.Int64
 	HeartbeatInterval time.Duration
 	HeartbeatTimeout  time.Duration
+	EvloopRoute       *sync.Map
 
 	// 私有的变量, setup的时候重新创建
 	// 这个变量代表已经登录的session的状态
@@ -80,6 +82,8 @@ func SetUpConn(conn goreactor.TCPConnection) {
 
 // 删除定时器, 释放eventloop的conn路由
 func ReleaseConn(conn goreactor.TCPConnection) {
+	ctx := MustLoadEvLoopContext(conn.GetEventLoop())
+
 	state := MustGetConnStateFromConn(conn)
 	ok1 := conn.GetEventLoop().CancelTimer(state.HeartbeatTimerId)
 	ok2 := conn.GetEventLoop().CancelTimer(state.HeartbeatTimeoutTimerId)
@@ -93,9 +97,10 @@ func ReleaseConn(conn goreactor.TCPConnection) {
 		}
 		delete(MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo, *state.SessionId)
 		// 删除evloop-route中的路由表
-		evlooproute.RouteMap.Delete(*state.SessionId)
-		// 发送下线mq
 
+		ctx.EvloopRoute.Delete(*state.SessionId)
+		// 发送下线mq
+		mq.SendOfflineMQ(*state.SessionId)
 	}
 }
 

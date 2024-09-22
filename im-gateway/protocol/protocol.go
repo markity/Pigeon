@@ -87,8 +87,11 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 	case "login":
 		header.Data = new(C2SLoginPacket)
 		err = json.Unmarshal(data, &header)
+		if !IsUsernameValid(header.Data.(*C2SLoginPacket).Username) || !IsPasswordValid(header.Data.(*C2SLoginPacket).Password) {
+			return nil, false
+		}
 	case "logout":
-		header.Data = new(C2SLoginPacket)
+		header.Data = new(C2SLogoutPacket)
 		err = json.Unmarshal(data, &header)
 	case "heartbeat":
 		header.Data = new(HeartbeatPacket)

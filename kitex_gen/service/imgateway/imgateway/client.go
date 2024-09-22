@@ -12,6 +12,7 @@ import (
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
 	PushMessage(ctx context.Context, Req *imgateway.PushMessageReq, callOptions ...callopt.Option) (r *imgateway.PushMessageResp, err error)
+	OtherDeviceKick(ctx context.Context, Req *imgateway.OtherDeviceKickReq, callOptions ...callopt.Option) (r *imgateway.OtherDeviceKickResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -46,4 +47,9 @@ type kIMGatewayClient struct {
 func (p *kIMGatewayClient) PushMessage(ctx context.Context, Req *imgateway.PushMessageReq, callOptions ...callopt.Option) (r *imgateway.PushMessageResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.PushMessage(ctx, Req)
+}
+
+func (p *kIMGatewayClient) OtherDeviceKick(ctx context.Context, Req *imgateway.OtherDeviceKickReq, callOptions ...callopt.Option) (r *imgateway.OtherDeviceKickResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.OtherDeviceKick(ctx, Req)
 }

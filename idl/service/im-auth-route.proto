@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+
+package imauthroute;
+option go_package = "service/imauthroute";
+
+message SessionEntry {
+    int64 LoginAt = 1;
+    string username = 2;
+    string session_id = 3;
+    string device_desc = 4;
+    string advertiseAddrPort = 5;
+};
+
+message LoginReq {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResp {
+  bool success = 1;
+  // 仅当success==true时才有意义
+  string session_id = 2;
+
+  repeated SessionEntry sessions = 3;
+}
+
+message LogoutReq {
+  string session_id = 1;
+}
+
+message LogoutResp {
+  // 如果不存在这个登录项, 那么就false
+  bool success = 1;
+}
+
+message ForceOfflineReq {
+  string self_session_id = 1;
+  string remote_session_id = 2;
+}
+
+message ForceOfflineResp {
+  bool success = 1;
+}
+
+message QuerySessionRouteReq {
+  string session_id = 1;
+};
+
+message QuerySessionRouteResp {
+  bool success = 1;
+  // success == true时后面的数据才有效
+  SessionEntry route = 2;
+};
+
+message QueryUserRouteReq {
+  string username = 1;
+};
+
+message QueryUserRouteResp {
+  bool success = 1;
+  repeated SessionEntry routes = 2;
+};
+
+service IMAuthRoute {
+  // 供gateway调用, 进行登录操作
+  rpc Login(LoginReq) returns (LoginResp);
+  // 供gateway调用, 进行登出操作
+  rpc Logout(LogoutReq) returns (LogoutResp);
+  // 供gateway调用, 下线其它设备
+  rpc ForceOffline(ForceOfflineReq) returns (ForceOfflineResp);
+
+  // 供内部服务器使用, 查询route
+  rpc QuerySessionRoute(QuerySessionRouteReq) returns (QuerySessionRouteResp);
+  rpc QueryUserRoute(QueryUserRouteReq) returns (QueryUserRouteResp);
+}

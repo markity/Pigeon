@@ -24,6 +24,11 @@ func (x *PushMessageReq) FastRead(buf []byte, _type int8, number int32) (offset 
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -43,11 +48,74 @@ func (x *PushMessageReq) fastReadField1(buf []byte, _type int8) (offset int, err
 }
 
 func (x *PushMessageReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.PacketType, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *PushMessageReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.Data, offset, err = fastpb.ReadBytes(buf, _type)
 	return offset, err
 }
 
 func (x *PushMessageResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+}
+
+func (x *OtherDeviceKickReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_OtherDeviceKickReq[number], err)
+}
+
+func (x *OtherDeviceKickReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.FromSession, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *OtherDeviceKickReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.FromSessionDesc, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *OtherDeviceKickReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	x.ToSession, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *OtherDeviceKickResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
@@ -66,6 +134,7 @@ func (x *PushMessageReq) FastWrite(buf []byte) (offset int) {
 	}
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
@@ -78,14 +147,63 @@ func (x *PushMessageReq) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *PushMessageReq) fastWriteField2(buf []byte) (offset int) {
+	if x.PacketType == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetPacketType())
+	return offset
+}
+
+func (x *PushMessageReq) fastWriteField3(buf []byte) (offset int) {
 	if len(x.Data) == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 2, x.GetData())
+	offset += fastpb.WriteBytes(buf[offset:], 3, x.GetData())
 	return offset
 }
 
 func (x *PushMessageResp) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	return offset
+}
+
+func (x *OtherDeviceKickReq) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
+	return offset
+}
+
+func (x *OtherDeviceKickReq) fastWriteField1(buf []byte) (offset int) {
+	if x.FromSession == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetFromSession())
+	return offset
+}
+
+func (x *OtherDeviceKickReq) fastWriteField2(buf []byte) (offset int) {
+	if x.FromSessionDesc == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetFromSessionDesc())
+	return offset
+}
+
+func (x *OtherDeviceKickReq) fastWriteField3(buf []byte) (offset int) {
+	if x.ToSession == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 3, x.GetToSession())
+	return offset
+}
+
+func (x *OtherDeviceKickResp) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
@@ -98,6 +216,7 @@ func (x *PushMessageReq) Size() (n int) {
 	}
 	n += x.sizeField1()
 	n += x.sizeField2()
+	n += x.sizeField3()
 	return n
 }
 
@@ -110,10 +229,18 @@ func (x *PushMessageReq) sizeField1() (n int) {
 }
 
 func (x *PushMessageReq) sizeField2() (n int) {
+	if x.PacketType == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetPacketType())
+	return n
+}
+
+func (x *PushMessageReq) sizeField3() (n int) {
 	if len(x.Data) == 0 {
 		return n
 	}
-	n += fastpb.SizeBytes(2, x.GetData())
+	n += fastpb.SizeBytes(3, x.GetData())
 	return n
 }
 
@@ -124,9 +251,59 @@ func (x *PushMessageResp) Size() (n int) {
 	return n
 }
 
+func (x *OtherDeviceKickReq) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
+	return n
+}
+
+func (x *OtherDeviceKickReq) sizeField1() (n int) {
+	if x.FromSession == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetFromSession())
+	return n
+}
+
+func (x *OtherDeviceKickReq) sizeField2() (n int) {
+	if x.FromSessionDesc == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetFromSessionDesc())
+	return n
+}
+
+func (x *OtherDeviceKickReq) sizeField3() (n int) {
+	if x.ToSession == "" {
+		return n
+	}
+	n += fastpb.SizeString(3, x.GetToSession())
+	return n
+}
+
+func (x *OtherDeviceKickResp) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	return n
+}
+
 var fieldIDToName_PushMessageReq = map[int32]string{
 	1: "SessionId",
-	2: "Data",
+	2: "PacketType",
+	3: "Data",
 }
 
 var fieldIDToName_PushMessageResp = map[int32]string{}
+
+var fieldIDToName_OtherDeviceKickReq = map[int32]string{
+	1: "FromSession",
+	2: "FromSessionDesc",
+	3: "ToSession",
+}
+
+var fieldIDToName_OtherDeviceKickResp = map[int32]string{}

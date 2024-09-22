@@ -3,9 +3,12 @@ package rpcserver
 import (
 	"context"
 	"pigeon/kitex_gen/service/imgateway"
+	"sync"
 )
 
 type RPCContext struct {
+	// 保存sessionId(string)->eventloop
+	evloopRoute *sync.Map
 }
 
 type RPCServer struct {

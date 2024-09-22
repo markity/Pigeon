@@ -1,0 +1,13 @@
+# 用来存储用户路由信息, 做分布式锁
+redis:
+  host: 127.0.0.1
+  port: 6379
+  keyprefix: im_auth_route/
+
+# 用来存储用户信息
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: debian-sys-maint
+  pwd : 8B2e4SuzKFCpn7AD
+  db: im_auth_route

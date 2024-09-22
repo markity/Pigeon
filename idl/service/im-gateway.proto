@@ -5,12 +5,33 @@ package imgateway;
 option go_package = "service/imgateway";
 
 message PushMessageReq {
-  string SessionId = 1;
-  bytes Data = 2;
+  string session_id = 1;
+  string packet_type = 2;
+  // data必须是json格式的, 被封装成这样的类型
+  /*
+    {
+      "packet_type": "login",
+      "data": {
+        "username": "your-username",
+        "password": "your-password"
+      }
+    }
+  */
+  bytes data = 3;
 }
 
-message PushMessageResp {}
+message PushMessageResp {};
+
+// 其它设备踢出的请求, 踢出后, 长连接的状态变为unlogin
+message OtherDeviceKickReq {
+  string from_session = 1;
+  string from_session_desc = 2;
+  string to_session = 3;
+};
+
+message OtherDeviceKickResp {};
 
 service IMGateway {
   rpc PushMessage(PushMessageReq) returns (PushMessageResp);
+  rpc OtherDeviceKick(OtherDeviceKickReq) returns (OtherDeviceKickResp);
 }

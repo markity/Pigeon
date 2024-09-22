@@ -9,6 +9,7 @@ import (
 	"pigeon/im-gateway/config"
 	metrics "pigeon/im-gateway/mertics"
 	"pigeon/im-gateway/tcpserver"
+	"sync"
 	"time"
 
 	goreactor "github.com/markity/go-reactor"
@@ -53,6 +54,7 @@ func main() {
 
 	relayCli := api.MustNewIMRelayClient(resolver)
 	authRouteCli := api.MustNewIMAuthRouteClient(resolver)
+	evloopRoute := sync.Map{}
 
 	// 跑rpc server
 	// imgateway.NewServer()
@@ -71,6 +73,7 @@ func main() {
 		ConnMetrics:       &metrics.Conns,
 		HeartbeatInterval: time.Millisecond * time.Duration(cfg.AppConfig.HeartbeatIntervalMs),
 		HeartbeatTimeout:  time.Millisecond * time.Duration(cfg.AppConfig.CloseConnIntervalMs),
+		EvloopRoute:       &evloopRoute,
 	}
 	// 注意这里是值传递, 有个拷贝的过程
 	tcpserver.SetUpEvLoopContext(mainLoop, evloopCtx)

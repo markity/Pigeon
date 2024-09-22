@@ -22,6 +22,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingUnary),
 	),
+	"OtherDeviceKick": kitex.NewMethodInfo(
+		otherDeviceKickHandler,
+		newOtherDeviceKickArgs,
+		newOtherDeviceKickResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingUnary),
+	),
 }
 
 var (
@@ -241,6 +248,159 @@ func (p *PushMessageResult) GetResult() interface{} {
 	return p.Success
 }
 
+func otherDeviceKickHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(imgateway.OtherDeviceKickReq)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(imgateway.IMGateway).OtherDeviceKick(ctx, req)
+		if err != nil {
+			return err
+		}
+		return st.SendMsg(resp)
+	case *OtherDeviceKickArgs:
+		success, err := handler.(imgateway.IMGateway).OtherDeviceKick(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*OtherDeviceKickResult)
+		realResult.Success = success
+		return nil
+	default:
+		return errInvalidMessageType
+	}
+}
+func newOtherDeviceKickArgs() interface{} {
+	return &OtherDeviceKickArgs{}
+}
+
+func newOtherDeviceKickResult() interface{} {
+	return &OtherDeviceKickResult{}
+}
+
+type OtherDeviceKickArgs struct {
+	Req *imgateway.OtherDeviceKickReq
+}
+
+func (p *OtherDeviceKickArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(imgateway.OtherDeviceKickReq)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *OtherDeviceKickArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *OtherDeviceKickArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *OtherDeviceKickArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, nil
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *OtherDeviceKickArgs) Unmarshal(in []byte) error {
+	msg := new(imgateway.OtherDeviceKickReq)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var OtherDeviceKickArgs_Req_DEFAULT *imgateway.OtherDeviceKickReq
+
+func (p *OtherDeviceKickArgs) GetReq() *imgateway.OtherDeviceKickReq {
+	if !p.IsSetReq() {
+		return OtherDeviceKickArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *OtherDeviceKickArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *OtherDeviceKickArgs) GetFirstArgument() interface{} {
+	return p.Req
+}
+
+type OtherDeviceKickResult struct {
+	Success *imgateway.OtherDeviceKickResp
+}
+
+var OtherDeviceKickResult_Success_DEFAULT *imgateway.OtherDeviceKickResp
+
+func (p *OtherDeviceKickResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(imgateway.OtherDeviceKickResp)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *OtherDeviceKickResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *OtherDeviceKickResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *OtherDeviceKickResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, nil
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *OtherDeviceKickResult) Unmarshal(in []byte) error {
+	msg := new(imgateway.OtherDeviceKickResp)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *OtherDeviceKickResult) GetSuccess() *imgateway.OtherDeviceKickResp {
+	if !p.IsSetSuccess() {
+		return OtherDeviceKickResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *OtherDeviceKickResult) SetSuccess(x interface{}) {
+	p.Success = x.(*imgateway.OtherDeviceKickResp)
+}
+
+func (p *OtherDeviceKickResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *OtherDeviceKickResult) GetResult() interface{} {
+	return p.Success
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -256,6 +416,16 @@ func (p *kClient) PushMessage(ctx context.Context, Req *imgateway.PushMessageReq
 	_args.Req = Req
 	var _result PushMessageResult
 	if err = p.c.Call(ctx, "PushMessage", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) OtherDeviceKick(ctx context.Context, Req *imgateway.OtherDeviceKickReq) (r *imgateway.OtherDeviceKickResp, err error) {
+	var _args OtherDeviceKickArgs
+	_args.Req = Req
+	var _result OtherDeviceKickResult
+	if err = p.c.Call(ctx, "OtherDeviceKick", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
