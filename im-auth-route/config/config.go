@@ -6,6 +6,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type RPCServerConfig struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
+type EtcdConfig struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
 type MysqlConfig struct {
 	Host string `yaml:"host"`
 	Port int    `yaml:"port"`
@@ -20,9 +30,16 @@ type RedisConfig struct {
 	KeyPrefix string `yaml:"keyprefix"`
 }
 
+type AppConfig struct {
+	RPCAdvertiseAddrport string `yaml:"rpc-advertise-addrport"`
+}
+
 type Config struct {
-	MysqlConfig MysqlConfig `yaml:"mysql"`
-	RedisConfig RedisConfig `yaml:"redis"`
+	RPCServerConfig RPCServerConfig `yaml:"rpc-server"`
+	EtcdConfig      []EtcdConfig    `yaml:"etcd"`
+	MysqlConfig     MysqlConfig     `yaml:"mysql"`
+	RedisConfig     RedisConfig     `yaml:"redis"`
+	AppConfig       AppConfig       `yaml:"app"`
 }
 
 func MustGetConfigFromFile(file string) *Config {

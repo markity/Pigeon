@@ -9,26 +9,26 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type disLockClient struct {
+type DisLockClient struct {
 	cli    *redis.Client
 	prefix string
 }
 
-type lockEntry struct {
+type LockEntry struct {
 	cli     *redis.Client
 	prefix  string
 	key     string
 	uuidPwd string
 }
 
-func NewDisLockClient(cli *redis.Client, prefix string) *disLockClient {
-	return &disLockClient{
+func NewDisLockClient(cli *redis.Client, prefix string) *DisLockClient {
+	return &DisLockClient{
 		cli:    cli,
 		prefix: prefix,
 	}
 }
 
-func (cli *disLockClient) Lock(key string, autoDeleteDur time.Duration) (*lockEntry, error) {
+func (cli *DisLockClient) Lock(key string, autoDeleteDur time.Duration) (*LockEntry, error) {
 	id := uuid.NewString()
 	k := cli.prefix + key
 	for {
@@ -40,7 +40,7 @@ func (cli *disLockClient) Lock(key string, autoDeleteDur time.Duration) (*lockEn
 			time.Sleep(time.Millisecond * 50)
 			continue
 		}
-		return &lockEntry{
+		return &LockEntry{
 			cli:     cli.cli,
 			prefix:  cli.prefix,
 			key:     k,
@@ -49,7 +49,7 @@ func (cli *disLockClient) Lock(key string, autoDeleteDur time.Duration) (*lockEn
 	}
 }
 
-func (cli *lockEntry) UnLock() error {
+func (cli *LockEntry) UnLock() error {
 	script := `if redis.call("get", KEYS[1]) == ARGV[1] then  
     redis.call("del", KEYS[1])  
     return 1  
