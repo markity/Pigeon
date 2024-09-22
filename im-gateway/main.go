@@ -4,14 +4,19 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	regetcd "pigeon/common/kitex-registry/etcd"
 	"pigeon/im-gateway/api"
 	"pigeon/im-gateway/config"
 	metrics "pigeon/im-gateway/mertics"
+	"pigeon/im-gateway/rpcserver"
 	"pigeon/im-gateway/tcpserver"
+	"pigeon/kitex_gen/service/imgateway/imgateway"
 	"sync"
 	"time"
 
+	"github.com/cloudwego/kitex/pkg/registry"
+	"github.com/cloudwego/kitex/server"
 	goreactor "github.com/markity/go-reactor"
 	eventloop "github.com/markity/go-reactor/pkg/event_loop"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -30,7 +35,7 @@ func main() {
 	cfg = config.MustGetConfigFromFile(*cfgFilePath)
 
 	tcpAddrPort := fmt.Sprintf("%v:%v", cfg.TCPServerConfig.Host, cfg.TCPServerConfig.Port)
-	// rpcAddrPort := fmt.Sprintf("%v:%v", cfg.RPCServerConfig.Host, cfg.RPCServerConfig.Port)
+	rpcAddrPort := fmt.Sprintf("%v:%v", cfg.RPCServerConfig.Host, cfg.RPCServerConfig.Port)
 	numThread := cfg.TCPServerConfig.WorkerNum
 	log.Printf("starting reactor server, addrport: %v num thread: %v\n", tcpAddrPort, numThread)
 
@@ -57,7 +62,29 @@ func main() {
 	evloopRoute := sync.Map{}
 
 	// 跑rpc server
-	// imgateway.NewServer()
+	reg, err := regetcd.NewEtcdRegistry(eps)
+	if err != nil {
+		panic(err)
+	}
+	rpcserverAddr, err := net.ResolveTCPAddr("tcp", rpcAddrPort)
+	if err != nil {
+		panic(err)
+	}
+	server := imgateway.NewServer(&rpcserver.RPCServer{
+		RPCContext: rpcserver.RPCContext{
+			EvloopRoute: &evloopRoute,
+		},
+	}, server.WithServiceAddr(rpcserverAddr), server.WithRegistry(reg),
+		server.WithRegistryInfo(&registry.Info{
+			ServiceName: "im-gateway",
+			Addr:        rpcserverAddr,
+		}))
+	go func() {
+		err := server.Run()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	// 跑reactor event loop
 	mainEvLoop := eventloop.NewEventLoop()

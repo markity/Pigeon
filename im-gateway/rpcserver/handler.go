@@ -8,14 +8,21 @@ import (
 
 type RPCContext struct {
 	// 保存sessionId(string)->eventloop
-	evloopRoute *sync.Map
+	EvloopRoute *sync.Map
 }
 
 type RPCServer struct {
 	RPCContext
 }
 
-func PushMessage(ctx context.Context, req *imgateway.PushMessageReq) (res *imgateway.
+// 定位event loop, 并且打入事件循环就ok
+func (server *RPCServer) PushMessage(ctx context.Context, req *imgateway.PushMessageReq) (res *imgateway.
 	PushMessageResp, err error) {
 	return &imgateway.PushMessageResp{}, nil
+}
+
+// 定位event loop, 并且打入事件循环就ok
+func (server *RPCServer) OtherDeviceKick(ctx context.Context, req *imgateway.OtherDeviceKickReq) (
+	res *imgateway.OtherDeviceKickResp, err error) {
+	return &imgateway.OtherDeviceKickResp{}, nil
 }

@@ -80,7 +80,7 @@ func (r *etcdRegistry) Register(info *registry.Info) error {
 		return err
 	}
 
-	_, err = r.etcdClient.Put(context.Background(), fmt.Sprintf("pigeon-registry/%s/%d", info.ServiceName,
+	_, err = r.etcdClient.Put(context.Background(), fmt.Sprintf("/pigeon-registry/%s/%d", info.ServiceName,
 		lease.ID), putContent, clientv3.WithLease(lease.ID))
 	if err != nil {
 		log.Printf("[kitex-registry] failed to Registry(put key), retrying: %s\n", err)

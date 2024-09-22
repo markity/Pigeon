@@ -11,3 +11,6 @@ mysql:
   user: debian-sys-maint
   pwd : 8B2e4SuzKFCpn7AD
   db: im_auth_route
+
+# 用来接收下线通知
+mq:
