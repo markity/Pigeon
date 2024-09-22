@@ -35,3 +35,8 @@ func IsPasswordValid(password string) bool {
 	}
 	return true
 }
+
+// 字节数量小于1024
+func IsDeviceDescValid(data string) bool {
+	return len(data) < 1024
+}

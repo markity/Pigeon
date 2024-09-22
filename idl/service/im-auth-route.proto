@@ -15,14 +15,18 @@ message SessionEntry {
 message LoginReq {
   string username = 1;
   string password = 2;
+  // 多设备管理, 用来描述设备信息的字符串, 业务方自行上传
+  string device_desc =3;
 }
 
 message LoginResp {
   bool success = 1;
   // 仅当success==true时才有意义
   string session_id = 2;
-
-  repeated SessionEntry sessions = 3;
+  // 用来做多设备管理的, 通过version避免乱序
+  int64 version = 3;
+  // 会包括自身
+  repeated SessionEntry sessions = 4;
 }
 
 message LogoutReq {
@@ -34,13 +38,19 @@ message LogoutResp {
   bool success = 1;
 }
 
+// 踢人请求
 message ForceOfflineReq {
   string self_session_id = 1;
   string remote_session_id = 2;
 }
 
 message ForceOfflineResp {
+  // 是否成功踢出
   bool success = 1;
+  // 踢出ok后会返回当前此用户的在线全量
+  int64 version = 2;
+  // 会包括自身
+  repeated SessionEntry sessions = 3;
 }
 
 message QuerySessionRouteReq {

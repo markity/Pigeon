@@ -8,6 +8,7 @@ require (
 	github.com/cloudwego/fastpb v0.0.5
 	github.com/cloudwego/kitex v0.11.3
 	github.com/gin-gonic/gin v1.10.0
+	github.com/google/uuid v1.3.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/markity/go-reactor v0.0.0-20240526080743-d22d926802d4
 	github.com/redis/go-redis/v9 v9.6.1

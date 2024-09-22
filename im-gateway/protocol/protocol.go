@@ -19,19 +19,48 @@ const (
 type HeartbeatPacket struct{}
 
 type C2SLoginPacket struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	DeviceDesc string `json:"device_desc"`
 }
 type S2CLoginRespPacket struct {
-	Username  string  `json:"username"`   // echo username
-	Success   bool    `json:"success"`    // 是否登录成功
-	SessionId *string `json:"session_id"` // 只有当success == true时才有值
+	Username           string                `json:"username"`    // echo username
+	Success            bool                  `json:"success"`     // 是否登录成功
+	SessionId          *string               `json:"session_id"`  // 只有当success == true时才有值
+	DeviceSessionEntry []*DeviceSessionEntry `json:"all_devices"` // 所有在线的设备
 }
 
 type C2SLogoutPacket struct{}
 type S2CLogoutRespPacket struct {
 	Success  bool    `json:"success"`  // success == false只有一种可能, 就是当前状态为未登录
 	Username *string `json:"username"` // 只有当success == true时才有值
+}
+
+// 此包用来踢下线其它设备, 不能踢下线自身
+type C2SKickOhterDevicePacket struct {
+	// echo code是用来帮忙定位请求的, resp会携带一样的code给客户端
+	EchoCode  string `json:"echo_code"`
+	SessionId string `json:"session_id"`
+}
+
+type S2CKickOhterDeviceRespPacket struct {
+	EchoCode   string                `json:"echo_code"`
+	KickOK     bool                  `json:"kick_ok"`
+	Version    int64                 `json:"version"`
+	NewDevices []*DeviceSessionEntry `json:"new_devices"`
+}
+
+type DeviceSessionEntry struct {
+	SessionId  string `json:"session_id"`
+	LoginAt    int64  `json:"login_at"`
+	DeviceDesc string `json:"device_desc"`
+}
+
+// 广播其它设备的信息, 做多设备管理
+type S2CDeviceInfoBroadcastPacket struct {
+	Username string                `json:"username"`
+	Version  int64                 `json:"version"`
+	Devices  []*DeviceSessionEntry `json:"devices"`
 }
 
 type jsonHeader struct {

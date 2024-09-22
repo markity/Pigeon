@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"pigeon/im-auth-route/config"
-	distributelock "pigeon/im-auth-route/distribute_lock"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -30,5 +29,4 @@ func main() {
 		panic(err)
 	}
 
-	disLock := distributelock.NewDisLockClient(cli, cfg.RedisConfig.KeyPrefix+"/dis_lock/")
 }

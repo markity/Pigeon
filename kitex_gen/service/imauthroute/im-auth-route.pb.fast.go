@@ -89,6 +89,11 @@ func (x *LoginReq) FastRead(buf []byte, _type int8, number int32) (offset int, e
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -112,6 +117,11 @@ func (x *LoginReq) fastReadField2(buf []byte, _type int8) (offset int, err error
 	return offset, err
 }
 
+func (x *LoginReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	x.DeviceDesc, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
 func (x *LoginResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
 	case 1:
@@ -126,6 +136,11 @@ func (x *LoginResp) FastRead(buf []byte, _type int8, number int32) (offset int, 
 		}
 	case 3:
 		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 4:
+		offset, err = x.fastReadField4(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -153,6 +168,11 @@ func (x *LoginResp) fastReadField2(buf []byte, _type int8) (offset int, err erro
 }
 
 func (x *LoginResp) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *LoginResp) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	var v SessionEntry
 	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
@@ -254,6 +274,16 @@ func (x *ForceOfflineResp) FastRead(buf []byte, _type int8, number int32) (offse
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -270,6 +300,21 @@ ReadFieldError:
 func (x *ForceOfflineResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
 	x.Success, offset, err = fastpb.ReadBool(buf, _type)
 	return offset, err
+}
+
+func (x *ForceOfflineResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *ForceOfflineResp) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	var v SessionEntry
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Sessions = append(x.Sessions, &v)
+	return offset, nil
 }
 
 func (x *QuerySessionRouteReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -460,6 +505,7 @@ func (x *LoginReq) FastWrite(buf []byte) (offset int) {
 	}
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
@@ -479,6 +525,14 @@ func (x *LoginReq) fastWriteField2(buf []byte) (offset int) {
 	return offset
 }
 
+func (x *LoginReq) fastWriteField3(buf []byte) (offset int) {
+	if x.DeviceDesc == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 3, x.GetDeviceDesc())
+	return offset
+}
+
 func (x *LoginResp) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -486,6 +540,7 @@ func (x *LoginResp) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
+	offset += x.fastWriteField4(buf[offset:])
 	return offset
 }
 
@@ -506,11 +561,19 @@ func (x *LoginResp) fastWriteField2(buf []byte) (offset int) {
 }
 
 func (x *LoginResp) fastWriteField3(buf []byte) (offset int) {
+	if x.Version == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetVersion())
+	return offset
+}
+
+func (x *LoginResp) fastWriteField4(buf []byte) (offset int) {
 	if x.Sessions == nil {
 		return offset
 	}
 	for i := range x.GetSessions() {
-		offset += fastpb.WriteMessage(buf[offset:], 3, x.GetSessions()[i])
+		offset += fastpb.WriteMessage(buf[offset:], 4, x.GetSessions()[i])
 	}
 	return offset
 }
@@ -577,6 +640,8 @@ func (x *ForceOfflineResp) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
@@ -585,6 +650,24 @@ func (x *ForceOfflineResp) fastWriteField1(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
+	return offset
+}
+
+func (x *ForceOfflineResp) fastWriteField2(buf []byte) (offset int) {
+	if x.Version == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetVersion())
+	return offset
+}
+
+func (x *ForceOfflineResp) fastWriteField3(buf []byte) (offset int) {
+	if x.Sessions == nil {
+		return offset
+	}
+	for i := range x.GetSessions() {
+		offset += fastpb.WriteMessage(buf[offset:], 3, x.GetSessions()[i])
+	}
 	return offset
 }
 
@@ -730,6 +813,7 @@ func (x *LoginReq) Size() (n int) {
 	}
 	n += x.sizeField1()
 	n += x.sizeField2()
+	n += x.sizeField3()
 	return n
 }
 
@@ -749,6 +833,14 @@ func (x *LoginReq) sizeField2() (n int) {
 	return n
 }
 
+func (x *LoginReq) sizeField3() (n int) {
+	if x.DeviceDesc == "" {
+		return n
+	}
+	n += fastpb.SizeString(3, x.GetDeviceDesc())
+	return n
+}
+
 func (x *LoginResp) Size() (n int) {
 	if x == nil {
 		return n
@@ -756,6 +848,7 @@ func (x *LoginResp) Size() (n int) {
 	n += x.sizeField1()
 	n += x.sizeField2()
 	n += x.sizeField3()
+	n += x.sizeField4()
 	return n
 }
 
@@ -776,11 +869,19 @@ func (x *LoginResp) sizeField2() (n int) {
 }
 
 func (x *LoginResp) sizeField3() (n int) {
+	if x.Version == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(3, x.GetVersion())
+	return n
+}
+
+func (x *LoginResp) sizeField4() (n int) {
 	if x.Sessions == nil {
 		return n
 	}
 	for i := range x.GetSessions() {
-		n += fastpb.SizeMessage(3, x.GetSessions()[i])
+		n += fastpb.SizeMessage(4, x.GetSessions()[i])
 	}
 	return n
 }
@@ -847,6 +948,8 @@ func (x *ForceOfflineResp) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
 	return n
 }
 
@@ -855,6 +958,24 @@ func (x *ForceOfflineResp) sizeField1() (n int) {
 		return n
 	}
 	n += fastpb.SizeBool(1, x.GetSuccess())
+	return n
+}
+
+func (x *ForceOfflineResp) sizeField2() (n int) {
+	if x.Version == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(2, x.GetVersion())
+	return n
+}
+
+func (x *ForceOfflineResp) sizeField3() (n int) {
+	if x.Sessions == nil {
+		return n
+	}
+	for i := range x.GetSessions() {
+		n += fastpb.SizeMessage(3, x.GetSessions()[i])
+	}
 	return n
 }
 
@@ -953,12 +1074,14 @@ var fieldIDToName_SessionEntry = map[int32]string{
 var fieldIDToName_LoginReq = map[int32]string{
 	1: "Username",
 	2: "Password",
+	3: "DeviceDesc",
 }
 
 var fieldIDToName_LoginResp = map[int32]string{
 	1: "Success",
 	2: "SessionId",
-	3: "Sessions",
+	3: "Version",
+	4: "Sessions",
 }
 
 var fieldIDToName_LogoutReq = map[int32]string{
@@ -976,6 +1099,8 @@ var fieldIDToName_ForceOfflineReq = map[int32]string{
 
 var fieldIDToName_ForceOfflineResp = map[int32]string{
 	1: "Success",
+	2: "Version",
+	3: "Sessions",
 }
 
 var fieldIDToName_QuerySessionRouteReq = map[int32]string{

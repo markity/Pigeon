@@ -1,6 +1,7 @@
 package distributelock
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -11,16 +12,18 @@ func TestLock(t *testing.T) {
 	cli := NewDisLockClient(redis.NewClient(&redis.Options{
 		Addr: "127.0.0.1:6379",
 	}), "tttttt/")
-	err := cli.Lock("123123")
+	l, err := cli.Lock("123123", time.Second*15)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	t.Logf("outer lock success")
 	go func() {
 		now := time.Now()
-		err := cli.Lock("123123")
+		l, err := cli.Lock("123123", time.Second*15)
 		if err != nil {
-			t.Logf(err.Error())
+			t.Error(err)
+			return
 		}
 		after := time.Now()
 		t.Logf("lock success, %v", after.Sub(now))
@@ -29,9 +32,31 @@ func TestLock(t *testing.T) {
 		} else {
 			t.Logf("ok")
 		}
-		cli.UnLock("123123")
+		err = l.UnLock()
+		if err != nil {
+			t.Error(err)
+		}
 	}()
 	time.Sleep(time.Second * 5)
-	cli.UnLock("123123")
+	err = l.UnLock()
+	if err != nil {
+		t.Error(err)
+	}
 	time.Sleep(time.Second)
+}
+
+func TestLock2(t *testing.T) {
+	cli := NewDisLockClient(redis.NewClient(&redis.Options{
+		Addr: "127.0.0.1:6379",
+	}), "tttttt/")
+	l, err := cli.Lock("123123", time.Second*5)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	time.Sleep(time.Second * 7)
+	err = l.UnLock()
+	if err == nil {
+		t.Error(errors.New("should have error"))
+	}
 }
