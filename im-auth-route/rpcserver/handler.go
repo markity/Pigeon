@@ -1,7 +1,9 @@
 package rpcserver
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"pigeon/im-auth-route/db"
 	"pigeon/im-auth-route/rds"
@@ -20,7 +22,8 @@ type RPCServer struct {
 	RPCContext
 }
 
-func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (res *imauthroute.LoginResp, err error) {
+func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (*imauthroute.LoginResp, error) {
+	fmt.Println("login")
 	lk, err := server.Rds.LockUsername(req.Username, time.Second*15)
 	if err != nil {
 		log.Printf("lock username error: %v\n", err)
@@ -38,8 +41,7 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 		return nil, err
 	}
 
-	// TODO: optimize me
-	if user == nil || string(db.ToSha256([]byte(req.Password))) != user.PasswordSha256 {
+	if user == nil || !bytes.Equal(db.ToSha256([]byte(req.Password)), user.PasswordSha256) {
 		return &imauthroute.LoginResp{
 			Code: imauthroute.LoginResp_AUTH_ERROR,
 		}, nil
@@ -59,31 +61,28 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 		return nil, err
 	}
 	if !result.Success {
-		res = &imauthroute.LoginResp{
+		return &imauthroute.LoginResp{
 			Code: imauthroute.LoginResp_DEVICE_NUM_LIMIT,
-		}
-		return res, nil
+		}, nil
 	}
 
 	sessions := make([]*imauthroute.SessionEntry, 0, len(result.AllSessions))
-	for _, v := range res.Sessions {
+	for _, v := range result.AllSessions {
 		sessions = append(sessions, &imauthroute.SessionEntry{
 			LoginAt:             v.LoginAt,
 			Username:            v.Username,
 			SessionId:           sessionId,
 			DeviceDesc:          v.DeviceDesc,
-			GwAdvertiseAddrPort: v.GwAdvertiseAddrPort,
+			GwAdvertiseAddrPort: v.GwAdAddrPort,
 		})
 	}
 
-	res = &imauthroute.LoginResp{
+	return &imauthroute.LoginResp{
 		Code:      imauthroute.LoginResp_SUCCESS,
 		SessionId: sessionId,
 		Version:   result.Version,
 		Sessions:  sessions,
-	}
-
-	return res, nil
+	}, nil
 }
 
 func (server *RPCServer) Logout(ctx context.Context, req *imauthroute.LogoutReq) (res *imauthroute.LogoutResp, err error) {

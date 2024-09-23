@@ -95,7 +95,7 @@ func (r *etcdRegistry) Register(info *registry.Info) error {
 
 		// 退出时尝试把之前注册的key都销毁, 不能销毁也没关系, etcd会保底的
 		defer func() {
-			r.etcdClient.Delete(context.Background(), fmt.Sprintf("kitex-registry/%s/%v", name, leaseId))
+			r.etcdClient.Delete(context.Background(), fmt.Sprintf("/pigeon-registry/%s/%v", name, leaseId))
 		}()
 
 		for {
@@ -189,7 +189,7 @@ func (r *etcdResolver) Target(ctx context.Context, target rpcinfo.EndpointInfo) 
 func (r *etcdResolver) Resolve(ctx context.Context, desc string) (discovery.Result, error) {
 	result := discovery.Result{}
 
-	resp, err := r.etcdClient.Get(ctx, fmt.Sprintf("kitex-registry/%s", desc), clientv3.WithPrefix())
+	resp, err := r.etcdClient.Get(ctx, fmt.Sprintf("/pigeon-registry/%s", desc), clientv3.WithPrefix())
 	if err != nil {
 		return result, err
 	}
