@@ -5,14 +5,12 @@ import (
 	distributelock "pigeon/common/distribute_lock"
 	"pigeon/kitex_gen/service/imauthroute"
 
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type RPCContext struct {
-	DB     *gorm.DB
-	RdsCli *redis.Client
-	Lock   *distributelock.DisLockClient
+	DB   *gorm.DB
+	Lock *distributelock.DisLockClient
 }
 
 type RPCServer struct {

@@ -64,9 +64,8 @@ func main() {
 	}
 	server := imauthroute.NewServer(&rpcserver.RPCServer{
 		RPCContext: rpcserver.RPCContext{
-			DB:     db,
-			RdsCli: rdsCli,
-			Lock:   distributelock.NewDisLockClient(rdsCli, cfg.RedisConfig.KeyPrefix+"lock/"),
+			DB:   db,
+			Lock: distributelock.NewDisLockClient(rdsCli, cfg.RedisConfig.KeyPrefix+"lock/"),
 		},
 	}, server.WithRegistry(reg), server.WithServiceAddr(listenAddr),
 		server.WithRegistryInfo(&registry.Info{

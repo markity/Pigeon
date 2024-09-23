@@ -9,7 +9,7 @@ message SessionEntry {
     string username = 2;
     string session_id = 3;
     string device_desc = 4;
-    string advertiseAddrPort = 5;
+    string gwAdvertiseAddrPort = 5;
 };
 
 message LoginReq {
