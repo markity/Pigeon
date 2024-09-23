@@ -5,7 +5,7 @@ package imauthroute;
 option go_package = "service/imauthroute";
 
 message SessionEntry {
-    int64 LoginAt = 1;
+    int64 login_at = 1;
     string username = 2;
     string session_id = 3;
     string device_desc = 4;
@@ -13,15 +13,25 @@ message SessionEntry {
 };
 
 message LoginReq {
-  string username = 1;
-  string password = 2;
+  string gwAdvertiseAddrPort = 1;
+  string username = 2;
+  string password = 3;
   // 多设备管理, 用来描述设备信息的字符串, 业务方自行上传
-  string device_desc =3;
+  string device_desc = 4;
 }
 
 message LoginResp {
-  bool success = 1;
-  // 仅当success==true时才有意义
+  enum LoginRespCode {
+    // 成功
+    SUCCESS = 0;
+    // 用户不存在
+    AUTH_ERROR = 1;
+    // 限制设备数量的情况
+    DEVICE_NUM_LIMIT = 2;
+  };
+  LoginRespCode code = 1;
+
+  // 仅当SUCCESS时才有意义
   string session_id = 2;
   // 用来做多设备管理的, 通过version避免乱序
   int64 version = 3;
@@ -34,11 +44,12 @@ message LogoutReq {
 }
 
 message LogoutResp {
-  // 如果不存在这个登录项, 那么就false
+  // 如果不存在这个登录项, 那么就false, 理论上不会出现
+  // 因为im-gateway是有状态的
   bool success = 1;
 }
 
-// 踢人请求
+// 踢人请求, 不能踢出自己, gateway会做检查, 理论不会出现self_session_id == remote_session_id的情况
 message ForceOfflineReq {
   string self_session_id = 1;
   string remote_session_id = 2;
@@ -47,7 +58,7 @@ message ForceOfflineReq {
 message ForceOfflineResp {
   // 是否成功踢出
   bool success = 1;
-  // 踢出ok后会返回当前此用户的在线全量
+  // 返回当前此用户的在线全量, 踢出成功与否都返回
   int64 version = 2;
   // 会包括自身
   repeated SessionEntry sessions = 3;

@@ -32,6 +32,7 @@ type RedisConfig struct {
 
 type AppConfig struct {
 	RPCAdvertiseAddrport string `yaml:"rpc-advertise-addrport"`
+	DeviceNumLimit       int    `yaml:"device-num-limit"`
 }
 
 type Config struct {

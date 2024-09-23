@@ -5,9 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"net"
-	distributelock "pigeon/common/distribute_lock"
 	regetcd "pigeon/common/kitex-registry/etcd"
 	"pigeon/im-auth-route/config"
+	"pigeon/im-auth-route/db"
+	"pigeon/im-auth-route/db/model"
+	"pigeon/im-auth-route/rds"
 	"pigeon/im-auth-route/rpcserver"
 	"pigeon/kitex_gen/service/imauthroute/imauthroute"
 
@@ -40,8 +42,11 @@ func main() {
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.MysqlConfig.User, cfg.MysqlConfig.Pwd, cfg.MysqlConfig.Host, cfg.MysqlConfig.Port, cfg.MysqlConfig.Db)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
+		panic(err)
+	}
+	if err := model.Migrate(gormDB); err != nil {
 		panic(err)
 	}
 
@@ -64,8 +69,8 @@ func main() {
 	}
 	server := imauthroute.NewServer(&rpcserver.RPCServer{
 		RPCContext: rpcserver.RPCContext{
-			DB:   db,
-			Lock: distributelock.NewDisLockClient(rdsCli, cfg.RedisConfig.KeyPrefix+"lock/"),
+			DB:  db.NewDB(gormDB),
+			Rds: rds.NewRdsAction(rdsCli, cfg.RedisConfig.KeyPrefix, cfg.AppConfig.DeviceNumLimit),
 		},
 	}, server.WithRegistry(reg), server.WithServiceAddr(listenAddr),
 		server.WithRegistryInfo(&registry.Info{
