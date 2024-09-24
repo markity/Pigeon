@@ -5,6 +5,7 @@ package imgateway
 import (
 	fmt "fmt"
 	fastpb "github.com/cloudwego/fastpb"
+	base "pigeon/kitex_gen/service/base"
 )
 
 var (
@@ -152,6 +153,81 @@ func (x *OtherDeviceKickResp) fastReadField1(buf []byte, _type int8) (offset int
 	return offset, err
 }
 
+func (x *BroadcastDeviceInfoReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_BroadcastDeviceInfoReq[number], err)
+}
+
+func (x *BroadcastDeviceInfoReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.SessionId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *BroadcastDeviceInfoReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *BroadcastDeviceInfoReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	var v base.SessionEntry
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Sessions = append(x.Sessions, &v)
+	return offset, nil
+}
+
+func (x *BroadcastDeviceInfoResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_BroadcastDeviceInfoResp[number], err)
+}
+
+func (x *BroadcastDeviceInfoResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.Success, offset, err = fastpb.ReadBool(buf, _type)
+	return offset, err
+}
+
 func (x *PushMessageReq) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -245,6 +321,58 @@ func (x *OtherDeviceKickResp) FastWrite(buf []byte) (offset int) {
 }
 
 func (x *OtherDeviceKickResp) fastWriteField1(buf []byte) (offset int) {
+	if !x.Success {
+		return offset
+	}
+	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
+	return offset
+}
+
+func (x *BroadcastDeviceInfoReq) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
+	return offset
+}
+
+func (x *BroadcastDeviceInfoReq) fastWriteField1(buf []byte) (offset int) {
+	if x.SessionId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetSessionId())
+	return offset
+}
+
+func (x *BroadcastDeviceInfoReq) fastWriteField2(buf []byte) (offset int) {
+	if x.Version == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetVersion())
+	return offset
+}
+
+func (x *BroadcastDeviceInfoReq) fastWriteField3(buf []byte) (offset int) {
+	if x.Sessions == nil {
+		return offset
+	}
+	for i := range x.GetSessions() {
+		offset += fastpb.WriteMessage(buf[offset:], 3, x.GetSessions()[i])
+	}
+	return offset
+}
+
+func (x *BroadcastDeviceInfoResp) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	return offset
+}
+
+func (x *BroadcastDeviceInfoResp) fastWriteField1(buf []byte) (offset int) {
 	if !x.Success {
 		return offset
 	}
@@ -352,6 +480,58 @@ func (x *OtherDeviceKickResp) sizeField1() (n int) {
 	return n
 }
 
+func (x *BroadcastDeviceInfoReq) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
+	return n
+}
+
+func (x *BroadcastDeviceInfoReq) sizeField1() (n int) {
+	if x.SessionId == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetSessionId())
+	return n
+}
+
+func (x *BroadcastDeviceInfoReq) sizeField2() (n int) {
+	if x.Version == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(2, x.GetVersion())
+	return n
+}
+
+func (x *BroadcastDeviceInfoReq) sizeField3() (n int) {
+	if x.Sessions == nil {
+		return n
+	}
+	for i := range x.GetSessions() {
+		n += fastpb.SizeMessage(3, x.GetSessions()[i])
+	}
+	return n
+}
+
+func (x *BroadcastDeviceInfoResp) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	return n
+}
+
+func (x *BroadcastDeviceInfoResp) sizeField1() (n int) {
+	if !x.Success {
+		return n
+	}
+	n += fastpb.SizeBool(1, x.GetSuccess())
+	return n
+}
+
 var fieldIDToName_PushMessageReq = map[int32]string{
 	1: "SessionId",
 	2: "PacketType",
@@ -371,3 +551,15 @@ var fieldIDToName_OtherDeviceKickReq = map[int32]string{
 var fieldIDToName_OtherDeviceKickResp = map[int32]string{
 	1: "Success",
 }
+
+var fieldIDToName_BroadcastDeviceInfoReq = map[int32]string{
+	1: "SessionId",
+	2: "Version",
+	3: "Sessions",
+}
+
+var fieldIDToName_BroadcastDeviceInfoResp = map[int32]string{
+	1: "Success",
+}
+
+var _ = base.File_base_base_proto

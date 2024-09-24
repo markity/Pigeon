@@ -13,6 +13,7 @@ import (
 type Client interface {
 	PushMessage(ctx context.Context, Req *imgateway.PushMessageReq, callOptions ...callopt.Option) (r *imgateway.PushMessageResp, err error)
 	OtherDeviceKick(ctx context.Context, Req *imgateway.OtherDeviceKickReq, callOptions ...callopt.Option) (r *imgateway.OtherDeviceKickResp, err error)
+	BroadcastDeviceInfo(ctx context.Context, Req *imgateway.BroadcastDeviceInfoReq, callOptions ...callopt.Option) (r *imgateway.BroadcastDeviceInfoResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -52,4 +53,9 @@ func (p *kIMGatewayClient) PushMessage(ctx context.Context, Req *imgateway.PushM
 func (p *kIMGatewayClient) OtherDeviceKick(ctx context.Context, Req *imgateway.OtherDeviceKickReq, callOptions ...callopt.Option) (r *imgateway.OtherDeviceKickResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.OtherDeviceKick(ctx, Req)
+}
+
+func (p *kIMGatewayClient) BroadcastDeviceInfo(ctx context.Context, Req *imgateway.BroadcastDeviceInfoReq, callOptions ...callopt.Option) (r *imgateway.BroadcastDeviceInfoResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.BroadcastDeviceInfo(ctx, Req)
 }

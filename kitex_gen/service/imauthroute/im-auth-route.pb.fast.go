@@ -5,77 +5,13 @@ package imauthroute
 import (
 	fmt "fmt"
 	fastpb "github.com/cloudwego/fastpb"
+	base "pigeon/kitex_gen/service/base"
 )
 
 var (
 	_ = fmt.Errorf
 	_ = fastpb.Skip
 )
-
-func (x *SessionEntry) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
-	switch number {
-	case 1:
-		offset, err = x.fastReadField1(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 3:
-		offset, err = x.fastReadField3(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 4:
-		offset, err = x.fastReadField4(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 5:
-		offset, err = x.fastReadField5(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	default:
-		offset, err = fastpb.Skip(buf, _type, number)
-		if err != nil {
-			goto SkipFieldError
-		}
-	}
-	return offset, nil
-SkipFieldError:
-	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
-ReadFieldError:
-	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_SessionEntry[number], err)
-}
-
-func (x *SessionEntry) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.LoginAt, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *SessionEntry) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.Username, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
-
-func (x *SessionEntry) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.SessionId, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
-
-func (x *SessionEntry) fastReadField4(buf []byte, _type int8) (offset int, err error) {
-	x.DeviceDesc, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
-
-func (x *SessionEntry) fastReadField5(buf []byte, _type int8) (offset int, err error) {
-	x.GwAdvertiseAddrPort, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
 
 func (x *LoginReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
@@ -188,7 +124,7 @@ func (x *LoginResp) fastReadField3(buf []byte, _type int8) (offset int, err erro
 }
 
 func (x *LoginResp) fastReadField4(buf []byte, _type int8) (offset int, err error) {
-	var v SessionEntry
+	var v base.SessionEntry
 	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
 		return offset, err
@@ -348,7 +284,7 @@ func (x *ForceOfflineResp) fastReadField2(buf []byte, _type int8) (offset int, e
 }
 
 func (x *ForceOfflineResp) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	var v SessionEntry
+	var v base.SessionEntry
 	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
 		return offset, err
@@ -413,7 +349,7 @@ func (x *QuerySessionRouteResp) fastReadField1(buf []byte, _type int8) (offset i
 }
 
 func (x *QuerySessionRouteResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	var v SessionEntry
+	var v base.SessionEntry
 	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
 		return offset, err
@@ -468,65 +404,13 @@ ReadFieldError:
 }
 
 func (x *QueryUserRouteResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	var v SessionEntry
+	var v base.SessionEntry
 	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
 		return offset, err
 	}
 	x.Routes = append(x.Routes, &v)
 	return offset, nil
-}
-
-func (x *SessionEntry) FastWrite(buf []byte) (offset int) {
-	if x == nil {
-		return offset
-	}
-	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
-	offset += x.fastWriteField3(buf[offset:])
-	offset += x.fastWriteField4(buf[offset:])
-	offset += x.fastWriteField5(buf[offset:])
-	return offset
-}
-
-func (x *SessionEntry) fastWriteField1(buf []byte) (offset int) {
-	if x.LoginAt == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetLoginAt())
-	return offset
-}
-
-func (x *SessionEntry) fastWriteField2(buf []byte) (offset int) {
-	if x.Username == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetUsername())
-	return offset
-}
-
-func (x *SessionEntry) fastWriteField3(buf []byte) (offset int) {
-	if x.SessionId == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 3, x.GetSessionId())
-	return offset
-}
-
-func (x *SessionEntry) fastWriteField4(buf []byte) (offset int) {
-	if x.DeviceDesc == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 4, x.GetDeviceDesc())
-	return offset
-}
-
-func (x *SessionEntry) fastWriteField5(buf []byte) (offset int) {
-	if x.GwAdvertiseAddrPort == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 5, x.GetGwAdvertiseAddrPort())
-	return offset
 }
 
 func (x *LoginReq) FastWrite(buf []byte) (offset int) {
@@ -803,58 +687,6 @@ func (x *QueryUserRouteResp) fastWriteField1(buf []byte) (offset int) {
 	return offset
 }
 
-func (x *SessionEntry) Size() (n int) {
-	if x == nil {
-		return n
-	}
-	n += x.sizeField1()
-	n += x.sizeField2()
-	n += x.sizeField3()
-	n += x.sizeField4()
-	n += x.sizeField5()
-	return n
-}
-
-func (x *SessionEntry) sizeField1() (n int) {
-	if x.LoginAt == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(1, x.GetLoginAt())
-	return n
-}
-
-func (x *SessionEntry) sizeField2() (n int) {
-	if x.Username == "" {
-		return n
-	}
-	n += fastpb.SizeString(2, x.GetUsername())
-	return n
-}
-
-func (x *SessionEntry) sizeField3() (n int) {
-	if x.SessionId == "" {
-		return n
-	}
-	n += fastpb.SizeString(3, x.GetSessionId())
-	return n
-}
-
-func (x *SessionEntry) sizeField4() (n int) {
-	if x.DeviceDesc == "" {
-		return n
-	}
-	n += fastpb.SizeString(4, x.GetDeviceDesc())
-	return n
-}
-
-func (x *SessionEntry) sizeField5() (n int) {
-	if x.GwAdvertiseAddrPort == "" {
-		return n
-	}
-	n += fastpb.SizeString(5, x.GetGwAdvertiseAddrPort())
-	return n
-}
-
 func (x *LoginReq) Size() (n int) {
 	if x == nil {
 		return n
@@ -1129,14 +961,6 @@ func (x *QueryUserRouteResp) sizeField1() (n int) {
 	return n
 }
 
-var fieldIDToName_SessionEntry = map[int32]string{
-	1: "LoginAt",
-	2: "Username",
-	3: "SessionId",
-	4: "DeviceDesc",
-	5: "GwAdvertiseAddrPort",
-}
-
 var fieldIDToName_LoginReq = map[int32]string{
 	1: "GwAdvertiseAddrPort",
 	2: "Username",
@@ -1188,3 +1012,5 @@ var fieldIDToName_QueryUserRouteReq = map[int32]string{
 var fieldIDToName_QueryUserRouteResp = map[int32]string{
 	1: "Routes",
 }
+
+var _ = base.File_base_base_proto

@@ -4,6 +4,8 @@ syntax = "proto3";
 package imgateway;
 option go_package = "service/imgateway";
 
+import "base/base.proto";
+
 message PushMessageReq {
   string session_id = 1;
   string packet_type = 2;
@@ -37,7 +39,20 @@ message OtherDeviceKickResp {
   bool success = 1;
 };
 
+// 广播设备信息
+message BroadcastDeviceInfoReq {
+  string session_id = 1;
+  int64 version = 2;
+  repeated base.SessionEntry sessions = 3;
+};
+
+// 写到buffer就算成功
+message BroadcastDeviceInfoResp {
+  bool success = 1;
+};
+
 service IMGateway {
   rpc PushMessage(PushMessageReq) returns (PushMessageResp);
   rpc OtherDeviceKick(OtherDeviceKickReq) returns (OtherDeviceKickResp);
+  rpc BroadcastDeviceInfo(BroadcastDeviceInfoReq) returns (BroadcastDeviceInfoResp);
 }

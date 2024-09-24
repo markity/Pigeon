@@ -26,3 +26,8 @@ func (server *RPCServer) OtherDeviceKick(ctx context.Context, req *imgateway.Oth
 	res *imgateway.OtherDeviceKickResp, err error) {
 	return &imgateway.OtherDeviceKickResp{}, nil
 }
+
+func (server *RPCContext) BroadcastDeviceInfo(ctx context.Context, req *imgateway.BroadcastDeviceInfoReq) (
+	res *imgateway.BroadcastDeviceInfoResp, err error) {
+	return &imgateway.BroadcastDeviceInfoResp{}, nil
+}

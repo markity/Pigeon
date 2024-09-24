@@ -14,43 +14,70 @@ const (
 
 	PacketTypeC2SLogout
 	PacketTypeS2CLogoutResp
+
+	PacketTypeC2SKickOhterDevice
+	PackDataTypeS2CKickOhterDeviceResp
 )
 
-type HeartbeatPacket struct{}
+type WithEchoCode struct {
+	code string
+}
+
+func (w *WithEchoCode) EchoCode() string {
+	return w.code
+}
+
+func (w *WithEchoCode) SetEchoCode(code string) {
+	w.code = code
+}
+
+type WithEchoCoder interface {
+	EchoCode() string
+	SetEchoCode(code string)
+}
+
+type HeartbeatPacket struct {
+	WithEchoCode
+}
 
 type C2SLoginPacket struct {
+	WithEchoCode
 	Username   string `json:"username"`
 	Password   string `json:"password"`
 	DeviceDesc string `json:"device_desc"`
 }
 type S2CLoginRespPacket struct {
+	WithEchoCode
 	Username           string                `json:"username"`    // echo username
 	Success            bool                  `json:"success"`     // 是否登录成功
 	SessionId          *string               `json:"session_id"`  // 只有当success == true时才有值
 	DeviceSessionEntry []*DeviceSessionEntry `json:"all_devices"` // 所有在线的设备
 }
 
-type C2SLogoutPacket struct{}
+type C2SLogoutPacket struct {
+	WithEchoCode
+}
 type S2CLogoutRespPacket struct {
+	WithEchoCode
 	Success  bool    `json:"success"`  // success == false只有一种可能, 就是当前状态为未登录
 	Username *string `json:"username"` // 只有当success == true时才有值
 }
 
 // 此包用来踢下线其它设备, 不能踢下线自身
 type C2SKickOhterDevicePacket struct {
-	// echo code是用来帮忙定位请求的, resp会携带一样的code给客户端
-	EchoCode  string `json:"echo_code"`
+	WithEchoCode
 	SessionId string `json:"session_id"`
 }
 
 type S2CKickOhterDeviceRespPacket struct {
-	EchoCode   string                `json:"echo_code"`
+	WithEchoCode
 	KickOK     bool                  `json:"kick_ok"`
 	Version    int64                 `json:"version"`
 	NewDevices []*DeviceSessionEntry `json:"new_devices"`
 }
 
 type DeviceSessionEntry struct {
+	WithEchoCode
 	SessionId  string `json:"session_id"`
 	LoginAt    int64  `json:"login_at"`
 	DeviceDesc string `json:"device_desc"`
@@ -58,6 +85,7 @@ type DeviceSessionEntry struct {
 
 // 广播其它设备的信息, 做多设备管理
 type S2CDeviceInfoBroadcastPacket struct {
+	WithEchoCode
 	Username string                `json:"username"`
 	Version  int64                 `json:"version"`
 	Devices  []*DeviceSessionEntry `json:"devices"`
@@ -66,6 +94,8 @@ type S2CDeviceInfoBroadcastPacket struct {
 type jsonHeader struct {
 	PacketType string      `json:"packet_type"`
 	Data       interface{} `json:"data"`
+	// 用户帮助客户端辅助定位请求的response
+	EchoCode string `json:"echo_code"`
 }
 
 func dataToPacketTypeInString(data interface{}) (string, bool) {
@@ -95,6 +125,7 @@ func MustEncodePacket(data interface{}) []byte {
 	hd := jsonHeader{
 		PacketType: packType,
 		Data:       data,
+		EchoCode:   data.(WithEchoCoder).EchoCode(),
 	}
 
 	bs, err := json.Marshal(hd)
@@ -115,15 +146,18 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 	switch header.PacketType {
 	case "login":
 		header.Data = new(C2SLoginPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 		if !IsUsernameValid(header.Data.(*C2SLoginPacket).Username) || !IsPasswordValid(header.Data.(*C2SLoginPacket).Password) {
 			return nil, false
 		}
 	case "logout":
 		header.Data = new(C2SLogoutPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	case "heartbeat":
 		header.Data = new(HeartbeatPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	}
 	if err != nil {
@@ -143,12 +177,15 @@ func ParseS2CPacket(data []byte) (interface{}, bool) {
 	switch header.PacketType {
 	case "login-resp":
 		header.Data = new(S2CLoginRespPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	case "logout-resp":
 		header.Data = new(S2CLogoutRespPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	case "heartbeat":
 		header.Data = new(HeartbeatPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	}
 

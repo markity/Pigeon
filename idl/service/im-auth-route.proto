@@ -4,13 +4,7 @@ syntax = "proto3";
 package imauthroute;
 option go_package = "service/imauthroute";
 
-message SessionEntry {
-    int64 login_at = 1;
-    string username = 2;
-    string session_id = 3;
-    string device_desc = 4;
-    string gwAdvertiseAddrPort = 5;
-};
+import "base/base.proto";
 
 message LoginReq {
   string gwAdvertiseAddrPort = 1;
@@ -36,7 +30,7 @@ message LoginResp {
   // 用来做多设备管理的, 通过version避免乱序
   int64 version = 3;
   // 会包括自身
-  repeated SessionEntry sessions = 4;
+  repeated base.SessionEntry sessions = 4;
 }
 
 message LogoutReq {
@@ -69,7 +63,7 @@ message ForceOfflineResp {
   // 返回当前此用户的在线全量, 踢出成功与否都返回
   int64 version = 2;
   // 会包括自身
-  repeated SessionEntry sessions = 3;
+  repeated base.SessionEntry sessions = 3;
 }
 
 message QuerySessionRouteReq {
@@ -79,7 +73,7 @@ message QuerySessionRouteReq {
 message QuerySessionRouteResp {
   bool success = 1;
   // success == true时后面的数据才有效
-  SessionEntry route = 2;
+  base.SessionEntry route = 2;
 };
 
 message QueryUserRouteReq {
@@ -87,7 +81,7 @@ message QueryUserRouteReq {
 };
 
 message QueryUserRouteResp {
-  repeated SessionEntry routes = 1;
+  repeated base.SessionEntry routes = 1;
 };
 
 service IMAuthRoute {

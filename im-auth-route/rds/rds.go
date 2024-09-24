@@ -3,9 +3,11 @@ package rds
 import (
 	"context"
 	"encoding/json"
-	distributelock "pigeon/common/distribute_lock"
-	"pigeon/kitex_gen/service/imauthroute"
 	"time"
+
+	distributelock "pigeon/common/distribute_lock"
+	"pigeon/kitex_gen/service/base"
+	"pigeon/kitex_gen/service/imauthroute"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -45,7 +47,7 @@ func (act *RdsAction) LockUsername(username string, ttl time.Duration) (*distrib
 type LoginResult struct {
 	Success     bool
 	Version     int64
-	AllSessions []*imauthroute.SessionEntry
+	AllSessions []*base.SessionEntry
 }
 
 /*
@@ -69,7 +71,7 @@ key: prefix/data/route/session/{sessionId}
 val: json编码
 */
 
-func (act *RdsAction) Login(session *imauthroute.SessionEntry) (*LoginResult, error) {
+func (act *RdsAction) Login(session *base.SessionEntry) (*LoginResult, error) {
 	script := `
 -- Keys[1]: username
 -- Keys[2]: sessionId
@@ -151,9 +153,9 @@ return result
 	}
 
 	version, _ := result[1].(int64)
-	sessions := make([]*imauthroute.SessionEntry, 0, len(result[2:]))
+	sessions := make([]*base.SessionEntry, 0, len(result[2:]))
 	for _, v := range result[2:] {
-		var entry imauthroute.SessionEntry
+		var entry base.SessionEntry
 		err := json.Unmarshal([]byte(v.(string)), &entry)
 		if err != nil {
 			return nil, err
@@ -173,7 +175,7 @@ type LogoutResult struct {
 	// 理论上不会失败, 这里理论上肯定是true, 因为gateway是有登录状态的
 	Success     bool
 	Version     int64
-	AllSessions []*imauthroute.SessionEntry
+	AllSessions []*base.SessionEntry
 }
 
 /*
@@ -243,9 +245,9 @@ return result
 	}
 
 	version, _ := results[1].(int64)
-	sessions := make([]*imauthroute.SessionEntry, 0, len(results[2:]))
+	sessions := make([]*base.SessionEntry, 0, len(results[2:]))
 	for _, v := range results[2:] {
-		var entry imauthroute.SessionEntry
+		var entry base.SessionEntry
 		err := json.Unmarshal([]byte(v.(string)), &entry)
 		if err != nil {
 			return nil, err
@@ -264,7 +266,7 @@ return result
 type ForceOfflineResult struct {
 	Code        imauthroute.ForceOfflineResp_ForceOfflineRespCode
 	Version     int64
-	AllSessions map[string]*imauthroute.SessionEntry
+	AllSessions map[string]*base.SessionEntry
 }
 
 func (act *RdsAction) ForceOffline(username string, fromSessionId string, targetSessionId string) (*ForceOfflineResult, error) {
@@ -327,9 +329,9 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 
 	code := results[0].(int64)
 	version, _ := results[1].(int64)
-	sessions := make(map[string]*imauthroute.SessionEntry)
+	sessions := make(map[string]*base.SessionEntry)
 	for _, v := range results[2:] {
-		var entry imauthroute.SessionEntry
+		var entry base.SessionEntry
 		err := json.Unmarshal([]byte(v.(string)), &entry)
 		if err != nil {
 			return nil, err
@@ -346,7 +348,7 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 }
 
 // 如果sessionId不存在, 返回nil, nil
-func (act *RdsAction) QuerySessionRoute(sessionId string) (*imauthroute.SessionEntry, error) {
+func (act *RdsAction) QuerySessionRoute(sessionId string) (*base.SessionEntry, error) {
 	script := `
 	-- Keys[1]: sessionId
 	-- Keys[2]: prefix
@@ -368,7 +370,7 @@ func (act *RdsAction) QuerySessionRoute(sessionId string) (*imauthroute.SessionE
 	}
 
 	s := cmd.String()
-	var entry imauthroute.SessionEntry
+	var entry base.SessionEntry
 	if err := json.Unmarshal([]byte(s), &entry); err != nil {
 		return nil, err
 	}
@@ -376,7 +378,7 @@ func (act *RdsAction) QuerySessionRoute(sessionId string) (*imauthroute.SessionE
 }
 
 // 如果sessionId不存在, 返回nil, nil
-func (act *RdsAction) QueryUserRoute(username string) ([]*imauthroute.SessionEntry, error) {
+func (act *RdsAction) QueryUserRoute(username string) ([]*base.SessionEntry, error) {
 	script := `
 	-- Keys[1]: username
 	-- Keys[2]: prefix
@@ -405,9 +407,9 @@ func (act *RdsAction) QueryUserRoute(username string) ([]*imauthroute.SessionEnt
 		return nil, err
 	}
 
-	var result []*imauthroute.SessionEntry
+	var result []*base.SessionEntry
 	for _, entry := range s {
-		var ent imauthroute.SessionEntry
+		var ent base.SessionEntry
 		if err := json.Unmarshal([]byte(entry.(string)), &ent); err != nil {
 			return nil, err
 		}

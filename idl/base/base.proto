@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package base;
+option go_package = "service/base";
+
+message SessionEntry {
+    int64 login_at = 1;
+    string username = 2;
+    string session_id = 3;
+    string device_desc = 4;
+    string gwAdvertiseAddrPort = 5;
+};

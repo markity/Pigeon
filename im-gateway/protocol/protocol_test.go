@@ -5,8 +5,29 @@ import (
 )
 
 func TestProtocol(t *testing.T) {
-	MustEncodePacket(&C2SLoginPacket{
-		Username: "markity",
-		Password: "password",
-	})
+	p := &C2SLoginPacket{
+		Username:   "markity",
+		Password:   "password",
+		DeviceDesc: "Android 5.1",
+	}
+	p.SetEchoCode("123123")
+
+	b, ok := ParseC2SPacket(MustEncodePacket(p))
+	if !ok {
+		t.Fatalf("parse packet failed")
+	}
+
+	bb := b.(*C2SLoginPacket)
+	if bb.Username != p.Username {
+		t.Fatalf("username not match: %s", bb.Username)
+	}
+	if bb.Password != p.Password {
+		t.Fatalf("password not match: %s", bb.Password)
+	}
+	if bb.DeviceDesc != p.DeviceDesc {
+		t.Fatalf("device desc not match: %s", bb.DeviceDesc)
+	}
+	if bb.EchoCode() != p.EchoCode() {
+		t.Fatalf("echo code not match: %s", bb.EchoCode())
+	}
 }

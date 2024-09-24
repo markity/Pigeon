@@ -7,6 +7,7 @@ import (
 	"log"
 	"pigeon/im-auth-route/db"
 	"pigeon/im-auth-route/rds"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imauthroute"
 	"time"
 
@@ -49,7 +50,7 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 
 	// redis尝试登录
 	sessionId := uuid.New().String()
-	result, err := server.Rds.Login(&imauthroute.SessionEntry{
+	result, err := server.Rds.Login(&base.SessionEntry{
 		LoginAt:             time.Now().Unix(),
 		Username:            req.Username,
 		SessionId:           sessionId,
@@ -66,9 +67,9 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 		}, nil
 	}
 
-	sessions := make([]*imauthroute.SessionEntry, 0, len(result.AllSessions))
+	sessions := make([]*base.SessionEntry, 0, len(result.AllSessions))
 	for _, v := range result.AllSessions {
-		sessions = append(sessions, &imauthroute.SessionEntry{
+		sessions = append(sessions, &base.SessionEntry{
 			LoginAt:             v.LoginAt,
 			Username:            v.Username,
 			SessionId:           sessionId,
@@ -104,7 +105,7 @@ func (server *RPCServer) ForceOffline(ctx context.Context, req *imauthroute.Forc
 		log.Printf("redis force offline error: %v\n", err)
 		return nil, err
 	}
-	s := make([]*imauthroute.SessionEntry, 0, len(result.AllSessions))
+	s := make([]*base.SessionEntry, 0, len(result.AllSessions))
 	for _, v := range result.AllSessions {
 		s = append(s, v)
 	}
@@ -127,7 +128,7 @@ func (server *RPCServer) QuerySessionRoute(ctx context.Context, req *imauthroute
 	}
 	return &imauthroute.QuerySessionRouteResp{
 		Success: true,
-		Route: &imauthroute.SessionEntry{
+		Route: &base.SessionEntry{
 			LoginAt:             result.LoginAt,
 			Username:            result.Username,
 			SessionId:           result.SessionId,
