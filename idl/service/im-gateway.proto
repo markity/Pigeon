@@ -20,7 +20,10 @@ message PushMessageReq {
   bytes data = 3;
 }
 
-message PushMessageResp {};
+// 如果写到buffer就算成功
+message PushMessageResp {
+  bool success = 1;
+};
 
 // 其它设备踢出的请求, 踢出后, 长连接的状态变为unlogin
 message OtherDeviceKickReq {
@@ -29,7 +32,10 @@ message OtherDeviceKickReq {
   string to_session = 3;
 };
 
-message OtherDeviceKickResp {};
+// 如果状态为login, login则success
+message OtherDeviceKickResp {
+  bool success = 1;
+};
 
 service IMGateway {
   rpc PushMessage(PushMessageReq) returns (PushMessageResp);

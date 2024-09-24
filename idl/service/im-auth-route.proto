@@ -41,6 +41,7 @@ message LoginResp {
 
 message LogoutReq {
   string session_id = 1;
+  string username = 2;
 }
 
 message LogoutResp {
@@ -51,13 +52,20 @@ message LogoutResp {
 
 // 踢人请求, 不能踢出自己, gateway会做检查, 理论不会出现self_session_id == remote_session_id的情况
 message ForceOfflineReq {
-  string self_session_id = 1;
-  string remote_session_id = 2;
+  string username = 1;
+  string self_session_id = 2;
+  string remote_session_id = 3;
 }
 
 message ForceOfflineResp {
+  // 理论上, 不会出现1错误代码, 因为gateway是有状态的
+  enum ForceOfflineRespCode {
+    SUCCESS = 0;
+    FROM_SESSION_NOT_FOUND = 1;
+    TO_SESSION_NOT_FOUND = 2;
+  };
   // 是否成功踢出
-  bool success = 1;
+  ForceOfflineRespCode code = 1;
   // 返回当前此用户的在线全量, 踢出成功与否都返回
   int64 version = 2;
   // 会包括自身
@@ -79,8 +87,7 @@ message QueryUserRouteReq {
 };
 
 message QueryUserRouteResp {
-  bool success = 1;
-  repeated SessionEntry routes = 2;
+  repeated SessionEntry routes = 1;
 };
 
 service IMAuthRoute {

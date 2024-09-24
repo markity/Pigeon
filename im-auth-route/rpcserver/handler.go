@@ -49,12 +49,12 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 
 	// redis尝试登录
 	sessionId := uuid.New().String()
-	result, err := server.Rds.Login(&rds.SessionEntry{
-		LoginAt:      time.Now().Unix(),
-		Username:     req.Username,
-		SessionId:    sessionId,
-		DeviceDesc:   req.DeviceDesc,
-		GwAdAddrPort: req.GwAdvertiseAddrPort,
+	result, err := server.Rds.Login(&imauthroute.SessionEntry{
+		LoginAt:             time.Now().Unix(),
+		Username:            req.Username,
+		SessionId:           sessionId,
+		DeviceDesc:          req.DeviceDesc,
+		GwAdvertiseAddrPort: req.GwAdvertiseAddrPort,
 	})
 	if err != nil {
 		log.Printf("redis login error: %v\n", err)
@@ -73,7 +73,7 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 			Username:            v.Username,
 			SessionId:           sessionId,
 			DeviceDesc:          v.DeviceDesc,
-			GwAdvertiseAddrPort: v.GwAdAddrPort,
+			GwAdvertiseAddrPort: v.GwAdvertiseAddrPort,
 		})
 	}
 
@@ -85,15 +85,64 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 	}, nil
 }
 
+// 当用户主动下线 或者 网关处连接断开调用, 用来下线路由, im-auth-route会直接删除路由
 func (server *RPCServer) Logout(ctx context.Context, req *imauthroute.LogoutReq) (res *imauthroute.LogoutResp, err error) {
-	return nil, nil
+	result, err := server.Rds.Logout(req.Username, req.SessionId)
+	if err != nil {
+		log.Printf("redis logout error: %v\n", err)
+		return nil, err
+	}
+	return &imauthroute.LogoutResp{
+		Success: result.Success,
+	}, nil
 }
+
+// 用户使用踢人命令时调用此接口
 func (server *RPCServer) ForceOffline(ctx context.Context, req *imauthroute.ForceOfflineReq) (res *imauthroute.ForceOfflineResp, err error) {
-	return nil, nil
+	result, err := server.Rds.ForceOffline(req.Username, req.SelfSessionId, req.RemoteSessionId)
+	if err != nil {
+		log.Printf("redis force offline error: %v\n", err)
+		return nil, err
+	}
+	s := make([]*imauthroute.SessionEntry, 0, len(result.AllSessions))
+	for _, v := range result.AllSessions {
+		s = append(s, v)
+	}
+	return &imauthroute.ForceOfflineResp{
+		Code:     result.Code,
+		Version:  result.Version,
+		Sessions: s,
+	}, nil
 }
+
 func (server *RPCServer) QuerySessionRoute(ctx context.Context, req *imauthroute.QuerySessionRouteReq) (res *imauthroute.QuerySessionRouteResp, err error) {
-	return nil, nil
+	result, err := server.Rds.QuerySessionRoute(req.SessionId)
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return &imauthroute.QuerySessionRouteResp{
+			Success: false,
+		}, nil
+	}
+	return &imauthroute.QuerySessionRouteResp{
+		Success: true,
+		Route: &imauthroute.SessionEntry{
+			LoginAt:             result.LoginAt,
+			Username:            result.Username,
+			SessionId:           result.SessionId,
+			DeviceDesc:          result.DeviceDesc,
+			GwAdvertiseAddrPort: result.GwAdvertiseAddrPort,
+		},
+	}, nil
 }
+
 func (server *RPCServer) QueryUserRoute(ctx context.Context, req *imauthroute.QueryUserRouteReq) (res *imauthroute.QueryUserRouteResp, err error) {
-	return nil, nil
+	result, err := server.Rds.QueryUserRoute(req.Username)
+	if err != nil {
+		return nil, err
+	}
+	return &imauthroute.QueryUserRouteResp{
+		Routes: result,
+	}, nil
 }

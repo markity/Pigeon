@@ -204,6 +204,11 @@ func (x *LogoutReq) FastRead(buf []byte, _type int8, number int32) (offset int, 
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -219,6 +224,11 @@ ReadFieldError:
 
 func (x *LogoutReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
 	x.SessionId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *LogoutReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.Username, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -259,6 +269,11 @@ func (x *ForceOfflineReq) FastRead(buf []byte, _type int8, number int32) (offset
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -273,11 +288,16 @@ ReadFieldError:
 }
 
 func (x *ForceOfflineReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.SelfSessionId, offset, err = fastpb.ReadString(buf, _type)
+	x.Username, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *ForceOfflineReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.SelfSessionId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *ForceOfflineReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.RemoteSessionId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
@@ -313,8 +333,13 @@ ReadFieldError:
 }
 
 func (x *ForceOfflineResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Success, offset, err = fastpb.ReadBool(buf, _type)
-	return offset, err
+	var v int32
+	v, offset, err = fastpb.ReadInt32(buf, _type)
+	if err != nil {
+		return offset, err
+	}
+	x.Code = ForceOfflineResp_ForceOfflineRespCode(v)
+	return offset, nil
 }
 
 func (x *ForceOfflineResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
@@ -429,11 +454,6 @@ func (x *QueryUserRouteResp) FastRead(buf []byte, _type int8, number int32) (off
 		if err != nil {
 			goto ReadFieldError
 		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -448,11 +468,6 @@ ReadFieldError:
 }
 
 func (x *QueryUserRouteResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Success, offset, err = fastpb.ReadBool(buf, _type)
-	return offset, err
-}
-
-func (x *QueryUserRouteResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	var v SessionEntry
 	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
@@ -607,6 +622,7 @@ func (x *LogoutReq) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
@@ -615,6 +631,14 @@ func (x *LogoutReq) fastWriteField1(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteString(buf[offset:], 1, x.GetSessionId())
+	return offset
+}
+
+func (x *LogoutReq) fastWriteField2(buf []byte) (offset int) {
+	if x.Username == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetUsername())
 	return offset
 }
 
@@ -640,22 +664,31 @@ func (x *ForceOfflineReq) FastWrite(buf []byte) (offset int) {
 	}
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
 func (x *ForceOfflineReq) fastWriteField1(buf []byte) (offset int) {
-	if x.SelfSessionId == "" {
+	if x.Username == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 1, x.GetSelfSessionId())
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetUsername())
 	return offset
 }
 
 func (x *ForceOfflineReq) fastWriteField2(buf []byte) (offset int) {
+	if x.SelfSessionId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetSelfSessionId())
+	return offset
+}
+
+func (x *ForceOfflineReq) fastWriteField3(buf []byte) (offset int) {
 	if x.RemoteSessionId == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetRemoteSessionId())
+	offset += fastpb.WriteString(buf[offset:], 3, x.GetRemoteSessionId())
 	return offset
 }
 
@@ -670,10 +703,10 @@ func (x *ForceOfflineResp) FastWrite(buf []byte) (offset int) {
 }
 
 func (x *ForceOfflineResp) fastWriteField1(buf []byte) (offset int) {
-	if !x.Success {
+	if x.Code == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
+	offset += fastpb.WriteInt32(buf[offset:], 1, int32(x.GetCode()))
 	return offset
 }
 
@@ -757,24 +790,15 @@ func (x *QueryUserRouteResp) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
 func (x *QueryUserRouteResp) fastWriteField1(buf []byte) (offset int) {
-	if !x.Success {
-		return offset
-	}
-	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
-	return offset
-}
-
-func (x *QueryUserRouteResp) fastWriteField2(buf []byte) (offset int) {
 	if x.Routes == nil {
 		return offset
 	}
 	for i := range x.GetRoutes() {
-		offset += fastpb.WriteMessage(buf[offset:], 2, x.GetRoutes()[i])
+		offset += fastpb.WriteMessage(buf[offset:], 1, x.GetRoutes()[i])
 	}
 	return offset
 }
@@ -924,6 +948,7 @@ func (x *LogoutReq) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
+	n += x.sizeField2()
 	return n
 }
 
@@ -932,6 +957,14 @@ func (x *LogoutReq) sizeField1() (n int) {
 		return n
 	}
 	n += fastpb.SizeString(1, x.GetSessionId())
+	return n
+}
+
+func (x *LogoutReq) sizeField2() (n int) {
+	if x.Username == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetUsername())
 	return n
 }
 
@@ -957,22 +990,31 @@ func (x *ForceOfflineReq) Size() (n int) {
 	}
 	n += x.sizeField1()
 	n += x.sizeField2()
+	n += x.sizeField3()
 	return n
 }
 
 func (x *ForceOfflineReq) sizeField1() (n int) {
-	if x.SelfSessionId == "" {
+	if x.Username == "" {
 		return n
 	}
-	n += fastpb.SizeString(1, x.GetSelfSessionId())
+	n += fastpb.SizeString(1, x.GetUsername())
 	return n
 }
 
 func (x *ForceOfflineReq) sizeField2() (n int) {
+	if x.SelfSessionId == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetSelfSessionId())
+	return n
+}
+
+func (x *ForceOfflineReq) sizeField3() (n int) {
 	if x.RemoteSessionId == "" {
 		return n
 	}
-	n += fastpb.SizeString(2, x.GetRemoteSessionId())
+	n += fastpb.SizeString(3, x.GetRemoteSessionId())
 	return n
 }
 
@@ -987,10 +1029,10 @@ func (x *ForceOfflineResp) Size() (n int) {
 }
 
 func (x *ForceOfflineResp) sizeField1() (n int) {
-	if !x.Success {
+	if x.Code == 0 {
 		return n
 	}
-	n += fastpb.SizeBool(1, x.GetSuccess())
+	n += fastpb.SizeInt32(1, int32(x.GetCode()))
 	return n
 }
 
@@ -1074,24 +1116,15 @@ func (x *QueryUserRouteResp) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
-	n += x.sizeField2()
 	return n
 }
 
 func (x *QueryUserRouteResp) sizeField1() (n int) {
-	if !x.Success {
-		return n
-	}
-	n += fastpb.SizeBool(1, x.GetSuccess())
-	return n
-}
-
-func (x *QueryUserRouteResp) sizeField2() (n int) {
 	if x.Routes == nil {
 		return n
 	}
 	for i := range x.GetRoutes() {
-		n += fastpb.SizeMessage(2, x.GetRoutes()[i])
+		n += fastpb.SizeMessage(1, x.GetRoutes()[i])
 	}
 	return n
 }
@@ -1120,6 +1153,7 @@ var fieldIDToName_LoginResp = map[int32]string{
 
 var fieldIDToName_LogoutReq = map[int32]string{
 	1: "SessionId",
+	2: "Username",
 }
 
 var fieldIDToName_LogoutResp = map[int32]string{
@@ -1127,12 +1161,13 @@ var fieldIDToName_LogoutResp = map[int32]string{
 }
 
 var fieldIDToName_ForceOfflineReq = map[int32]string{
-	1: "SelfSessionId",
-	2: "RemoteSessionId",
+	1: "Username",
+	2: "SelfSessionId",
+	3: "RemoteSessionId",
 }
 
 var fieldIDToName_ForceOfflineResp = map[int32]string{
-	1: "Success",
+	1: "Code",
 	2: "Version",
 	3: "Sessions",
 }
@@ -1151,6 +1186,5 @@ var fieldIDToName_QueryUserRouteReq = map[int32]string{
 }
 
 var fieldIDToName_QueryUserRouteResp = map[int32]string{
-	1: "Success",
-	2: "Routes",
+	1: "Routes",
 }

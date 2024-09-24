@@ -2,7 +2,6 @@ package tcpserver
 
 import (
 	"log"
-	"pigeon/im-gateway/mq"
 	"pigeon/im-gateway/protocol"
 	"sync"
 	"sync/atomic"
@@ -96,11 +95,9 @@ func ReleaseConn(conn goreactor.TCPConnection) {
 			panic("check me")
 		}
 		delete(MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo, *state.SessionId)
-		// 删除evloop-route中的路由表
+		// 调用rpc 删除evloop-route中的路由表
 
 		ctx.EvloopRoute.Delete(*state.SessionId)
-		// 发送下线mq
-		mq.SendOfflineMQ(*state.SessionId)
 	}
 }
 
