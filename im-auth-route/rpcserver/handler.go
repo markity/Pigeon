@@ -61,10 +61,12 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 		log.Printf("redis login error: %v\n", err)
 		return nil, err
 	}
-	if !result.Success {
-		return &imauthroute.LoginResp{
-			Code: imauthroute.LoginResp_DEVICE_NUM_LIMIT,
-		}, nil
+
+	var code imauthroute.LoginResp_LoginRespCode
+	if result.Success {
+		code = imauthroute.LoginResp_SUCCESS
+	} else {
+		code = imauthroute.LoginResp_DEVICE_NUM_LIMIT
 	}
 
 	sessions := make([]*base.SessionEntry, 0, len(result.AllSessions))
@@ -79,7 +81,7 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 	}
 
 	return &imauthroute.LoginResp{
-		Code:      imauthroute.LoginResp_SUCCESS,
+		Code:      code,
 		SessionId: sessionId,
 		Version:   result.Version,
 		Sessions:  sessions,
@@ -116,7 +118,7 @@ func (server *RPCServer) ForceOffline(ctx context.Context, req *imauthroute.Forc
 	}, nil
 }
 
-func (server *RPCServer) QuerySessionRoute(ctx context.Context, req *imauthroute.QuerySessionRouteReq) (res *imauthroute.QuerySessionRouteResp, err error) {
+func (server *RPCServer) QuerySessionRoute(ctx context.Context, req *imauthroute.QuerySessionRouteReq) (*imauthroute.QuerySessionRouteResp, error) {
 	result, err := server.Rds.QuerySessionRoute(req.SessionId)
 	if err != nil {
 		return nil, err

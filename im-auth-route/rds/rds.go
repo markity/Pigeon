@@ -3,6 +3,8 @@ package rds
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"strconv"
 	"time"
 
 	distributelock "pigeon/common/distribute_lock"
@@ -89,7 +91,7 @@ local jsonData = ARGV[1]
 local limit = ARGV[2]
 
 local keyUser = prefix.."route/user/"..username
-local keySession = pfefix.."route/session/"..sessionId
+local keySession = prefix.."route/session/"..sessionId
 local keyVersion = prefix.."route/version/"..username
 
 local result = {}
@@ -97,20 +99,21 @@ local result = {}
 -- 如果limit不为空, 则检查设备数量
 if limit ~= nil and redis.call('HLEN', keyUser) >= tonumber(limit) then
 	table.insert(result,0)
-	return result
+else
+	table.insert(result,1)
 end
 
--- 说明可以登录, 将session信息写入
--- hset keyUser, sessionId, json编码
-redis.call('HSET', keyUser, sessionId, jsonData)
--- set keySession, json编码
-redis.call('SET', keySession, jsonData)
--- version++
-redis.call('INCR', keyVersion)
+if result[1] == 1 then
+	-- 说明可以登录, 将session信息写入
+	-- hset keyUser, sessionId, json编码
+	redis.call('HSET', keyUser, sessionId, jsonData)
+	-- set keySession, json编码
+	redis.call('SET', keySession, jsonData)
+	-- version++
+	redis.call('INCR', keyVersion)
+end
 
 local version = redis.call('GET', keyVersion)
-
-table.insert(result,1)
 table.insert(result,version)
 
 local keys = redis.call('HGETALL', keyUser)
@@ -146,13 +149,11 @@ return result
 	}
 
 	ok := result[0].(int64) == 1
-	if !ok {
-		return &LoginResult{
-			Success: false,
-		}, nil
+	version_, err := strconv.ParseInt(result[1].(string), 10, 64)
+	if err != nil {
+		panic(err)
 	}
-
-	version, _ := result[1].(int64)
+	version := version_
 	sessions := make([]*base.SessionEntry, 0, len(result[2:]))
 	for _, v := range result[2:] {
 		var entry base.SessionEntry
@@ -195,31 +196,32 @@ func (act *RdsAction) Logout(username string, sessionId string) (*LogoutResult, 
 local username = KEYS[1]
 local sessionId = KEYS[2]
 local prefix = KEYS[3]
-local jsonData = ARGV[1]
-local limit = ARGV[2]
 
 local keyUser = prefix.."route/user/"..username
-local keySession = pfefix.."route/session/"..sessionId
+local keySession = prefix.."route/session/"..sessionId
 local keyVersion = prefix.."route/version/"..username
 
 
-local result {}
+local result = {}
 
 local val = redis.call('HGET', keyUser, sessionId)
-if val == nil then
+if val == false then
 	table.insert(result, 0)
-} else {
+else
 	table.insert(result, 1)
 	-- 做操作, 删除session信息
 	redis.call('HDEL', keyUser, sessionId)
 	redis.call('DEL', keySession)
 	redis.call('INCR', keyVersion)
-}
+end
 
 local version = redis.call('GET', keyVersion)
+if version == false then
+	table.insert(result, 0)
+else
+	table.insert(result, version)
+end
 
-table.insert(result,1)
-table.insert(result,version)
 
 local keys = redis.call('HGETALL', keyUser)
 -- 遍历HGETALL返回的列表, 把value存入result列表
@@ -291,10 +293,10 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 	local prefix = KEYS[4]
 	
 	local keyUser = prefix.."route/user/"..username
-	local keySession = pfefix.."route/session/"..sessionId
+	local keySession = prefix.."route/session/"..sessionId
 	local keyVersion = prefix.."route/version/"..username
 	
-	local result {}
+	local result = {}
 
 	local fromSessionVal = redis.call('HGET', keyUser, fromSessionId)
 	local toSessionVal = redis.call('HGET', keyUser, targetSessionId)
@@ -350,26 +352,25 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 // 如果sessionId不存在, 返回nil, nil
 func (act *RdsAction) QuerySessionRoute(sessionId string) (*base.SessionEntry, error) {
 	script := `
-	-- Keys[1]: sessionId
-	-- Keys[2]: prefix
-	local sessionId = KEYS[1]
-	local prefix = KEYS[2]
+-- Keys[1]: sessionId
+-- Keys[2]: prefix
+local sessionId = KEYS[1]
+local prefix = KEYS[2]
 
-	local keySession = pfefix.."route/session/"..sessionId
-	
-	local val = redis.call('GET', keySession)
-	return val
+local keySession = prefix.."route/session/"..sessionId
+
+local val = redis.call('GET', keySession)
+return val
 `
-	cmd := act.cli.Eval(context.Background(), script, []string{sessionId, act.dataPrefix})
-	if err := cmd.Err(); err != nil {
+	cmd, err := act.cli.Eval(context.Background(), script, []string{sessionId, act.dataPrefix}).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		}
 		return nil, err
 	}
-	v := cmd.Val()
-	if v == nil {
-		return nil, nil
-	}
 
-	s := cmd.String()
+	s := cmd.(string)
 	var entry base.SessionEntry
 	if err := json.Unmarshal([]byte(s), &entry); err != nil {
 		return nil, err
@@ -380,22 +381,22 @@ func (act *RdsAction) QuerySessionRoute(sessionId string) (*base.SessionEntry, e
 // 如果sessionId不存在, 返回nil, nil
 func (act *RdsAction) QueryUserRoute(username string) ([]*base.SessionEntry, error) {
 	script := `
-	-- Keys[1]: username
-	-- Keys[2]: prefix
-	local username = KEYS[1]
-	local prefix = KEYS[2]
+-- Keys[1]: username
+-- Keys[2]: prefix
+local username = KEYS[1]
+local prefix = KEYS[2]
 
-	local keyUser = prefix.."route/user/"..username
+local keyUser = prefix.."route/user/"..username
 
-	local result {}
-	
-	local keys = redis.call('HGETALL', keyUser)
-	-- 遍历HGETALL返回的列表, 把value存入result列表
-	for i = 1, #keys, 2 do
-		table.insert(result, keys[i+1])
-	end
+local result = {}
 
-	return result
+local keys = redis.call('HGETALL', keyUser)
+-- 遍历HGETALL返回的列表, 把value存入result列表
+for i = 1, #keys, 2 do
+	table.insert(result, keys[i+1])
+end
+
+return result
 `
 	cmd := act.cli.Eval(context.Background(), script, []string{username, act.dataPrefix})
 	if err := cmd.Err(); err != nil {
@@ -413,6 +414,7 @@ func (act *RdsAction) QueryUserRoute(username string) ([]*base.SessionEntry, err
 		if err := json.Unmarshal([]byte(entry.(string)), &ent); err != nil {
 			return nil, err
 		}
+		result = append(result, &ent)
 	}
 
 	return result, nil
