@@ -36,16 +36,15 @@ func (server *RPCServer) PushMessage(ctx context.Context, req *imgateway.PushMes
 		return nil, err
 	}
 
+	loop := loop_.(eventloop.EventLoop)
+	okChan := make(chan bool, 1)
 	data := protocol.PackData(protocol.MustEncodePacket(&protocol.S2CPushMessagePacket{
 		Data: v,
 	}))
-
-	okChan := make(chan bool, 1)
-	loop := loop_.(eventloop.EventLoop)
 	loop.RunInLoop(func() {
 		tcpserver.PushMessage(loop, req.SessionId, data, okChan)
 	})
-	<-okChan
+
 	return &imgateway.PushMessageResp{
 		Success: <-okChan,
 	}, nil
@@ -54,10 +53,58 @@ func (server *RPCServer) PushMessage(ctx context.Context, req *imgateway.PushMes
 // 定位event loop, 并且打入事件循环就ok
 func (server *RPCServer) OtherDeviceKick(ctx context.Context, req *imgateway.OtherDeviceKickReq) (
 	res *imgateway.OtherDeviceKickResp, err error) {
-	return &imgateway.OtherDeviceKickResp{}, nil
+	loop_, ok := server.EvloopRoute.Load(req.ToSession)
+	if !ok {
+		return &imgateway.OtherDeviceKickResp{
+			Success: false,
+		}, err
+	}
+
+	loop := loop_.(eventloop.EventLoop)
+
+	data := protocol.PackData(protocol.PackData(protocol.MustEncodePacket(&protocol.S2COtherDeviceKickNotify{
+		FromSessionId:   req.FromSession,
+		FromSessionDesc: req.FromSessionDesc,
+	})))
+	okChan := make(chan bool, 1)
+	loop.RunInLoop(func() {
+		tcpserver.OtherDeveiceKick(loop, req.ToSession, data, okChan)
+	})
+
+	return &imgateway.OtherDeviceKickResp{
+		Success: <-okChan,
+	}, nil
 }
 
 func (server *RPCContext) BroadcastDeviceInfo(ctx context.Context, req *imgateway.BroadcastDeviceInfoReq) (
 	res *imgateway.BroadcastDeviceInfoResp, err error) {
-	return &imgateway.BroadcastDeviceInfoResp{}, nil
+
+	loop_, ok := server.EvloopRoute.Load(req.SessionId)
+	if !ok {
+		return &imgateway.BroadcastDeviceInfoResp{
+			Success: false,
+		}, err
+	}
+	devs := make([]*protocol.DeviceSessionEntry, 0, len(req.Sessions))
+	for _, v := range req.Sessions {
+		devs = append(devs, &protocol.DeviceSessionEntry{
+			SessionId:  v.SessionId,
+			LoginAt:    v.LoginAt,
+			DeviceDesc: v.DeviceDesc,
+		})
+	}
+
+	loop := loop_.(eventloop.EventLoop)
+	data := protocol.PackData(protocol.MustEncodePacket(&protocol.S2CDeviceInfoBroadcastPacket{
+		Version: req.Version,
+		Devices: devs,
+	}))
+	okChan := make(chan bool, 1)
+	loop.RunInLoop(func() {
+		tcpserver.BroadcastDeviceInfo(loop, req.SessionId, data, okChan)
+	})
+
+	return &imgateway.BroadcastDeviceInfoResp{
+		Success: <-okChan,
+	}, nil
 }

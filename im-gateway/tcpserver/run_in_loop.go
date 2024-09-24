@@ -13,3 +13,30 @@ func PushMessage(evloop eventloop.EventLoop, sessionId string, data []byte, okCh
 	connInfo.Conn.Send(data)
 	okChan <- true
 }
+
+func OtherDeveiceKick(evloop eventloop.EventLoop, toSessionId string, kickMessage []byte, okChan chan<- bool) {
+	evLoopCtx := MustLoadEvLoopContext(evloop)
+	connInfo, ok := evLoopCtx.LoginedConnInfo[toSessionId]
+	if !ok {
+		okChan <- false
+		return
+	}
+
+	delete(evLoopCtx.LoginedConnInfo, toSessionId)
+	connInfo.StateCode = StateCodeUnLogin
+	evLoopCtx.EvloopRoute.Delete(toSessionId)
+	connInfo.Conn.Send(kickMessage)
+	okChan <- true
+}
+
+func BroadcastDeviceInfo(evloop eventloop.EventLoop, toSessionId string, data []byte, okChan chan<- bool) {
+	evLoopCtx := MustLoadEvLoopContext(evloop)
+	connInfo, ok := evLoopCtx.LoginedConnInfo[toSessionId]
+	if !ok {
+		okChan <- false
+		return
+	}
+
+	connInfo.Conn.Send(data)
+	okChan <- true
+}

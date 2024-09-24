@@ -17,6 +17,11 @@ const (
 
 	PacketTypeC2SKickOhterDevice
 	PackDataTypeS2CKickOhterDeviceResp
+
+	// 广播包, 告诉其它设备当前用户的设备在线信息
+	PacketTypeS2CBroadcastDeviceInfo
+	// 其它设备踢下线的通知包
+	PacketTypeS2COhterDeviceKick
 )
 
 type WithEchoCode struct {
@@ -85,15 +90,19 @@ type DeviceSessionEntry struct {
 
 // 广播其它设备的信息, 做多设备管理
 type S2CDeviceInfoBroadcastPacket struct {
-	WithEchoCode
-	Username string                `json:"username"`
-	Version  int64                 `json:"version"`
-	Devices  []*DeviceSessionEntry `json:"devices"`
+	Version int64                 `json:"version"`
+	Devices []*DeviceSessionEntry `json:"devices"`
 }
 
+// push消息
 type S2CPushMessagePacket struct {
-	WithEchoCode
 	Data interface{} `json:"data"`
+}
+
+// 被踢下线的通知
+type S2COtherDeviceKickNotify struct {
+	FromSessionId   string `json:"from_session_id"`
+	FromSessionDesc string `json:"from_session_desc"`
 }
 
 type jsonHeader struct {
@@ -123,6 +132,8 @@ func dataToPacketTypeInString(data interface{}) (string, bool) {
 		return "device-info", true
 	case *S2CPushMessagePacket:
 		return "push-msg", true
+	case *S2COtherDeviceKickNotify:
+		return "other-kick-notify", true
 	}
 
 	return "", false
