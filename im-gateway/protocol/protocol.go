@@ -91,6 +91,11 @@ type S2CDeviceInfoBroadcastPacket struct {
 	Devices  []*DeviceSessionEntry `json:"devices"`
 }
 
+type S2CPushMessagePacket struct {
+	WithEchoCode
+	Data interface{} `json:"data"`
+}
+
 type jsonHeader struct {
 	PacketType string      `json:"packet_type"`
 	Data       interface{} `json:"data"`
@@ -110,6 +115,14 @@ func dataToPacketTypeInString(data interface{}) (string, bool) {
 		return "login-resp", true
 	case *S2CLogoutRespPacket:
 		return "logout-resp", true
+	case *C2SKickOhterDevicePacket:
+		return "kick-other", true
+	case *S2CKickOhterDeviceRespPacket:
+		return "kick-other-resp", true
+	case *S2CDeviceInfoBroadcastPacket:
+		return "device-info", true
+	case *S2CPushMessagePacket:
+		return "push-msg", true
 	}
 
 	return "", false
@@ -126,6 +139,11 @@ func MustEncodePacket(data interface{}) []byte {
 		PacketType: packType,
 		Data:       data,
 		EchoCode:   data.(WithEchoCoder).EchoCode(),
+	}
+
+	// 特化这种情况
+	if packType == "push-msg" {
+		hd.Data = data.(*S2CPushMessagePacket).Data
 	}
 
 	bs, err := json.Marshal(hd)
@@ -159,6 +177,13 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 		header.Data = new(HeartbeatPacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
+	case "kick-other":
+		header.Data = new(C2SKickOhterDevicePacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+	default:
+		return nil, false
+		//panic "packet type
 	}
 	if err != nil {
 		return nil, false
@@ -187,6 +212,12 @@ func ParseS2CPacket(data []byte) (interface{}, bool) {
 		header.Data = new(HeartbeatPacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
+	case "kick-other-resp":
+		header.Data = new(S2CKickOhterDeviceRespPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+	case "push-msg":
+		panic("unsupport")
 	}
 
 	if err != nil {

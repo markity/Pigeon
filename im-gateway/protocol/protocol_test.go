@@ -30,4 +30,11 @@ func TestProtocol(t *testing.T) {
 	if bb.EchoCode() != p.EchoCode() {
 		t.Fatalf("echo code not match: %s", bb.EchoCode())
 	}
+
+	push := S2CPushMessagePacket{
+		Data: map[string]interface{}{"test": "123", "hello": nil},
+	}
+	if string(MustEncodePacket(&push)) != `{"packet_type":"push-msg","data":{"hello":null,"test":"123"},"echo_code":""}` {
+		t.Error("encode push packet failed")
+	}
 }
