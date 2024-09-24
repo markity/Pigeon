@@ -96,7 +96,9 @@ func (server *RPCServer) Logout(ctx context.Context, req *imauthroute.LogoutReq)
 		return nil, err
 	}
 	return &imauthroute.LogoutResp{
-		Success: result.Success,
+		Success:  result.Success,
+		Version:  result.Version,
+		Sessions: result.AllSessions,
 	}, nil
 }
 

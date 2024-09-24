@@ -175,6 +175,16 @@ func (x *LogoutResp) FastRead(buf []byte, _type int8, number int32) (offset int,
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -191,6 +201,21 @@ ReadFieldError:
 func (x *LogoutResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
 	x.Success, offset, err = fastpb.ReadBool(buf, _type)
 	return offset, err
+}
+
+func (x *LogoutResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *LogoutResp) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	var v base.SessionEntry
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Sessions = append(x.Sessions, &v)
+	return offset, nil
 }
 
 func (x *ForceOfflineReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -531,6 +556,8 @@ func (x *LogoutResp) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
@@ -539,6 +566,24 @@ func (x *LogoutResp) fastWriteField1(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
+	return offset
+}
+
+func (x *LogoutResp) fastWriteField2(buf []byte) (offset int) {
+	if x.Version == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetVersion())
+	return offset
+}
+
+func (x *LogoutResp) fastWriteField3(buf []byte) (offset int) {
+	if x.Sessions == nil {
+		return offset
+	}
+	for i := range x.GetSessions() {
+		offset += fastpb.WriteMessage(buf[offset:], 3, x.GetSessions()[i])
+	}
 	return offset
 }
 
@@ -805,6 +850,8 @@ func (x *LogoutResp) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
 	return n
 }
 
@@ -813,6 +860,24 @@ func (x *LogoutResp) sizeField1() (n int) {
 		return n
 	}
 	n += fastpb.SizeBool(1, x.GetSuccess())
+	return n
+}
+
+func (x *LogoutResp) sizeField2() (n int) {
+	if x.Version == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(2, x.GetVersion())
+	return n
+}
+
+func (x *LogoutResp) sizeField3() (n int) {
+	if x.Sessions == nil {
+		return n
+	}
+	for i := range x.GetSessions() {
+		n += fastpb.SizeMessage(3, x.GetSessions()[i])
+	}
 	return n
 }
 
@@ -982,6 +1047,8 @@ var fieldIDToName_LogoutReq = map[int32]string{
 
 var fieldIDToName_LogoutResp = map[int32]string{
 	1: "Success",
+	2: "Version",
+	3: "Sessions",
 }
 
 var fieldIDToName_ForceOfflineReq = map[int32]string{

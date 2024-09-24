@@ -42,6 +42,8 @@ message LogoutResp {
   // 如果不存在这个登录项, 那么就false, 理论上不会出现
   // 因为im-gateway是有状态的
   bool success = 1;
+  int64 version = 2;
+  repeated base.SessionEntry sessions = 3;
 }
 
 // 踢人请求, 不能踢出自己, gateway会做检查, 理论不会出现self_session_id == remote_session_id的情况

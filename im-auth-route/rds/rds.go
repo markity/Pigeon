@@ -240,11 +240,6 @@ return result
 	}
 
 	ok := results[0].(int64) == 1
-	if !ok {
-		return &LogoutResult{
-			Success: false,
-		}, nil
-	}
 
 	version, _ := results[1].(int64)
 	sessions := make([]*base.SessionEntry, 0, len(results[2:]))
