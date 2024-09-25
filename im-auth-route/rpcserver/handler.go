@@ -5,11 +5,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
+
+	"pigeon/im-auth-route/api"
 	"pigeon/im-auth-route/db"
 	"pigeon/im-auth-route/rds"
 	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imauthroute"
-	"time"
+	"pigeon/kitex_gen/service/imgateway"
 
 	"github.com/google/uuid"
 )
@@ -69,22 +72,32 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 		code = imauthroute.LoginResp_DEVICE_NUM_LIMIT
 	}
 
-	sessions := make([]*base.SessionEntry, 0, len(result.AllSessions))
 	for _, v := range result.AllSessions {
-		sessions = append(sessions, &base.SessionEntry{
-			LoginAt:             v.LoginAt,
-			Username:            v.Username,
-			SessionId:           sessionId,
-			DeviceDesc:          v.DeviceDesc,
-			GwAdvertiseAddrPort: v.GwAdvertiseAddrPort,
-		})
-	}
+		// 除了当前的session, 其余的都广播通知
+		if v.SessionId != sessionId {
+			go func() {
+				for {
 
+					_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
+						SessionId: v.SessionId,
+						Version:   result.Version,
+						Sessions:  result.AllSessions,
+					})
+					if err != nil {
+						log.Printf("broadcast device info error, retry: %v\n", err)
+						time.Sleep(time.Millisecond * 50)
+						continue
+					}
+					break
+				}
+			}()
+		}
+	}
 	return &imauthroute.LoginResp{
 		Code:      code,
 		SessionId: sessionId,
 		Version:   result.Version,
-		Sessions:  sessions,
+		Sessions:  result.AllSessions,
 	}, nil
 }
 
@@ -95,6 +108,25 @@ func (server *RPCServer) Logout(ctx context.Context, req *imauthroute.LogoutReq)
 		log.Printf("redis logout error: %v\n", err)
 		return nil, err
 	}
+
+	for _, v := range result.AllSessions {
+		go func() {
+			for {
+				_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
+					SessionId: v.SessionId,
+					Version:   result.Version,
+					Sessions:  result.AllSessions,
+				})
+				if err != nil {
+					log.Printf("broadcast device info error, retry: %v\n", err)
+					time.Sleep(time.Millisecond * 50)
+					continue
+				}
+				break
+			}
+		}()
+	}
+
 	return &imauthroute.LogoutResp{
 		Success:  result.Success,
 		Version:  result.Version,
@@ -109,14 +141,27 @@ func (server *RPCServer) ForceOffline(ctx context.Context, req *imauthroute.Forc
 		log.Printf("redis force offline error: %v\n", err)
 		return nil, err
 	}
-	s := make([]*base.SessionEntry, 0, len(result.AllSessions))
 	for _, v := range result.AllSessions {
-		s = append(s, v)
+		go func() {
+			for {
+				_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
+					SessionId: v.SessionId,
+					Version:   result.Version,
+					Sessions:  result.AllSessions,
+				})
+				if err != nil {
+					log.Printf("broadcast device info error, retry: %v\n", err)
+					time.Sleep(time.Millisecond * 50)
+					continue
+				}
+				break
+			}
+		}()
 	}
 	return &imauthroute.ForceOfflineResp{
 		Code:     result.Code,
 		Version:  result.Version,
-		Sessions: s,
+		Sessions: result.AllSessions,
 	}, nil
 }
 

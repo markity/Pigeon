@@ -263,7 +263,7 @@ return result
 type ForceOfflineResult struct {
 	Code        imauthroute.ForceOfflineResp_ForceOfflineRespCode
 	Version     int64
-	AllSessions map[string]*base.SessionEntry
+	AllSessions []*base.SessionEntry
 }
 
 func (act *RdsAction) ForceOffline(username string, fromSessionId string, targetSessionId string) (*ForceOfflineResult, error) {
@@ -326,7 +326,7 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 
 	code := results[0].(int64)
 	version, _ := results[1].(int64)
-	sessions := make(map[string]*base.SessionEntry)
+	sessions := make([]*base.SessionEntry, 0, len(results[2:]))
 	for _, v := range results[2:] {
 		var entry base.SessionEntry
 		err := json.Unmarshal([]byte(v.(string)), &entry)
@@ -334,7 +334,7 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 			return nil, err
 		}
 
-		sessions[entry.SessionId] = &entry
+		sessions = append(sessions, &entry)
 	}
 
 	return &ForceOfflineResult{
