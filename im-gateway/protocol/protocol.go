@@ -51,21 +51,35 @@ type C2SLoginPacket struct {
 	Password   string `json:"password"`
 	DeviceDesc string `json:"device_desc"`
 }
+
+type LoginRespCode int
+
+const (
+	LoginRespCodeUnKnown LoginRespCode = iota
+	LoginRespCodeSuccess
+	LoginRespCodeAuthError
+	LoginRespCodeDeviceNumLimit
+	LoginRespCodeAlreadyLogin
+)
+
 type S2CLoginRespPacket struct {
 	WithEchoCode
-	Username           string                `json:"username"`    // echo username
-	Success            bool                  `json:"success"`     // 是否登录成功
-	SessionId          *string               `json:"session_id"`  // 只有当success == true时才有值
-	DeviceSessionEntry []*DeviceSessionEntry `json:"all_devices"` // 所有在线的设备
+	Code      LoginRespCode         `json:"code"`        // code
+	SessionId string                `json:"session_id"`  // 只有当success == true时才有值
+	Version   int64                 `json:"version"`     // 在线信息版本号
+	Sessions  []*DeviceSessionEntry `json:"all_devices"` // 所有在线的设备
 }
 
 type C2SLogoutPacket struct {
 	WithEchoCode
 }
+
 type S2CLogoutRespPacket struct {
 	WithEchoCode
-	Success  bool    `json:"success"`  // success == false只有一种可能, 就是当前状态为未登录
-	Username *string `json:"username"` // 只有当success == true时才有值
+	Success bool `json:"success"` // success == false只有一种可能, 就是当前状态为未登录
+	// 未登录状态下, 下面的值为空
+	Version  int64                 `json:"version"`
+	Sessions []*DeviceSessionEntry `json:"sessions"` // 所有在线的设备
 }
 
 // 此包用来踢下线其它设备, 不能踢下线自身
@@ -82,7 +96,6 @@ type S2CKickOhterDeviceRespPacket struct {
 }
 
 type DeviceSessionEntry struct {
-	WithEchoCode
 	SessionId  string `json:"session_id"`
 	LoginAt    int64  `json:"login_at"`
 	DeviceDesc string `json:"device_desc"`
@@ -202,37 +215,38 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 	return header.Data, true
 }
 
-func ParseS2CPacket(data []byte) (interface{}, bool) {
-	var header jsonHeader
-	if err := json.Unmarshal(data, &header); err != nil {
-		return nil, false
-	}
+// 这个函数是不用的
+// func ParseS2CPacket(data []byte) (interface{}, bool) {
+// 	var header jsonHeader
+// 	if err := json.Unmarshal(data, &header); err != nil {
+// 		return nil, false
+// 	}
 
-	var err error
+// 	var err error
 
-	switch header.PacketType {
-	case "login-resp":
-		header.Data = new(S2CLoginRespPacket)
-		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
-		err = json.Unmarshal(data, &header)
-	case "logout-resp":
-		header.Data = new(S2CLogoutRespPacket)
-		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
-		err = json.Unmarshal(data, &header)
-	case "heartbeat":
-		header.Data = new(HeartbeatPacket)
-		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
-		err = json.Unmarshal(data, &header)
-	case "kick-other-resp":
-		header.Data = new(S2CKickOhterDeviceRespPacket)
-		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
-		err = json.Unmarshal(data, &header)
-	case "push-msg":
-		panic("unsupport")
-	}
+// 	switch header.PacketType {
+// 	case "login-resp":
+// 		header.Data = new(S2CLoginRespPacket)
+// 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+// 		err = json.Unmarshal(data, &header)
+// 	case "logout-resp":
+// 		header.Data = new(S2CLogoutRespPacket)
+// 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+// 		err = json.Unmarshal(data, &header)
+// 	case "heartbeat":
+// 		header.Data = new(HeartbeatPacket)
+// 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+// 		err = json.Unmarshal(data, &header)
+// 	case "kick-other-resp":
+// 		header.Data = new(S2CKickOhterDeviceRespPacket)
+// 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+// 		err = json.Unmarshal(data, &header)
+// 	case "push-msg":
+// 		panic("unsupport")
+// 	}
 
-	if err != nil {
-		return nil, false
-	}
-	return header.Data, true
-}
+// 	if err != nil {
+// 		return nil, false
+// 	}
+// 	return header.Data, true
+// }

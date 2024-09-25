@@ -143,11 +143,12 @@ func (server *RPCServer) QuerySessionRoute(ctx context.Context, req *imauthroute
 }
 
 func (server *RPCServer) QueryUserRoute(ctx context.Context, req *imauthroute.QueryUserRouteReq) (res *imauthroute.QueryUserRouteResp, err error) {
-	result, err := server.Rds.QueryUserRoute(req.Username)
+	version, result, err := server.Rds.QueryUserRoute(req.Username)
 	if err != nil {
 		return nil, err
 	}
 	return &imauthroute.QueryUserRouteResp{
-		Routes: result,
+		Version: version,
+		Routes:  result,
 	}, nil
 }

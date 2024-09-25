@@ -58,7 +58,10 @@ func main() {
 	}
 
 	relayCli := api.MustNewIMRelayClient(resolver)
-	authRouteCli := api.MustNewIMAuthRouteClient(resolver)
+	authRouteCli, err := api.MustNewIMAuthRouteClient(resolver)
+	if err != nil {
+		panic(err)
+	}
 	evloopRoute := sync.Map{}
 
 	// 跑rpc server
@@ -101,6 +104,7 @@ func main() {
 		HeartbeatInterval: time.Millisecond * time.Duration(cfg.AppConfig.HeartbeatIntervalMs),
 		HeartbeatTimeout:  time.Millisecond * time.Duration(cfg.AppConfig.CloseConnIntervalMs),
 		EvloopRoute:       &evloopRoute,
+		RPCAdAddr:         cfg.AppConfig.RPCAdvertiseAddrport,
 	}
 	// 注意这里是值传递, 有个拷贝的过程
 	tcpserver.SetUpEvLoopContext(mainLoop, evloopCtx)

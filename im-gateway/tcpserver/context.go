@@ -3,6 +3,7 @@ package tcpserver
 import (
 	"log"
 	"pigeon/im-gateway/protocol"
+	"pigeon/kitex_gen/service/imauthroute/imauthroute"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -16,11 +17,12 @@ const connStateKey = "_ev_conn_state"
 
 type EvloopContext struct {
 	RelayCli          interface{}
-	AuthRouteCli      interface{}
+	AuthRouteCli      imauthroute.Client
 	ConnMetrics       *atomic.Int64
 	HeartbeatInterval time.Duration
 	HeartbeatTimeout  time.Duration
 	EvloopRoute       *sync.Map
+	RPCAdAddr         string
 
 	// 私有的变量, setup的时候重新创建
 	// 这个变量代表已经登录的session的状态
@@ -45,6 +47,7 @@ type ConnState struct {
 	Conn goreactor.TCPConnection
 
 	// 已登录状态下有效的变量
+	Username  *string
 	SessionId *string
 }
 

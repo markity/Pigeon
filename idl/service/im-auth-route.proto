@@ -83,7 +83,8 @@ message QueryUserRouteReq {
 };
 
 message QueryUserRouteResp {
-  repeated base.SessionEntry routes = 1;
+  int64 version = 1;
+  repeated base.SessionEntry routes = 2;
 };
 
 service IMAuthRoute {

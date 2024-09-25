@@ -40,3 +40,8 @@ func IsPasswordValid(password string) bool {
 func IsDeviceDescValid(data string) bool {
 	return len(data) < 1024
 }
+
+// sessionId长度为32
+func IsSessionIdValid(sessionId string) bool {
+	return len(sessionId) == 32
+}

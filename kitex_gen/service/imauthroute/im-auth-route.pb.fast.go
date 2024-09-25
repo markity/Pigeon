@@ -415,6 +415,11 @@ func (x *QueryUserRouteResp) FastRead(buf []byte, _type int8, number int32) (off
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -429,6 +434,11 @@ ReadFieldError:
 }
 
 func (x *QueryUserRouteResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *QueryUserRouteResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	var v base.SessionEntry
 	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
@@ -719,15 +729,24 @@ func (x *QueryUserRouteResp) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
 func (x *QueryUserRouteResp) fastWriteField1(buf []byte) (offset int) {
+	if x.Version == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetVersion())
+	return offset
+}
+
+func (x *QueryUserRouteResp) fastWriteField2(buf []byte) (offset int) {
 	if x.Routes == nil {
 		return offset
 	}
 	for i := range x.GetRoutes() {
-		offset += fastpb.WriteMessage(buf[offset:], 1, x.GetRoutes()[i])
+		offset += fastpb.WriteMessage(buf[offset:], 2, x.GetRoutes()[i])
 	}
 	return offset
 }
@@ -1013,15 +1032,24 @@ func (x *QueryUserRouteResp) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
+	n += x.sizeField2()
 	return n
 }
 
 func (x *QueryUserRouteResp) sizeField1() (n int) {
+	if x.Version == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(1, x.GetVersion())
+	return n
+}
+
+func (x *QueryUserRouteResp) sizeField2() (n int) {
 	if x.Routes == nil {
 		return n
 	}
 	for i := range x.GetRoutes() {
-		n += fastpb.SizeMessage(1, x.GetRoutes()[i])
+		n += fastpb.SizeMessage(2, x.GetRoutes()[i])
 	}
 	return n
 }
@@ -1077,7 +1105,8 @@ var fieldIDToName_QueryUserRouteReq = map[int32]string{
 }
 
 var fieldIDToName_QueryUserRouteResp = map[int32]string{
-	1: "Routes",
+	1: "Version",
+	2: "Routes",
 }
 
 var _ = base.File_base_base_proto

@@ -16,8 +16,9 @@ func OnConn(conn goreactor.TCPConnection) {
 	SetUpConn(conn)
 }
 
+// forceclose 或者连接意外关闭都会触发OnDisConn
 func OnDisConn(conn goreactor.TCPConnection) {
+	log.Printf("conn disconnected\n")
 	MustLoadEvLoopContext(conn.GetEventLoop()).ConnMetrics.Add(-1)
 	ReleaseConn(conn)
-	log.Printf("conn disconnected\n")
 }

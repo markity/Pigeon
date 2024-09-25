@@ -373,17 +373,25 @@ return val
 	return &entry, nil
 }
 
-// 如果sessionId不存在, 返回nil, nil
-func (act *RdsAction) QueryUserRoute(username string) ([]*base.SessionEntry, error) {
+// 第一个返回值是version
+func (act *RdsAction) QueryUserRoute(username string) (int64, []*base.SessionEntry, error) {
 	script := `
 -- Keys[1]: username
 -- Keys[2]: prefix
 local username = KEYS[1]
 local prefix = KEYS[2]
 
+local keyVersion = prefix.."route/version/"..username
 local keyUser = prefix.."route/user/"..username
 
+
+local version = redis.call('GET', keyVersion)
+if version == false then
+	version = 0
+end
+
 local result = {}
+table.insert(result, version)
 
 local keys = redis.call('HGETALL', keyUser)
 -- 遍历HGETALL返回的列表, 把value存入result列表
@@ -395,22 +403,24 @@ return result
 `
 	cmd := act.cli.Eval(context.Background(), script, []string{username, act.dataPrefix})
 	if err := cmd.Err(); err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	s, err := cmd.Slice()
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
+	version, _ := s[0].(int64)
+
 	var result []*base.SessionEntry
-	for _, entry := range s {
+	for _, entry := range s[1:] {
 		var ent base.SessionEntry
 		if err := json.Unmarshal([]byte(entry.(string)), &ent); err != nil {
-			return nil, err
+			return 0, nil, err
 		}
 		result = append(result, &ent)
 	}
 
-	return result, nil
+	return version, result, nil
 }
