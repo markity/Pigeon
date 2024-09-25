@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+
 	regetcd "pigeon/common/kitex-registry/etcd"
 	"pigeon/im-auth-route/config"
 	"pigeon/im-auth-route/db"

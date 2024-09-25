@@ -3,6 +3,7 @@ package db
 import (
 	"crypto/sha256"
 	"errors"
+
 	"pigeon/im-auth-route/db/model"
 
 	"gorm.io/gorm"

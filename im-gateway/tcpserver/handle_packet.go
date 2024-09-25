@@ -3,9 +3,10 @@ package tcpserver
 import (
 	"context"
 	"log"
+	"time"
+
 	"pigeon/im-gateway/protocol"
 	"pigeon/kitex_gen/service/imauthroute"
-	"time"
 
 	goreactor "github.com/markity/go-reactor"
 )

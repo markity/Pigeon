@@ -6,9 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"pigeon/im-ipconf/config"
 	"sort"
 	"sync"
+
+	"pigeon/im-ipconf/config"
 
 	"github.com/gin-gonic/gin"
 	"go.etcd.io/etcd/api/v3/mvccpb"

@@ -2,11 +2,12 @@ package tcpserver
 
 import (
 	"log"
-	"pigeon/im-gateway/protocol"
-	"pigeon/kitex_gen/service/imauthroute/imauthroute"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"pigeon/im-gateway/protocol"
+	"pigeon/kitex_gen/service/imauthroute/imauthroute"
 
 	goreactor "github.com/markity/go-reactor"
 	eventloop "github.com/markity/go-reactor/pkg/event_loop"
