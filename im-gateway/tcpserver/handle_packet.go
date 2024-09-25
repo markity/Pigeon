@@ -17,7 +17,7 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 	case *protocol.HeartbeatPacket:
 		conn.GetEventLoop().CancelTimer(connState.HeartbeatTimeoutTimerId)
 		heartbeatTimeoutTimerId := conn.GetEventLoop().RunAt(time.Now().
-			Add(MustLoadEvLoopContext(conn.GetEventLoop()).HeartbeatTimeout), 0, func(timerID int) {
+			Add(evloopCtx.HeartbeatTimeout), 0, func(timerID int) {
 			conn.ForceClose()
 			log.Printf("timeout: force close\n")
 		})

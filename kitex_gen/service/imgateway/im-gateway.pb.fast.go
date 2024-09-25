@@ -60,11 +60,6 @@ func (x *PushMessageReq) fastReadField3(buf []byte, _type int8) (offset int, err
 
 func (x *PushMessageResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
-	case 1:
-		offset, err = x.fastReadField1(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -74,13 +69,6 @@ func (x *PushMessageResp) FastRead(buf []byte, _type int8, number int32) (offset
 	return offset, nil
 SkipFieldError:
 	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
-ReadFieldError:
-	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_PushMessageResp[number], err)
-}
-
-func (x *PushMessageResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Success, offset, err = fastpb.ReadBool(buf, _type)
-	return offset, err
 }
 
 func (x *OtherDeviceKickReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -130,11 +118,6 @@ func (x *OtherDeviceKickReq) fastReadField3(buf []byte, _type int8) (offset int,
 
 func (x *OtherDeviceKickResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
-	case 1:
-		offset, err = x.fastReadField1(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -144,13 +127,6 @@ func (x *OtherDeviceKickResp) FastRead(buf []byte, _type int8, number int32) (of
 	return offset, nil
 SkipFieldError:
 	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
-ReadFieldError:
-	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_OtherDeviceKickResp[number], err)
-}
-
-func (x *OtherDeviceKickResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Success, offset, err = fastpb.ReadBool(buf, _type)
-	return offset, err
 }
 
 func (x *BroadcastDeviceInfoReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -205,11 +181,6 @@ func (x *BroadcastDeviceInfoReq) fastReadField3(buf []byte, _type int8) (offset 
 
 func (x *BroadcastDeviceInfoResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
-	case 1:
-		offset, err = x.fastReadField1(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -219,13 +190,6 @@ func (x *BroadcastDeviceInfoResp) FastRead(buf []byte, _type int8, number int32)
 	return offset, nil
 SkipFieldError:
 	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
-ReadFieldError:
-	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_BroadcastDeviceInfoResp[number], err)
-}
-
-func (x *BroadcastDeviceInfoResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Success, offset, err = fastpb.ReadBool(buf, _type)
-	return offset, err
 }
 
 func (x *PushMessageReq) FastWrite(buf []byte) (offset int) {
@@ -266,15 +230,6 @@ func (x *PushMessageResp) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
-	offset += x.fastWriteField1(buf[offset:])
-	return offset
-}
-
-func (x *PushMessageResp) fastWriteField1(buf []byte) (offset int) {
-	if !x.Success {
-		return offset
-	}
-	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
 	return offset
 }
 
@@ -316,15 +271,6 @@ func (x *OtherDeviceKickResp) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
-	offset += x.fastWriteField1(buf[offset:])
-	return offset
-}
-
-func (x *OtherDeviceKickResp) fastWriteField1(buf []byte) (offset int) {
-	if !x.Success {
-		return offset
-	}
-	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
 	return offset
 }
 
@@ -368,15 +314,6 @@ func (x *BroadcastDeviceInfoResp) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
-	offset += x.fastWriteField1(buf[offset:])
-	return offset
-}
-
-func (x *BroadcastDeviceInfoResp) fastWriteField1(buf []byte) (offset int) {
-	if !x.Success {
-		return offset
-	}
-	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
 	return offset
 }
 
@@ -418,15 +355,6 @@ func (x *PushMessageResp) Size() (n int) {
 	if x == nil {
 		return n
 	}
-	n += x.sizeField1()
-	return n
-}
-
-func (x *PushMessageResp) sizeField1() (n int) {
-	if !x.Success {
-		return n
-	}
-	n += fastpb.SizeBool(1, x.GetSuccess())
 	return n
 }
 
@@ -468,15 +396,6 @@ func (x *OtherDeviceKickResp) Size() (n int) {
 	if x == nil {
 		return n
 	}
-	n += x.sizeField1()
-	return n
-}
-
-func (x *OtherDeviceKickResp) sizeField1() (n int) {
-	if !x.Success {
-		return n
-	}
-	n += fastpb.SizeBool(1, x.GetSuccess())
 	return n
 }
 
@@ -520,15 +439,6 @@ func (x *BroadcastDeviceInfoResp) Size() (n int) {
 	if x == nil {
 		return n
 	}
-	n += x.sizeField1()
-	return n
-}
-
-func (x *BroadcastDeviceInfoResp) sizeField1() (n int) {
-	if !x.Success {
-		return n
-	}
-	n += fastpb.SizeBool(1, x.GetSuccess())
 	return n
 }
 
@@ -538,9 +448,7 @@ var fieldIDToName_PushMessageReq = map[int32]string{
 	3: "Data",
 }
 
-var fieldIDToName_PushMessageResp = map[int32]string{
-	1: "Success",
-}
+var fieldIDToName_PushMessageResp = map[int32]string{}
 
 var fieldIDToName_OtherDeviceKickReq = map[int32]string{
 	1: "FromSession",
@@ -548,9 +456,7 @@ var fieldIDToName_OtherDeviceKickReq = map[int32]string{
 	3: "ToSession",
 }
 
-var fieldIDToName_OtherDeviceKickResp = map[int32]string{
-	1: "Success",
-}
+var fieldIDToName_OtherDeviceKickResp = map[int32]string{}
 
 var fieldIDToName_BroadcastDeviceInfoReq = map[int32]string{
 	1: "SessionId",
@@ -558,8 +464,6 @@ var fieldIDToName_BroadcastDeviceInfoReq = map[int32]string{
 	3: "Sessions",
 }
 
-var fieldIDToName_BroadcastDeviceInfoResp = map[int32]string{
-	1: "Success",
-}
+var fieldIDToName_BroadcastDeviceInfoResp = map[int32]string{}
 
 var _ = base.File_base_base_proto

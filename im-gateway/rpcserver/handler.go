@@ -26,9 +26,7 @@ func (server *RPCServer) PushMessage(ctx context.Context, req *imgateway.PushMes
 	PushMessageResp, err error) {
 	loop_, ok := server.EvloopRoute.Load(req.SessionId)
 	if !ok {
-		return &imgateway.PushMessageResp{
-			Success: false,
-		}, err
+		return &imgateway.PushMessageResp{}, nil
 	}
 
 	var v map[string]interface{}
@@ -37,17 +35,14 @@ func (server *RPCServer) PushMessage(ctx context.Context, req *imgateway.PushMes
 	}
 
 	loop := loop_.(eventloop.EventLoop)
-	okChan := make(chan bool, 1)
 	data := protocol.PackData(protocol.MustEncodePacket(&protocol.S2CPushMessagePacket{
 		Data: v,
 	}))
 	loop.RunInLoop(func() {
-		tcpserver.PushMessage(loop, req.SessionId, data, okChan)
+		tcpserver.PushMessage(loop, req.SessionId, data)
 	})
 
-	return &imgateway.PushMessageResp{
-		Success: <-okChan,
-	}, nil
+	return &imgateway.PushMessageResp{}, nil
 }
 
 // 定位event loop, 并且打入事件循环就ok
@@ -55,9 +50,7 @@ func (server *RPCServer) OtherDeviceKick(ctx context.Context, req *imgateway.Oth
 	res *imgateway.OtherDeviceKickResp, err error) {
 	loop_, ok := server.EvloopRoute.Load(req.ToSession)
 	if !ok {
-		return &imgateway.OtherDeviceKickResp{
-			Success: false,
-		}, err
+		return &imgateway.OtherDeviceKickResp{}, nil
 	}
 
 	loop := loop_.(eventloop.EventLoop)
@@ -66,14 +59,11 @@ func (server *RPCServer) OtherDeviceKick(ctx context.Context, req *imgateway.Oth
 		FromSessionId:   req.FromSession,
 		FromSessionDesc: req.FromSessionDesc,
 	})))
-	okChan := make(chan bool, 1)
 	loop.RunInLoop(func() {
-		tcpserver.OtherDeveiceKick(loop, req.ToSession, data, okChan)
+		tcpserver.OtherDeveiceKick(loop, req.ToSession, data)
 	})
 
-	return &imgateway.OtherDeviceKickResp{
-		Success: <-okChan,
-	}, nil
+	return &imgateway.OtherDeviceKickResp{}, nil
 }
 
 func (server *RPCContext) BroadcastDeviceInfo(ctx context.Context, req *imgateway.BroadcastDeviceInfoReq) (
@@ -81,9 +71,7 @@ func (server *RPCContext) BroadcastDeviceInfo(ctx context.Context, req *imgatewa
 
 	loop_, ok := server.EvloopRoute.Load(req.SessionId)
 	if !ok {
-		return &imgateway.BroadcastDeviceInfoResp{
-			Success: false,
-		}, err
+		return &imgateway.BroadcastDeviceInfoResp{}, nil
 	}
 	devs := make([]*protocol.DeviceSessionEntry, 0, len(req.Sessions))
 	for _, v := range req.Sessions {
@@ -99,12 +87,8 @@ func (server *RPCContext) BroadcastDeviceInfo(ctx context.Context, req *imgatewa
 		Version: req.Version,
 		Devices: devs,
 	}))
-	okChan := make(chan bool, 1)
 	loop.RunInLoop(func() {
-		tcpserver.BroadcastDeviceInfo(loop, req.SessionId, data, okChan)
+		tcpserver.BroadcastDeviceInfo(loop, req.SessionId, data)
 	})
-
-	return &imgateway.BroadcastDeviceInfoResp{
-		Success: <-okChan,
-	}, nil
+	return &imgateway.BroadcastDeviceInfoResp{}, nil
 }
