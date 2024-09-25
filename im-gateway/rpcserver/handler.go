@@ -37,7 +37,7 @@ func (server *RPCServer) PushMessage(ctx context.Context, req *imgateway.PushMes
 	loop := loop_.(eventloop.EventLoop)
 	data := protocol.PackData(protocol.MustEncodePacket(&protocol.S2CPushMessagePacket{
 		Data: v,
-	}))
+	}, req.EchoCode))
 	loop.RunInLoop(func() {
 		tcpserver.PushMessage(loop, req.SessionId, data)
 	})

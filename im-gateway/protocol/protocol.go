@@ -103,17 +103,20 @@ type DeviceSessionEntry struct {
 
 // 广播其它设备的信息, 做多设备管理
 type S2CDeviceInfoBroadcastPacket struct {
+	WithEchoCode
 	Version int64                 `json:"version"`
 	Devices []*DeviceSessionEntry `json:"devices"`
 }
 
 // push消息
 type S2CPushMessagePacket struct {
+	WithEchoCode
 	Data interface{} `json:"data"`
 }
 
 // 被踢下线的通知
 type S2COtherDeviceKickNotify struct {
+	WithEchoCode
 	FromSessionId   string `json:"from_session_id"`
 	FromSessionDesc string `json:"from_session_desc"`
 }
@@ -153,16 +156,25 @@ func dataToPacketTypeInString(data interface{}) (string, bool) {
 }
 
 // 编码包
-func MustEncodePacket(data interface{}) []byte {
+func MustEncodePacket(data interface{}, echoCode ...string) []byte {
 	packType, ok := dataToPacketTypeInString(data)
 	if !ok {
 		panic("packet type")
 	}
 
-	hd := jsonHeader{
-		PacketType: packType,
-		Data:       data,
-		EchoCode:   data.(WithEchoCoder).EchoCode(),
+	var hd jsonHeader
+	if len(echoCode) == 0 {
+		hd = jsonHeader{
+			PacketType: packType,
+			Data:       data,
+			EchoCode:   data.(WithEchoCoder).EchoCode(),
+		}
+	} else {
+		hd = jsonHeader{
+			PacketType: packType,
+			Data:       data,
+			EchoCode:   echoCode[0],
+		}
 	}
 
 	// 特化这种情况
@@ -215,38 +227,41 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 	return header.Data, true
 }
 
-// 这个函数是不用的
-// func ParseS2CPacket(data []byte) (interface{}, bool) {
-// 	var header jsonHeader
-// 	if err := json.Unmarshal(data, &header); err != nil {
-// 		return nil, false
-// 	}
+func ParseS2CPacket(data []byte) (interface{}, bool) {
+	var header jsonHeader
+	if err := json.Unmarshal(data, &header); err != nil {
+		return nil, false
+	}
 
-// 	var err error
+	var err error
 
-// 	switch header.PacketType {
-// 	case "login-resp":
-// 		header.Data = new(S2CLoginRespPacket)
-// 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
-// 		err = json.Unmarshal(data, &header)
-// 	case "logout-resp":
-// 		header.Data = new(S2CLogoutRespPacket)
-// 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
-// 		err = json.Unmarshal(data, &header)
-// 	case "heartbeat":
-// 		header.Data = new(HeartbeatPacket)
-// 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
-// 		err = json.Unmarshal(data, &header)
-// 	case "kick-other-resp":
-// 		header.Data = new(S2CKickOhterDeviceRespPacket)
-// 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
-// 		err = json.Unmarshal(data, &header)
-// 	case "push-msg":
-// 		panic("unsupport")
-// 	}
+	switch header.PacketType {
+	case "login-resp":
+		header.Data = new(S2CLoginRespPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+	case "logout-resp":
+		header.Data = new(S2CLogoutRespPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+	case "heartbeat":
+		header.Data = new(HeartbeatPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+	case "kick-other-resp":
+		header.Data = new(S2CKickOhterDeviceRespPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+	case "device-info":
+		header.Data = new(S2CDeviceInfoBroadcastPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+	default:
+		panic("unsupport")
+	}
 
-// 	if err != nil {
-// 		return nil, false
-// 	}
-// 	return header.Data, true
-// }
+	if err != nil {
+		return nil, false
+	}
+	return header.Data, true
+}

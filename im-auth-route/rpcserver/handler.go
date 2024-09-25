@@ -77,7 +77,6 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 		if v.SessionId != sessionId {
 			go func() {
 				for {
-
 					_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
 						SessionId: v.SessionId,
 						Version:   result.Version,
@@ -86,9 +85,7 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 					if err != nil {
 						log.Printf("broadcast device info error, retry: %v\n", err)
 						time.Sleep(time.Millisecond * 50)
-						continue
 					}
-					break
 				}
 			}()
 		}

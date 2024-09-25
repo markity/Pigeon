@@ -7,5 +7,5 @@ import (
 )
 
 func NewGatewayClientFromAdAddr(adAddr string) imgateway.Client {
-	return imgateway.MustNewClient(adAddr, client.WithHostPorts(adAddr))
+	return imgateway.MustNewClient("im-gateway", client.WithHostPorts(adAddr))
 }

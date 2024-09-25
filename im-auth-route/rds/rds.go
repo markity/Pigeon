@@ -189,7 +189,7 @@ func (act *RdsAction) Logout(username string, sessionId string) (*LogoutResult, 
 -- Keys[1]: username
 -- Keys[2]: sessionId
 -- Keys[3]: prefix
--- Result[1]: 一个int64, 1表示登录成功, 0表示设备限制而登录失败
+-- Result[1]: 一个int64, 1表示登出成功, 0表示失败
 -- Result[2]: version
 -- Result[3,4,5,6...]: 现在的所有设备的json编码
 
@@ -241,7 +241,11 @@ return result
 
 	ok := results[0].(int64) == 1
 
-	version, _ := results[1].(int64)
+	version_, _ := results[1].(string)
+	version, err := strconv.ParseInt(version_, 10, 64)
+	if err != nil {
+		panic(err)
+	}
 	sessions := make([]*base.SessionEntry, 0, len(results[2:]))
 	for _, v := range results[2:] {
 		var entry base.SessionEntry

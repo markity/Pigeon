@@ -27,5 +27,5 @@ app:
   # 上报metrics的时间间隔
   metrics-update-interval-ms: 1000
   # 告诉别的服务器连接这些地址
-  tcp-advertise-addrport: "127.0.0.1:3001"
-  rpc-advertise-addrport: "127.0.0.1:3501"
+  tcp-advertise-addrport: "127.0.0.1:3501"
+  rpc-advertise-addrport: "127.0.0.1:3001"

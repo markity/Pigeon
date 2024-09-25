@@ -1,13 +1,16 @@
 package tcpserver
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"pigeon/im-gateway/protocol"
-	"pigeon/kitex_gen/service/imauthroute/imauthroute"
+	"pigeon/kitex_gen/service/imauthroute"
+	authroute "pigeon/kitex_gen/service/imauthroute/imauthroute"
 
 	goreactor "github.com/markity/go-reactor"
 	eventloop "github.com/markity/go-reactor/pkg/event_loop"
@@ -18,7 +21,7 @@ const connStateKey = "_ev_conn_state"
 
 type EvloopContext struct {
 	RelayCli          interface{}
-	AuthRouteCli      imauthroute.Client
+	AuthRouteCli      authroute.Client
 	ConnMetrics       *atomic.Int64
 	HeartbeatInterval time.Duration
 	HeartbeatTimeout  time.Duration
@@ -80,6 +83,7 @@ func SetUpConn(conn goreactor.TCPConnection) {
 		HeartbeatTimerId:        heartbeatTimerId,
 		HeartbeatTimeoutTimerId: heartbeatTimeoutTimerId,
 		SessionId:               nil,
+		Conn:                    conn,
 	})
 }
 
@@ -98,9 +102,17 @@ func ReleaseConn(conn goreactor.TCPConnection) {
 		if !ok {
 			panic("check me")
 		}
-		delete(MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo, *state.SessionId)
-		// 调用rpc 删除evloop-route中的路由表
 
+		// 调用rpc 删除evloop-route中的路由表
+		resp, err := ctx.AuthRouteCli.Logout(context.Background(), &imauthroute.LogoutReq{
+			SessionId: *state.SessionId,
+			Username:  *state.Username,
+		})
+		if err != nil || !resp.Success {
+			fmt.Printf("failed to logout: resp: %v, err: %v\n", resp, err)
+		}
+
+		delete(MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo, *state.SessionId)
 		ctx.EvloopRoute.Delete(*state.SessionId)
 	}
 }

@@ -20,6 +20,7 @@ message PushMessageReq {
     }
   */
   bytes data = 3;
+  string echo_code = 4;
 }
 
 message PushMessageResp {};

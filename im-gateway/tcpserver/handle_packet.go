@@ -86,6 +86,7 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		switch loginResp.Code {
 		case imauthroute.LoginResp_SUCCESS:
 			connState.SessionId = &loginResp.SessionId
+			connState.Username = &pack.Username
 			connState.StateCode = StateCodeLogin
 			evloopCtx.LoginedConnInfo[loginResp.SessionId] = connState
 			evloopCtx.EvloopRoute.Store(loginResp.SessionId, conn.GetEventLoop())
