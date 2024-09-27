@@ -6,23 +6,25 @@ import (
 
 type PacketType int
 
-const (
-	PacketTypeHeartbeat PacketType = iota
+// const (
+// 	PacketTypeHeartbeat PacketType = iota
 
-	PakcetTypeC2SLogin
-	PacketTypeS2CLoginResp
+// 	PakcetTypeC2SLogin
+// 	PacketTypeS2CLoginResp
 
-	PacketTypeC2SLogout
-	PacketTypeS2CLogoutResp
+// 	PacketTypeC2SLogout
+// 	PacketTypeS2CLogoutResp
 
-	PacketTypeC2SKickOhterDevice
-	PackDataTypeS2CKickOhterDeviceResp
+// 	PacketTypeC2SKickOhterDevice
+// 	PackDataTypeS2CKickOhterDeviceResp
 
-	// 广播包, 告诉其它设备当前用户的设备在线信息
-	PacketTypeS2CBroadcastDeviceInfo
-	// 其它设备踢下线的通知包
-	PacketTypeS2COhterDeviceKick
-)
+// 	// 广播包, 告诉其它设备当前用户的设备在线信息
+// 	PacketTypeS2CBroadcastDeviceInfo
+// 	// 其它设备踢下线的通知包
+// 	PacketTypeS2COhterDeviceKick
+// 	// 业务push包
+// 	PacketTypeS2CPush
+// )
 
 type WithEchoCode struct {
 	code string
@@ -64,10 +66,11 @@ const (
 
 type S2CLoginRespPacket struct {
 	WithEchoCode
-	Code      LoginRespCode         `json:"code"`        // code
-	SessionId string                `json:"session_id"`  // 只有当success == true时才有值
-	Version   int64                 `json:"version"`     // 在线信息版本号
-	Sessions  []*DeviceSessionEntry `json:"all_devices"` // 所有在线的设备
+	Code      LoginRespCode `json:"code"`       // code
+	SessionId string        `json:"session_id"` // 只有当success == true时才有值
+	// 特殊语意，deviceNumLimit, alreadyLogin也有会下面的值
+	Version  int64                 `json:"version"`     // 在线信息版本号
+	Sessions []*DeviceSessionEntry `json:"all_devices"` // 所有在线的设备
 }
 
 type C2SLogoutPacket struct {
@@ -90,7 +93,8 @@ type C2SKickOhterDevicePacket struct {
 
 type S2CKickOhterDeviceRespPacket struct {
 	WithEchoCode
-	KickOK     bool                  `json:"kick_ok"`
+	KickOK bool `json:"kick_ok"`
+	// 无论是否踢下线成功, 都会返回当前在线设备信息
 	Version    int64                 `json:"version"`
 	NewDevices []*DeviceSessionEntry `json:"new_devices"`
 }
@@ -111,11 +115,12 @@ type S2CDeviceInfoBroadcastPacket struct {
 // push消息
 type S2CPushMessagePacket struct {
 	WithEchoCode
-	Data interface{} `json:"data"`
+	PushType string      `json:"push_type"`
+	Data     interface{} `json:"data"`
 }
 
 // 被踢下线的通知
-type S2COtherDeviceKickNotify struct {
+type S2COtherDeviceKickNotifyPacket struct {
 	WithEchoCode
 	FromSessionId   string `json:"from_session_id"`
 	FromSessionDesc string `json:"from_session_desc"`
@@ -123,6 +128,7 @@ type S2COtherDeviceKickNotify struct {
 
 type jsonHeader struct {
 	PacketType string      `json:"packet_type"`
+	PushType   string      `json:"push_type,omitempty"`
 	Data       interface{} `json:"data"`
 	// 用户帮助客户端辅助定位请求的response
 	EchoCode string `json:"echo_code"`
@@ -148,7 +154,7 @@ func dataToPacketTypeInString(data interface{}) (string, bool) {
 		return "device-info", true
 	case *S2CPushMessagePacket:
 		return "push-msg", true
-	case *S2COtherDeviceKickNotify:
+	case *S2COtherDeviceKickNotifyPacket:
 		return "other-kick-notify", true
 	}
 
@@ -180,6 +186,7 @@ func MustEncodePacket(data interface{}, echoCode ...string) []byte {
 	// 特化这种情况
 	if packType == "push-msg" {
 		hd.Data = data.(*S2CPushMessagePacket).Data
+		hd.PushType = data.(*S2CPushMessagePacket).PushType
 	}
 
 	bs, err := json.Marshal(hd)
@@ -256,6 +263,25 @@ func ParseS2CPacket(data []byte) (interface{}, bool) {
 		header.Data = new(S2CDeviceInfoBroadcastPacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
+		// 特殊逻辑
+	case "push-msg":
+		header.Data = map[string]interface{}{}
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+		if err != nil {
+			return nil, false
+		}
+		bs, err := json.Marshal(header.Data)
+		if err != nil {
+			return nil, false
+		}
+		header.Data = bs
+		p := &S2CPushMessagePacket{
+			PushType: header.PushType,
+			Data:     bs,
+		}
+		p.SetEchoCode(header.EchoCode)
+		return p, true
 	default:
 		panic("unsupport")
 	}

@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"pigeon/im-gateway/protocol"
 	"strings"
 	"sync"
 	"time"
+
+	"pigeon/im-gateway/protocol"
 
 	interactive "github.com/markity/Interactive-Console"
 )
@@ -40,8 +41,9 @@ type cmdKickOtherSession struct {
 
 type exitCmd struct{}
 
-type helpCmd struct {
-}
+type helpCmd struct{}
+
+type clearCmd struct{}
 
 func parseCommand(line string) interface{} {
 	line = strings.TrimSpace(line)
@@ -77,6 +79,10 @@ func parseCommand(line string) interface{} {
 	case "exit":
 		if len(cmds) == 1 {
 			return &exitCmd{}
+		}
+	case "clear":
+		if len(cmds) == 1 {
+			return &clearCmd{}
 		}
 	case "help":
 		if len(cmds) == 1 {
@@ -223,6 +229,8 @@ func main() {
 				win.SendLineBack("    kick sessionId echoCode: send kick other device packet")
 				win.SendLineBack("    exit: exit")
 				win.SendLineBack("    help: show this message")
+			case *clearCmd:
+				win.Clear()
 			case *exitCmd:
 				win.Stop()
 				return

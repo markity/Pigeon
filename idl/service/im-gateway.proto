@@ -8,7 +8,7 @@ import "base/base.proto";
 
 message PushMessageReq {
   string session_id = 1;
-  string packet_type = 2;
+  string push_type = 2;
   // data必须是json格式的, 被封装成这样的类型
   /*
     {

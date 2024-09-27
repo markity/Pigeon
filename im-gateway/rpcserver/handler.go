@@ -36,7 +36,8 @@ func (server *RPCServer) PushMessage(ctx context.Context, req *imgateway.PushMes
 
 	loop := loop_.(eventloop.EventLoop)
 	data := protocol.PackData(protocol.MustEncodePacket(&protocol.S2CPushMessagePacket{
-		Data: v,
+		Data:     v,
+		PushType: req.PushType,
 	}, req.EchoCode))
 	loop.RunInLoop(func() {
 		tcpserver.PushMessage(loop, req.SessionId, data)
@@ -55,7 +56,7 @@ func (server *RPCServer) OtherDeviceKick(ctx context.Context, req *imgateway.Oth
 
 	loop := loop_.(eventloop.EventLoop)
 
-	data := protocol.PackData(protocol.PackData(protocol.MustEncodePacket(&protocol.S2COtherDeviceKickNotify{
+	data := protocol.PackData(protocol.PackData(protocol.MustEncodePacket(&protocol.S2COtherDeviceKickNotifyPacket{
 		FromSessionId:   req.FromSession,
 		FromSessionDesc: req.FromSessionDesc,
 	})))

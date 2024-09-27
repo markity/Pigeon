@@ -54,7 +54,7 @@ func (x *PushMessageReq) fastReadField1(buf []byte, _type int8) (offset int, err
 }
 
 func (x *PushMessageReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.PacketType, offset, err = fastpb.ReadString(buf, _type)
+	x.PushType, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -222,10 +222,10 @@ func (x *PushMessageReq) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *PushMessageReq) fastWriteField2(buf []byte) (offset int) {
-	if x.PacketType == "" {
+	if x.PushType == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetPacketType())
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetPushType())
 	return offset
 }
 
@@ -356,10 +356,10 @@ func (x *PushMessageReq) sizeField1() (n int) {
 }
 
 func (x *PushMessageReq) sizeField2() (n int) {
-	if x.PacketType == "" {
+	if x.PushType == "" {
 		return n
 	}
-	n += fastpb.SizeString(2, x.GetPacketType())
+	n += fastpb.SizeString(2, x.GetPushType())
 	return n
 }
 
@@ -472,7 +472,7 @@ func (x *BroadcastDeviceInfoResp) Size() (n int) {
 
 var fieldIDToName_PushMessageReq = map[int32]string{
 	1: "SessionId",
-	2: "PacketType",
+	2: "PushType",
 	3: "Data",
 	4: "EchoCode",
 }
