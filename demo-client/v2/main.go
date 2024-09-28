@@ -12,6 +12,7 @@ import (
 
 	"pigeon/im-gateway/protocol"
 
+	"github.com/google/uuid"
 	interactive "github.com/markity/Interactive-Console"
 )
 
@@ -28,16 +29,16 @@ type cmdLogin struct {
 	Username   string
 	Password   string
 	DeviceDesc string
-	EchoCode   string
+	EchoCode   *string
 }
 
 type cmdLogout struct {
-	EchoCode string
+	EchoCode *string
 }
 
 type cmdKickOtherSession struct {
 	SessionId string
-	EchoCode  string
+	EchoCode  *string
 }
 
 type exitCmd struct{}
@@ -47,7 +48,7 @@ type helpCmd struct{}
 type clearCmd struct{}
 
 type statusCmd struct {
-	EchoCode string
+	EchoCode *string
 }
 
 type emptyCmd struct{}
@@ -75,15 +76,28 @@ func parseCommand(line string) interface{} {
 		return &cmdHeartbeat{}
 	case "login":
 		if len(cmds) == 5 {
-			return &cmdLogin{Username: cmds[1], Password: cmds[2], DeviceDesc: cmds[3], EchoCode: cmds[4]}
+			var ec = cmds[4]
+			return &cmdLogin{Username: cmds[1], Password: cmds[2], DeviceDesc: cmds[3], EchoCode: &ec}
+		}
+
+		if len(cmds) == 4 {
+			return &cmdLogin{Username: cmds[1], Password: cmds[2], DeviceDesc: cmds[3], EchoCode: nil}
 		}
 	case "logout":
 		if len(cmds) == 2 {
-			return &cmdLogout{EchoCode: cmds[1]}
+			var ec = cmds[1]
+			return &cmdLogout{EchoCode: &ec}
+		}
+		if len(cmds) == 1 {
+			return &cmdLogout{EchoCode: nil}
 		}
 	case "kick":
 		if len(cmds) == 3 {
-			return &cmdKickOtherSession{SessionId: cmds[1], EchoCode: cmds[2]}
+			var ec = cmds[2]
+			return &cmdKickOtherSession{SessionId: cmds[1], EchoCode: &ec}
+		}
+		if len(cmds) == 2 {
+			return &cmdKickOtherSession{SessionId: cmds[1], EchoCode: nil}
 		}
 	case "exit":
 		if len(cmds) == 1 {
@@ -99,8 +113,14 @@ func parseCommand(line string) interface{} {
 		}
 	case "status":
 		if len(cmds) == 2 {
+			var ec = cmds[1]
 			return &statusCmd{
-				EchoCode: cmds[1],
+				EchoCode: &ec,
+			}
+		}
+		if len(cmds) == 1 {
+			return &statusCmd{
+				EchoCode: nil,
 			}
 		}
 	case "hidehb":
@@ -229,17 +249,28 @@ func main() {
 				username := c.Username
 				password := c.Password
 				deviceDesc := c.DeviceDesc
-				echoCode := c.EchoCode
+				echoCode := ""
+				if c.EchoCode == nil {
+					echoCode = uuid.NewString()
+				} else {
+					echoCode = *c.EchoCode
+				}
 				win.SendLineBack("send login packet, username: " + username + ", password: " + password + ", deviceDesc" + c.DeviceDesc + ", echoCode: " + echoCode)
 				var p = &protocol.C2SLoginPacket{
 					Username:   username,
 					Password:   password,
 					DeviceDesc: deviceDesc,
 				}
+
 				p.SetEchoCode(echoCode)
 				uq.Push(protocol.PackData(protocol.MustEncodePacket(p)))
 			case *cmdLogout:
-				echoCode := c.EchoCode
+				echoCode := ""
+				if c.EchoCode == nil {
+					echoCode = uuid.NewString()
+				} else {
+					echoCode = *c.EchoCode
+				}
 				win.SendLineBack("send logout packet, echoCode: " + echoCode)
 				var p = &protocol.C2SLogoutPacket{}
 				p.SetEchoCode(echoCode)
@@ -262,7 +293,12 @@ func main() {
 				return
 			case *cmdKickOtherSession:
 				sessionId := c.SessionId
-				echoCode := c.EchoCode
+				echoCode := ""
+				if c.EchoCode == nil {
+					echoCode = uuid.NewString()
+				} else {
+					echoCode = *c.EchoCode
+				}
 				win.SendLineBack("send kick other session packet, sessionId: " + sessionId + ", echoCode: " + echoCode)
 				var p = &protocol.C2SKickOhterDevicePacket{
 					SessionId: sessionId,
@@ -270,9 +306,15 @@ func main() {
 				p.SetEchoCode(echoCode)
 				uq.Push(protocol.PackData(protocol.MustEncodePacket(p)))
 			case *statusCmd:
+				echoCode := ""
+				if c.EchoCode == nil {
+					echoCode = uuid.NewString()
+				} else {
+					echoCode = *c.EchoCode
+				}
 				var p = &protocol.C2SQueryStatusPacket{}
-				win.SendLineBack("send status command packet, echoCode: " + c.EchoCode)
-				p.SetEchoCode(c.EchoCode)
+				win.SendLineBack("send status command packet, echoCode: " + echoCode)
+				p.SetEchoCode(echoCode)
 				uq.Push(protocol.PackData(protocol.MustEncodePacket(p)))
 			case *hideHeartbeatInfo:
 				if hideHeartbeat {
