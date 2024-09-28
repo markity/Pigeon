@@ -32,6 +32,7 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		} else {
 			resp.Status = "unlogin"
 		}
+		resp.SetEchoCode(pack.EchoCode())
 		conn.Send(protocol.PackData(protocol.MustEncodePacket(&resp)))
 	case *protocol.C2SLoginPacket:
 		// 如果输入错误, 直接force close，防止攻击

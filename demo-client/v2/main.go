@@ -25,9 +25,10 @@ type cmdHeartbeat struct{}
 
 // login username password echocode
 type cmdLogin struct {
-	Username string
-	Password string
-	EchoCode string
+	Username   string
+	Password   string
+	DeviceDesc string
+	EchoCode   string
 }
 
 type cmdLogout struct {
@@ -73,8 +74,8 @@ func parseCommand(line string) interface{} {
 	case "hb":
 		return &cmdHeartbeat{}
 	case "login":
-		if len(cmds) == 4 {
-			return &cmdLogin{Username: cmds[1], Password: cmds[2], EchoCode: cmds[3]}
+		if len(cmds) == 5 {
+			return &cmdLogin{Username: cmds[1], Password: cmds[2], DeviceDesc: cmds[3], EchoCode: cmds[4]}
 		}
 	case "logout":
 		if len(cmds) == 2 {
@@ -227,11 +228,13 @@ func main() {
 			case *cmdLogin:
 				username := c.Username
 				password := c.Password
+				deviceDesc := c.DeviceDesc
 				echoCode := c.EchoCode
-				win.SendLineBack("send login packet, username: " + username + ", password: " + password + ", echoCode: " + echoCode)
+				win.SendLineBack("send login packet, username: " + username + ", password: " + password + ", deviceDesc" + c.DeviceDesc + ", echoCode: " + echoCode)
 				var p = &protocol.C2SLoginPacket{
-					Username: username,
-					Password: password,
+					Username:   username,
+					Password:   password,
+					DeviceDesc: deviceDesc,
 				}
 				p.SetEchoCode(echoCode)
 				uq.Push(protocol.PackData(protocol.MustEncodePacket(p)))
@@ -269,7 +272,7 @@ func main() {
 			case *statusCmd:
 				var p = &protocol.C2SQueryStatusPacket{}
 				win.SendLineBack("send status command packet, echoCode: " + c.EchoCode)
-				p.SetEchoCode(p.EchoCode())
+				p.SetEchoCode(c.EchoCode)
 				uq.Push(protocol.PackData(protocol.MustEncodePacket(p)))
 			case *hideHeartbeatInfo:
 				if hideHeartbeat {
@@ -301,25 +304,99 @@ func main() {
 			fmt.Println("conn lost: " + err.Error())
 			return
 		case packet := <-packetRecvChan:
-			switch packet.(type) {
+			switch pkt := packet.(type) {
 			case *protocol.HeartbeatPacket:
 				if !hideHeartbeat {
 					win.SendLineBack("recv: packet heartbeat")
 				}
 			case *protocol.S2CDeviceInfoBroadcastPacket:
 				win.SendLineBack("recv: packet device info broadcast")
+				version := pkt.Version
+				devices := pkt.Devices
+				win.SendLineBack("    version: " + fmt.Sprint(version))
+				win.SendLineBack("    devices: " + fmt.Sprint(len(devices)))
+				for i, device := range devices {
+					win.SendLineBack(fmt.Sprintf("        device[%v]", i))
+					win.SendLineBack(fmt.Sprintf("            sessionId: %v", device.SessionId))
+					win.SendLineBack(fmt.Sprintf("            loginAt: %v", device.LoginAt))
+					win.SendLineBack(fmt.Sprintf("            deviceDesc: %v", device.DeviceDesc))
+				}
 			case *protocol.S2CKickOhterDeviceRespPacket:
 				win.SendLineBack("recv: packet kick resp")
+				ok := pkt.KickOK
+				version := pkt.Version
+				devices := pkt.NewDevices
+				ec := pkt.EchoCode()
+				win.SendLineBack("    kickOk: " + fmt.Sprint(ok))
+				win.SendLineBack("    version: " + fmt.Sprint(version))
+				win.SendLineBack("    echoCode: " + ec)
+				win.SendLineBack("    devices: " + fmt.Sprint(len(devices)))
+				for i, device := range devices {
+					win.SendLineBack(fmt.Sprintf("        device[%v]", i))
+					win.SendLineBack(fmt.Sprintf("            sessionId: %v", device.SessionId))
+					win.SendLineBack(fmt.Sprintf("            loginAt: %v", device.LoginAt))
+					win.SendLineBack(fmt.Sprintf("            deviceDesc: %v", device.DeviceDesc))
+				}
 			case *protocol.S2CLoginRespPacket:
 				win.SendLineBack("recv: packet login resp")
+				code := pkt.Code
+				sessionId := pkt.SessionId
+				version := pkt.Version
+				devices := pkt.Sessions
+				ec := pkt.EchoCode()
+				win.SendLineBack("    code: " + fmt.Sprint(code))
+				win.SendLineBack("    sessionId: " + sessionId)
+				win.SendLineBack("    version: " + fmt.Sprint(version))
+				win.SendLineBack("    echoCode: " + ec)
+				win.SendLineBack("    devices: " + fmt.Sprint(len(devices)))
+				for i, device := range devices {
+					win.SendLineBack(fmt.Sprintf("        device[%v]", i))
+					win.SendLineBack(fmt.Sprintf("            sessionId: %v", device.SessionId))
+					win.SendLineBack(fmt.Sprintf("            loginAt: %v", device.LoginAt))
+					win.SendLineBack(fmt.Sprintf("            deviceDesc: %v", device.DeviceDesc))
+				}
 			case *protocol.S2CLogoutRespPacket:
 				win.SendLineBack("recv: packet logout resp")
+				success := pkt.Success
+				version := pkt.Version
+				devices := pkt.Sessions
+				ec := pkt.EchoCode()
+				win.SendLineBack("    success: " + fmt.Sprint(success))
+				win.SendLineBack("    version: " + fmt.Sprint(version))
+				win.SendLineBack("    echoCode: " + ec)
+				win.SendLineBack("    devices: " + fmt.Sprint(len(devices)))
+				for i, device := range devices {
+					win.SendLineBack(fmt.Sprintf("        device[%v]", i))
+					win.SendLineBack(fmt.Sprintf("            sessionId: %v", device.SessionId))
+					win.SendLineBack(fmt.Sprintf("            loginAt: %v", device.LoginAt))
+					win.SendLineBack(fmt.Sprintf("            deviceDesc: %v", device.DeviceDesc))
+				}
 			case *protocol.S2COtherDeviceKickNotifyPacket:
 				win.SendLineBack("recv: packet other device kick notify")
+				fromDesc := pkt.FromSessionDesc
+				fromId := pkt.FromSessionId
+				ec := pkt.EchoCode()
+				win.SendLineBack("    fromSessionId: " + fromId)
+				win.SendLineBack("    fromSessionDesc: " + fromDesc)
+				win.SendLineBack("    echoCode: " + ec)
 			case *protocol.S2CQueryStatusRespPacket:
 				win.SendLineBack("recv: packet status")
+				status := pkt.Status
+				username := pkt.Username
+				sessionId := pkt.SessionId
+				ec := pkt.EchoCode()
+				win.SendLineBack("    status: " + status)
+				win.SendLineBack("    username: " + username)
+				win.SendLineBack("    sessionId: " + sessionId)
+				win.SendLineBack("    echoCode: " + ec)
 			case *protocol.S2CPushMessagePacket:
 				win.SendLineBack("recv: packet push meesage")
+				pushType := pkt.PushType
+				data := pkt.Data.([]byte)
+				ec := pkt.EchoCode()
+				win.SendLineBack("    pushType: " + pushType)
+				win.SendLineBack("    pushData: " + string(data))
+				win.SendLineBack("    echoCode: " + ec)
 			}
 		}
 	}
