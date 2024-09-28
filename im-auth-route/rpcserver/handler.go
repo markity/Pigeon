@@ -27,7 +27,6 @@ type RPCServer struct {
 }
 
 func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (*imauthroute.LoginResp, error) {
-	fmt.Println("login")
 	lk, err := server.Rds.LockUsername(req.Username, time.Second*15)
 	if err != nil {
 		log.Printf("lock username error: %v\n", err)
@@ -191,6 +190,7 @@ func (server *RPCServer) QueryUserRoute(ctx context.Context, req *imauthroute.Qu
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(version)
 	return &imauthroute.QueryUserRouteResp{
 		Version: version,
 		Routes:  result,

@@ -85,8 +85,8 @@ func (server *RPCContext) BroadcastDeviceInfo(ctx context.Context, req *imgatewa
 
 	loop := loop_.(eventloop.EventLoop)
 	data := protocol.PackData(protocol.MustEncodePacket(&protocol.S2CDeviceInfoBroadcastPacket{
-		Version: req.Version,
-		Devices: devs,
+		Version:  req.Version,
+		Sessions: devs,
 	}))
 	loop.RunInLoop(func() {
 		tcpserver.BroadcastDeviceInfo(loop, req.SessionId, data)

@@ -312,7 +312,7 @@ func main() {
 			case *protocol.S2CDeviceInfoBroadcastPacket:
 				win.SendLineBack("recv: packet device info broadcast")
 				version := pkt.Version
-				devices := pkt.Devices
+				devices := pkt.Sessions
 				win.SendLineBack("    version: " + fmt.Sprint(version))
 				win.SendLineBack("    devices: " + fmt.Sprint(len(devices)))
 				for i, device := range devices {
@@ -325,7 +325,7 @@ func main() {
 				win.SendLineBack("recv: packet kick resp")
 				ok := pkt.KickOK
 				version := pkt.Version
-				devices := pkt.NewDevices
+				devices := pkt.Sessions
 				ec := pkt.EchoCode()
 				win.SendLineBack("    kickOk: " + fmt.Sprint(ok))
 				win.SendLineBack("    version: " + fmt.Sprint(version))
@@ -384,11 +384,20 @@ func main() {
 				status := pkt.Status
 				username := pkt.Username
 				sessionId := pkt.SessionId
+				devices := pkt.Sessions
 				ec := pkt.EchoCode()
 				win.SendLineBack("    status: " + status)
 				win.SendLineBack("    username: " + username)
 				win.SendLineBack("    sessionId: " + sessionId)
 				win.SendLineBack("    echoCode: " + ec)
+				win.SendLineBack("    version: " + fmt.Sprint(pkt.Version))
+				win.SendLineBack("    devices: " + fmt.Sprint(len(devices)))
+				for i, device := range devices {
+					win.SendLineBack(fmt.Sprintf("        device[%v]", i))
+					win.SendLineBack(fmt.Sprintf("            sessionId: %v", device.SessionId))
+					win.SendLineBack(fmt.Sprintf("            loginAt: %v", device.LoginAt))
+					win.SendLineBack(fmt.Sprintf("            deviceDesc: %v", device.DeviceDesc))
+				}
 			case *protocol.S2CPushMessagePacket:
 				win.SendLineBack("recv: packet push meesage")
 				pushType := pkt.PushType

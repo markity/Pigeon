@@ -415,7 +415,7 @@ return result
 		return 0, nil, err
 	}
 
-	version, _ := s[0].(int64)
+	version, _ := strconv.ParseInt(s[0].(string), 10, 64)
 
 	var result []*base.SessionEntry
 	for _, entry := range s[1:] {

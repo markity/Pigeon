@@ -51,8 +51,8 @@ func main() {
 					fmt.Printf("\t\tsessionId:%v loginAt:%v DeviceDesc:%v\n", v.SessionId, v.LoginAt, v.DeviceDesc)
 				}
 			case *protocol.S2CDeviceInfoBroadcastPacket:
-				fmt.Printf("\tversion:%v devices:%v\n", packet.Version, packet.Devices)
-				for _, v := range packet.Devices {
+				fmt.Printf("\tversion:%v devices:%v\n", packet.Version, packet.Sessions)
+				for _, v := range packet.Sessions {
 					fmt.Printf("\t\tsessionId:%v loginAt:%v DeviceDesc:%v\n", v.SessionId, v.LoginAt, v.DeviceDesc)
 				}
 			}

@@ -53,9 +53,11 @@ type C2SQueryStatusPacket struct {
 
 type S2CQueryStatusRespPacket struct {
 	WithEchoCode
-	Status    string `json:"status"`
-	Username  string `json:"username"`
-	SessionId string `json:"session_id"`
+	Status    string                `json:"status"`
+	Username  string                `json:"username"`
+	SessionId string                `json:"session_id"`
+	Version   int64                 `json:"version"`
+	Sessions  []*DeviceSessionEntry `json:"sessions"`
 }
 
 type C2SLoginPacket struct {
@@ -106,8 +108,8 @@ type S2CKickOhterDeviceRespPacket struct {
 	WithEchoCode
 	KickOK bool `json:"kick_ok"`
 	// 无论是否踢下线成功, 都会返回当前在线设备信息
-	Version    int64                 `json:"version"`
-	NewDevices []*DeviceSessionEntry `json:"new_devices"`
+	Version  int64                 `json:"version"`
+	Sessions []*DeviceSessionEntry `json:"sessions"`
 }
 
 type DeviceSessionEntry struct {
@@ -119,8 +121,8 @@ type DeviceSessionEntry struct {
 // 广播其它设备的信息, 做多设备管理
 type S2CDeviceInfoBroadcastPacket struct {
 	WithEchoCode
-	Version int64                 `json:"version"`
-	Devices []*DeviceSessionEntry `json:"devices"`
+	Version  int64                 `json:"version"`
+	Sessions []*DeviceSessionEntry `json:"sessions"`
 }
 
 // push消息

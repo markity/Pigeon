@@ -19,8 +19,8 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		conn.GetEventLoop().CancelTimer(connState.HeartbeatTimeoutTimerId)
 		heartbeatTimeoutTimerId := conn.GetEventLoop().RunAt(time.Now().
 			Add(evloopCtx.HeartbeatTimeout), 0, func(timerID int) {
-			conn.ForceClose()
 			log.Printf("timeout: force close\n")
+			conn.ForceClose()
 		})
 		connState.HeartbeatTimeoutTimerId = heartbeatTimeoutTimerId
 	case *protocol.C2SQueryStatusPacket:
@@ -33,6 +33,29 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 			resp.Status = "unlogin"
 		}
 		resp.SetEchoCode(pack.EchoCode())
+		resp.Sessions = make([]*protocol.DeviceSessionEntry, 0)
+		if connState.StateCode == StateCodeUnLogin {
+			resp.Sessions = make([]*protocol.DeviceSessionEntry, 0)
+			resp.Version = 0
+		} else {
+			queryuserRouteResp, err := evloopCtx.AuthRouteCli.QueryUserRoute(context.Background(), &imauthroute.QueryUserRouteReq{
+				Username: *connState.Username,
+			})
+			if err != nil {
+				log.Printf("failed to call auth query user route: %v\n", err)
+				conn.ForceClose()
+				return
+			}
+			resp.Version = queryuserRouteResp.Version
+			resp.Sessions = make([]*protocol.DeviceSessionEntry, 0, len(queryuserRouteResp.Routes))
+			for _, v := range queryuserRouteResp.Routes {
+				resp.Sessions = append(resp.Sessions, &protocol.DeviceSessionEntry{
+					SessionId:  v.SessionId,
+					LoginAt:    v.LoginAt,
+					DeviceDesc: v.DeviceDesc,
+				})
+			}
+		}
 		conn.Send(protocol.PackData(protocol.MustEncodePacket(&resp)))
 	case *protocol.C2SLoginPacket:
 		// 如果输入错误, 直接force close，防止攻击
@@ -165,7 +188,7 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		}
 
 		send := &protocol.S2CKickOhterDeviceRespPacket{
-			NewDevices: make([]*protocol.DeviceSessionEntry, 0),
+			Sessions: make([]*protocol.DeviceSessionEntry, 0),
 		}
 		send.SetEchoCode(pack.EchoCode())
 		if connState.StateCode == StateCodeUnLogin || *connState.SessionId == pack.SessionId {
@@ -201,7 +224,7 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		}
 		send.Version = kickResp.Version
 		for _, v := range kickResp.Sessions {
-			send.NewDevices = append(send.NewDevices, &protocol.DeviceSessionEntry{
+			send.Sessions = append(send.Sessions, &protocol.DeviceSessionEntry{
 				SessionId:  v.SessionId,
 				LoginAt:    v.LoginAt,
 				DeviceDesc: v.DeviceDesc,
