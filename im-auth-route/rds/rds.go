@@ -266,6 +266,9 @@ return result
 
 type ForceOfflineResult struct {
 	Code        imauthroute.ForceOfflineResp_ForceOfflineRespCode
+	FromSession *base.SessionEntry
+	ToSession   *base.SessionEntry
+	// 只有为0时下面的参数才有意义
 	Version     int64
 	AllSessions []*base.SessionEntry
 }
@@ -283,8 +286,10 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 	-- Keys[3]: target_sessionId
 	-- Keys[4]: prefix
 	-- Result[1]: 一个int64, 0表示登录成功, 1表示没有fromsession, 2代表有fromsession但是没有targetsession
-	-- Result[2]: version
-	-- Result[3,4,5,6...]: 现在的所有设备的json编码
+	-- Result[2]: fromsession的json编码, 或者nil
+	-- Result[3]: tosession的json编码, 或者nil
+	-- Result[4]: version
+	-- Result[5,6...]: 现在的所有设备的json编码
 	
 	local username = KEYS[1]
 	local fromSessionId = KEYS[2]
@@ -292,29 +297,36 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 	local prefix = KEYS[4]
 	
 	local keyUser = prefix.."route/user/"..username
-	local keySession = prefix.."route/session/"..sessionId
+	local keyFromSession = prefix.."route/session/"..targetSessionId
+	local keyTargetSession = prefix.."route/session/"..targetSessionId
 	local keyVersion = prefix.."route/version/"..username
 	
 	local result = {}
 
 	local fromSessionVal = redis.call('HGET', keyUser, fromSessionId)
 	local toSessionVal = redis.call('HGET', keyUser, targetSessionId)
-	if fromSessionVal == nil then
+	if fromSessionVal == false then
 		table.insert(result, 1)
-	elseif toSessionVal == nil then
+	elseif toSessionVal == false then
 		table.insert(result, 2)
 	else
+		table.insert(result, 0)
 		-- 都存在, 那么删除targetSessionId的session信息
 		redis.call('HDEL', keyUser, targetSessionId)
-		redis.call('DEL', keySession)
-		table.insert(result, 0)
+		redis.call('DEL', keyTargetSession)
 		-- 更新版本号
 		redis.call('INCR', keyVersion)
 	end
 
+	table.insert(result,fromSessionVal)
+	table.insert(result,toSessionVal)
+
 	local version = redis.call('GET', keyVersion)
-	table.insert(result,1)
-	table.insert(result,version)
+	if version == false then
+		table.insert(result,0)
+	else
+		table.insert(result,version)
+	end
 
 	local keys = redis.call('HGETALL', keyUser)
 	-- 遍历HGETALL返回的列表, 把value存入result列表
@@ -329,9 +341,27 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 	}
 
 	code := results[0].(int64)
-	version, _ := results[1].(int64)
-	sessions := make([]*base.SessionEntry, 0, len(results[2:]))
-	for _, v := range results[2:] {
+	var fromSession *base.SessionEntry
+	var toSession *base.SessionEntry
+	if r1 := results[1]; r1 != redis.Nil {
+		var s base.SessionEntry
+		err := json.Unmarshal([]byte(r1.(string)), &s)
+		if err != nil {
+			panic(err)
+		}
+		fromSession = &s
+	}
+	if r2 := results[2]; r2 != redis.Nil {
+		var s base.SessionEntry
+		err := json.Unmarshal([]byte(r2.(string)), &s)
+		if err != nil {
+			panic(err)
+		}
+		toSession = &s
+	}
+	version, _ := strconv.ParseInt(results[3].(string), 10, 64)
+	sessions := make([]*base.SessionEntry, 0, len(results[4:]))
+	for _, v := range results[4:] {
 		var entry base.SessionEntry
 		err := json.Unmarshal([]byte(v.(string)), &entry)
 		if err != nil {
@@ -343,6 +373,8 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 
 	return &ForceOfflineResult{
 		Code:        imauthroute.ForceOfflineResp_ForceOfflineRespCode(code),
+		FromSession: fromSession,
+		ToSession:   toSession,
 		Version:     version,
 		AllSessions: sessions,
 	}, nil

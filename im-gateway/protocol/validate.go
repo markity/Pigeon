@@ -43,5 +43,5 @@ func IsDeviceDescValid(data string) bool {
 
 // sessionId长度为32
 func IsSessionIdValid(sessionId string) bool {
-	return len(sessionId) == 32
+	return len(sessionId) == 36
 }

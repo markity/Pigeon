@@ -2,6 +2,7 @@ package tcpserver
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -124,6 +125,7 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 			connState.StateCode = StateCodeLogin
 			evloopCtx.LoginedConnInfo[loginResp.SessionId] = connState
 			evloopCtx.EvloopRoute.Store(loginResp.SessionId, conn.GetEventLoop())
+			send.SessionId = loginResp.SessionId
 			send.Code = protocol.LoginRespCodeSuccess
 		case imauthroute.LoginResp_AUTH_ERROR:
 			send.Code = protocol.LoginRespCodeAuthError
@@ -180,9 +182,10 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		}
 		conn.Send(protocol.PackData(protocol.MustEncodePacket(send)))
 	// 客户端发送主动踢掉其他设备的包
-	case *protocol.C2SKickOhterDevicePacket:
+	case *protocol.C2SKickOtherDevicePacket:
 		// 输入非法, 直接force close
 		if !protocol.IsSessionIdValid(pack.SessionId) {
+			fmt.Println(pack.SessionId)
 			conn.ForceClose()
 			return
 		}
@@ -192,9 +195,7 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		}
 		send.SetEchoCode(pack.EchoCode())
 		if connState.StateCode == StateCodeUnLogin || *connState.SessionId == pack.SessionId {
-			send.KickOK = false
-			send.Version = 0
-			conn.Send(protocol.PackData(protocol.MustEncodePacket(send)))
+			conn.ForceClose()
 			return
 		}
 

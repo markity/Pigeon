@@ -92,7 +92,6 @@ func ReleaseConn(conn goreactor.TCPConnection) {
 	ctx := MustLoadEvLoopContext(conn.GetEventLoop())
 
 	state := MustGetConnStateFromConn(conn)
-	fmt.Println(state.HeartbeatTimerId, state.HeartbeatTimeoutTimerId)
 	conn.GetEventLoop().CancelTimer(state.HeartbeatTimerId)
 	conn.GetEventLoop().CancelTimer(state.HeartbeatTimeoutTimerId)
 	if state.StateCode == StateCodeLogin {

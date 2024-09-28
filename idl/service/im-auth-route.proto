@@ -62,10 +62,14 @@ message ForceOfflineResp {
   };
   // 是否成功踢出
   ForceOfflineRespCode code = 1;
+  // 自己的session信息
+  base.SessionEntry from_session = 2;
+  // 被踢方的session信息
+  base.SessionEntry to_session = 4;
   // 返回当前此用户的在线全量, 踢出成功与否都返回
-  int64 version = 2;
+  int64 version = 5;
   // 会包括自身
-  repeated base.SessionEntry sessions = 3;
+  repeated base.SessionEntry sessions = 6;
 }
 
 message QuerySessionRouteReq {

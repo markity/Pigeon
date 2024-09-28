@@ -205,9 +205,9 @@ func main() {
 						return
 					}
 
-					pack, ok := protocol.ParseS2CPacket(bs)
-					if !ok {
-						connErrChan <- errors.New("parse packet error")
+					pack, err := protocol.ParseS2CPacket(bs)
+					if err != nil {
+						connErrChan <- errors.New("parse packet error: " + err.Error())
 						conn.Close()
 						return
 					}
@@ -300,7 +300,7 @@ func main() {
 					echoCode = *c.EchoCode
 				}
 				win.SendLineBack("send kick other session packet, sessionId: " + sessionId + ", echoCode: " + echoCode)
-				var p = &protocol.C2SKickOhterDevicePacket{
+				var p = &protocol.C2SKickOtherDevicePacket{
 					SessionId: sessionId,
 				}
 				p.SetEchoCode(echoCode)
@@ -417,10 +417,8 @@ func main() {
 				win.SendLineBack("recv: packet other device kick notify")
 				fromDesc := pkt.FromSessionDesc
 				fromId := pkt.FromSessionId
-				ec := pkt.EchoCode()
 				win.SendLineBack("    fromSessionId: " + fromId)
 				win.SendLineBack("    fromSessionDesc: " + fromDesc)
-				win.SendLineBack("    echoCode: " + ec)
 			case *protocol.S2CQueryStatusRespPacket:
 				win.SendLineBack("recv: packet status")
 				status := pkt.Status
@@ -444,10 +442,8 @@ func main() {
 				win.SendLineBack("recv: packet push meesage")
 				pushType := pkt.PushType
 				data := pkt.Data.([]byte)
-				ec := pkt.EchoCode()
 				win.SendLineBack("    pushType: " + pushType)
 				win.SendLineBack("    pushData: " + string(data))
-				win.SendLineBack("    echoCode: " + ec)
 			}
 		}
 	}

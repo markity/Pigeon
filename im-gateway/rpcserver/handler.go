@@ -56,10 +56,10 @@ func (server *RPCServer) OtherDeviceKick(ctx context.Context, req *imgateway.Oth
 
 	loop := loop_.(eventloop.EventLoop)
 
-	data := protocol.PackData(protocol.PackData(protocol.MustEncodePacket(&protocol.S2COtherDeviceKickNotifyPacket{
+	data := protocol.PackData(protocol.MustEncodePacket(&protocol.S2COtherDeviceKickNotifyPacket{
 		FromSessionId:   req.FromSession,
 		FromSessionDesc: req.FromSessionDesc,
-	})))
+	}))
 	loop.RunInLoop(func() {
 		tcpserver.OtherDeveiceKick(loop, req.ToSession, data)
 	})

@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"encoding/json"
+	"errors"
 )
 
 type PacketType int
@@ -99,7 +100,7 @@ type S2CLogoutRespPacket struct {
 }
 
 // 此包用来踢下线其它设备, 不能踢下线自身
-type C2SKickOhterDevicePacket struct {
+type C2SKickOtherDevicePacket struct {
 	WithEchoCode
 	SessionId string `json:"session_id"`
 }
@@ -127,14 +128,12 @@ type S2CDeviceInfoBroadcastPacket struct {
 
 // push消息
 type S2CPushMessagePacket struct {
-	WithEchoCode
 	PushType string      `json:"push_type"`
 	Data     interface{} `json:"data"`
 }
 
 // 被踢下线的通知
 type S2COtherDeviceKickNotifyPacket struct {
-	WithEchoCode
 	FromSessionId   string `json:"from_session_id"`
 	FromSessionDesc string `json:"from_session_desc"`
 }
@@ -163,7 +162,7 @@ func dataToPacketTypeInString(data interface{}) (string, bool) {
 		return "login-resp", true
 	case *S2CLogoutRespPacket:
 		return "logout-resp", true
-	case *C2SKickOhterDevicePacket:
+	case *C2SKickOtherDevicePacket:
 		return "kick-other", true
 	case *S2CKickOhterDeviceRespPacket:
 		return "kick-other-resp", true
@@ -238,7 +237,7 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	case "kick-other":
-		header.Data = new(C2SKickOhterDevicePacket)
+		header.Data = new(C2SKickOtherDevicePacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	case "query-status":
@@ -255,10 +254,10 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 	return header.Data, true
 }
 
-func ParseS2CPacket(data []byte) (interface{}, bool) {
+func ParseS2CPacket(data []byte) (interface{}, error) {
 	var header jsonHeader
 	if err := json.Unmarshal(data, &header); err != nil {
-		return nil, false
+		return nil, err
 	}
 
 	var err error
@@ -289,30 +288,32 @@ func ParseS2CPacket(data []byte) (interface{}, bool) {
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 		// 特殊逻辑
+	case "other-kick-notify":
+		header.Data = new(S2COtherDeviceKickNotifyPacket)
+		err = json.Unmarshal(data, &header)
 	case "push-msg":
 		header.Data = map[string]interface{}{}
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 		if err != nil {
-			return nil, false
+			return nil, err
 		}
 		bs, err := json.Marshal(header.Data)
 		if err != nil {
-			return nil, false
+			return nil, err
 		}
 		header.Data = bs
 		p := &S2CPushMessagePacket{
 			PushType: header.PushType,
 			Data:     bs,
 		}
-		p.SetEchoCode(header.EchoCode)
-		return p, true
+		return p, nil
 	default:
-		panic("unsupport")
+		return nil, errors.New("unsupoort")
 	}
 
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
-	return header.Data, true
+	return header.Data, nil
 }

@@ -39,8 +39,8 @@ func main() {
 				panic(err)
 			}
 
-			pack, ok := protocol.ParseS2CPacket(bs)
-			if !ok {
+			pack, err := protocol.ParseS2CPacket(bs)
+			if err != nil {
 				panic("check me")
 			}
 			fmt.Printf("recv %T, %v\n", pack, pack)

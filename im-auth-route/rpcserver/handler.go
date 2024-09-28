@@ -3,7 +3,6 @@ package rpcserver
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -51,7 +50,10 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 	}
 
 	// redis尝试登录
-	sessionId := uuid.New().String()
+	// 7709f7ba-8a06-4ed3-a730-d7aacd22b87e
+	// 7c771677-017a-4f83-bf07-1da642b45814
+	// 237fca45-5e3f-430a-b9df-8a5a8372d78e
+	sessionId := uuid.NewString()
 	result, err := server.Rds.Login(&base.SessionEntry{
 		LoginAt:             time.Now().Unix(),
 		Username:            req.Username,
@@ -133,34 +135,57 @@ func (server *RPCServer) Logout(ctx context.Context, req *imauthroute.LogoutReq)
 }
 
 // 用户使用踢人命令时调用此接口
-func (server *RPCServer) ForceOffline(ctx context.Context, req *imauthroute.ForceOfflineReq) (res *imauthroute.ForceOfflineResp, err error) {
+func (server *RPCServer) ForceOffline(ctx context.Context, req *imauthroute.ForceOfflineReq) (*imauthroute.ForceOfflineResp, error) {
 	result, err := server.Rds.ForceOffline(req.Username, req.SelfSessionId, req.RemoteSessionId)
 	if err != nil {
 		log.Printf("redis force offline error: %v\n", err)
 		return nil, err
 	}
-	for _, v := range result.AllSessions {
+
+	var send = imauthroute.ForceOfflineResp{
+		Code:        result.Code,
+		FromSession: result.FromSession,
+		ToSession:   result.ToSession,
+		Version:     result.Version,
+		Sessions:    result.AllSessions,
+	}
+	if result.Code == imauthroute.ForceOfflineResp_SUCCESS {
+		for _, v := range result.AllSessions {
+			go func() {
+				for {
+					_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
+						SessionId: v.SessionId,
+						Version:   result.Version,
+						Sessions:  result.AllSessions,
+					})
+					if err != nil {
+						log.Printf("broadcast device info error, retry: %v\n", err)
+						time.Sleep(time.Millisecond * 50)
+						continue
+					}
+					break
+				}
+			}()
+		}
+		// 对targetSession发退出消息
 		go func() {
 			for {
-				_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
-					SessionId: v.SessionId,
-					Version:   result.Version,
-					Sessions:  result.AllSessions,
+				_, err = api.NewGatewayClientFromAdAddr(result.ToSession.GwAdvertiseAddrPort).OtherDeviceKick(context.Background(), &imgateway.OtherDeviceKickReq{
+					FromSession:     req.SelfSessionId,
+					FromSessionDesc: result.FromSession.DeviceDesc,
+					ToSession:       req.RemoteSessionId,
 				})
 				if err != nil {
-					log.Printf("broadcast device info error, retry: %v\n", err)
+					log.Printf("send other device kick error, retry: %v\n", err)
 					time.Sleep(time.Millisecond * 50)
 					continue
 				}
-				break
+				return
 			}
 		}()
 	}
-	return &imauthroute.ForceOfflineResp{
-		Code:     result.Code,
-		Version:  result.Version,
-		Sessions: result.AllSessions,
-	}, nil
+
+	return &send, nil
 }
 
 func (server *RPCServer) QuerySessionRoute(ctx context.Context, req *imauthroute.QuerySessionRouteReq) (*imauthroute.QuerySessionRouteResp, error) {
@@ -190,7 +215,6 @@ func (server *RPCServer) QueryUserRoute(ctx context.Context, req *imauthroute.Qu
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(version)
 	return &imauthroute.QueryUserRouteResp{
 		Version: version,
 		Routes:  result,
