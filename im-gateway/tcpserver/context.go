@@ -75,8 +75,8 @@ func SetUpConn(conn goreactor.TCPConnection) {
 	})
 	heartbeatTimeoutTimerId := conn.GetEventLoop().RunAt(time.Now().
 		Add(MustLoadEvLoopContext(conn.GetEventLoop()).HeartbeatTimeout), 0, func(timerID int) {
-		conn.ForceClose()
 		log.Printf("timeout: force close\n")
+		conn.ForceClose()
 	})
 	conn.SetContext(connStateKey, &ConnState{
 		StateCode:               StateCodeUnLogin,
@@ -92,11 +92,9 @@ func ReleaseConn(conn goreactor.TCPConnection) {
 	ctx := MustLoadEvLoopContext(conn.GetEventLoop())
 
 	state := MustGetConnStateFromConn(conn)
-	ok1 := conn.GetEventLoop().CancelTimer(state.HeartbeatTimerId)
-	ok2 := conn.GetEventLoop().CancelTimer(state.HeartbeatTimeoutTimerId)
-	if !ok1 || !ok2 {
-		panic("check me")
-	}
+	fmt.Println(state.HeartbeatTimerId, state.HeartbeatTimeoutTimerId)
+	conn.GetEventLoop().CancelTimer(state.HeartbeatTimerId)
+	conn.GetEventLoop().CancelTimer(state.HeartbeatTimeoutTimerId)
 	if state.StateCode == StateCodeLogin {
 		_, ok := MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo[*state.SessionId]
 		if !ok {
