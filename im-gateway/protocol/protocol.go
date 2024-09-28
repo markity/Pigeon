@@ -47,6 +47,17 @@ type HeartbeatPacket struct {
 	WithEchoCode
 }
 
+type C2SQueryStatusPacket struct {
+	WithEchoCode
+}
+
+type S2CQueryStatusRespPacket struct {
+	WithEchoCode
+	Status    string `json:"status"`
+	Username  string `json:"username"`
+	SessionId string `json:"session_id"`
+}
+
 type C2SLoginPacket struct {
 	WithEchoCode
 	Username   string `json:"username"`
@@ -138,6 +149,10 @@ func dataToPacketTypeInString(data interface{}) (string, bool) {
 	switch data.(type) {
 	case *HeartbeatPacket:
 		return "heartbeat", true
+	case *C2SQueryStatusPacket:
+		return "query-status", true
+	case *S2CQueryStatusRespPacket:
+		return "query-status-resp", true
 	case *C2SLoginPacket:
 		return "login", true
 	case *C2SLogoutPacket:
@@ -224,6 +239,10 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 		header.Data = new(C2SKickOhterDevicePacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
+	case "query-status":
+		header.Data = new(C2SQueryStatusPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
 	default:
 		return nil, false
 		//panic "packet type
@@ -261,6 +280,10 @@ func ParseS2CPacket(data []byte) (interface{}, bool) {
 		err = json.Unmarshal(data, &header)
 	case "device-info":
 		header.Data = new(S2CDeviceInfoBroadcastPacket)
+		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
+		err = json.Unmarshal(data, &header)
+	case "query-status-resp":
+		header.Data = new(S2CQueryStatusRespPacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 		// 特殊逻辑

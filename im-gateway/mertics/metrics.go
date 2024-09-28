@@ -51,7 +51,7 @@ func GoLoopUpdateMetrics(etcdCli *clientv3.Client, cfg *MetricsEtcdData, interva
 			panic(err)
 		}
 		stringData := string(_stringData)
-		log.Printf("上传metrics: %v\n", stringData)
+		//log.Printf("上传metrics: %v\n", stringData)
 		_, err = etcdCli.KV.Put(context.Background(), "im-gateway-metrics/"+cfg.Name, stringData,
 			clientv3.WithLease(clientv3.LeaseID(leaseID.Load())))
 		if err != nil {

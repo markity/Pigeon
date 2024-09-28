@@ -23,6 +23,16 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 			log.Printf("timeout: force close\n")
 		})
 		connState.HeartbeatTimeoutTimerId = heartbeatTimeoutTimerId
+	case *protocol.C2SQueryStatusPacket:
+		var resp protocol.S2CQueryStatusRespPacket
+		if connState.StateCode == StateCodeLogin {
+			resp.Status = "login"
+			resp.Username = *connState.Username
+			resp.SessionId = *connState.SessionId
+		} else {
+			resp.Status = "unlogin"
+		}
+		conn.Send(protocol.PackData(protocol.MustEncodePacket(&resp)))
 	case *protocol.C2SLoginPacket:
 		// 如果输入错误, 直接force close，防止攻击
 		if !protocol.IsUsernameValid(pack.Username) || !protocol.IsPasswordValid(pack.Password) ||

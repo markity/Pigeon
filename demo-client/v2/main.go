@@ -45,10 +45,18 @@ type helpCmd struct{}
 
 type clearCmd struct{}
 
+type statusCmd struct {
+	EchoCode string
+}
+
+type emptyCmd struct{}
+
+type hideHeartbeatInfo struct{}
+
 func parseCommand(line string) interface{} {
 	line = strings.TrimSpace(line)
 	if line == "" {
-		return nil
+		return &emptyCmd{}
 	}
 
 	cmds := strings.Split(line, " ")
@@ -88,6 +96,16 @@ func parseCommand(line string) interface{} {
 		if len(cmds) == 1 {
 			return &helpCmd{}
 		}
+	case "status":
+		if len(cmds) == 2 {
+			return &statusCmd{
+				EchoCode: cmds[1],
+			}
+		}
+	case "hidehb":
+		if len(cmds) == 1 {
+			return &hideHeartbeatInfo{}
+		}
 	}
 	return nil
 
@@ -126,6 +144,7 @@ func main() {
 	}()
 
 	autoHeartbeat := false
+	hideHeartbeat := false
 
 	uq := NewUnboundedQueen()
 	cmdChan := win.GetCmdChan()
@@ -193,7 +212,9 @@ func main() {
 					} else {
 						win.SendLineBack("auto heartbeat on")
 						uq.Push(protocol.PackData(protocol.MustEncodePacket(&protocol.HeartbeatPacket{})))
-						win.SendLineBack("auto send heartbeat")
+						if !hideHeartbeat {
+							win.SendLineBack("auto send heartbeat")
+						}
 						heartbeatTikcer = time.NewTicker(time.Second * 1)
 						heartbeatChan = heartbeatTikcer.C
 					}
@@ -227,6 +248,8 @@ func main() {
 				win.SendLineBack("    login username password echoCode: send login packet")
 				win.SendLineBack("    logout echoCode: send logout packet")
 				win.SendLineBack("    kick sessionId echoCode: send kick other device packet")
+				win.SendLineBack("    status: check login status")
+				win.SendLineBack("    hidehb: hide or unhide heartbeat info")
 				win.SendLineBack("    exit: exit")
 				win.SendLineBack("    help: show this message")
 			case *clearCmd:
@@ -243,6 +266,19 @@ func main() {
 				}
 				p.SetEchoCode(echoCode)
 				uq.Push(protocol.PackData(protocol.MustEncodePacket(p)))
+			case *statusCmd:
+				var p = &protocol.C2SQueryStatusPacket{}
+				win.SendLineBack("send status command packet, echoCode: " + c.EchoCode)
+				p.SetEchoCode(p.EchoCode())
+				uq.Push(protocol.PackData(protocol.MustEncodePacket(p)))
+			case *hideHeartbeatInfo:
+				if hideHeartbeat {
+					win.SendLineBack("show heartbeat")
+				} else {
+					win.SendLineBack("hide heartbeat")
+				}
+				hideHeartbeat = !hideHeartbeat
+			case *emptyCmd:
 			default:
 				win.SendLineBack("unknown command")
 			}
@@ -255,7 +291,9 @@ func main() {
 			}
 		case <-heartbeatChan:
 			uq.Push(protocol.PackData(protocol.MustEncodePacket(&protocol.HeartbeatPacket{})))
-			win.SendLineBack("auto send heartbeat")
+			if !hideHeartbeat {
+				win.SendLineBack("auto send heartbeat")
+			}
 		case err := <-connErrChan:
 			win.SendLineBack("conn lost: " + err.Error())
 			win.SetBlockInput(true)
@@ -263,7 +301,26 @@ func main() {
 			fmt.Println("conn lost: " + err.Error())
 			return
 		case packet := <-packetRecvChan:
-			win.SendLineBack(fmt.Sprint(packet))
+			switch packet.(type) {
+			case *protocol.HeartbeatPacket:
+				if !hideHeartbeat {
+					win.SendLineBack("recv: packet heartbeat")
+				}
+			case *protocol.S2CDeviceInfoBroadcastPacket:
+				win.SendLineBack("recv: packet device info broadcast")
+			case *protocol.S2CKickOhterDeviceRespPacket:
+				win.SendLineBack("recv: packet kick resp")
+			case *protocol.S2CLoginRespPacket:
+				win.SendLineBack("recv: packet login resp")
+			case *protocol.S2CLogoutRespPacket:
+				win.SendLineBack("recv: packet logout resp")
+			case *protocol.S2COtherDeviceKickNotifyPacket:
+				win.SendLineBack("recv: packet other device kick notify")
+			case *protocol.S2CQueryStatusRespPacket:
+				win.SendLineBack("recv: packet status")
+			case *protocol.S2CPushMessagePacket:
+				win.SendLineBack("recv: packet push meesage")
+			}
 		}
 	}
 }
