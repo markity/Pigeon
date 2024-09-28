@@ -444,6 +444,7 @@ func main() {
 				data := pkt.Data.([]byte)
 				win.SendLineBack("    pushType: " + pushType)
 				win.SendLineBack("    pushData: " + string(data))
+				win.SendLineBack("    echoCode: " + pkt.EchoCode())
 			}
 		}
 	}

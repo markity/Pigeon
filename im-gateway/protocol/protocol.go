@@ -121,13 +121,13 @@ type DeviceSessionEntry struct {
 
 // 广播其它设备的信息, 做多设备管理
 type S2CDeviceInfoBroadcastPacket struct {
-	WithEchoCode
 	Version  int64                 `json:"version"`
 	Sessions []*DeviceSessionEntry `json:"sessions"`
 }
 
 // push消息
 type S2CPushMessagePacket struct {
+	WithEchoCode
 	PushType string      `json:"push_type"`
 	Data     interface{} `json:"data"`
 }
@@ -293,7 +293,6 @@ func ParseS2CPacket(data []byte) (interface{}, error) {
 		err = json.Unmarshal(data, &header)
 	case "push-msg":
 		header.Data = map[string]interface{}{}
-		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 		if err != nil {
 			return nil, err
@@ -307,6 +306,7 @@ func ParseS2CPacket(data []byte) (interface{}, error) {
 			PushType: header.PushType,
 			Data:     bs,
 		}
+		p.SetEchoCode(header.EchoCode)
 		return p, nil
 	default:
 		return nil, errors.New("unsupoort")

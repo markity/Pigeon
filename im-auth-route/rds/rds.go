@@ -423,7 +423,7 @@ local keyUser = prefix.."route/user/"..username
 
 local version = redis.call('GET', keyVersion)
 if version == false then
-	version = 0
+	version = "0"
 end
 
 local result = {}
