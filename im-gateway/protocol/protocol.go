@@ -186,10 +186,15 @@ func MustEncodePacket(data interface{}, echoCode ...string) []byte {
 
 	var hd jsonHeader
 	if len(echoCode) == 0 {
+		var ec string
+		ecr, ok := data.(WithEchoCoder)
+		if ok {
+			ec = ecr.EchoCode()
+		}
 		hd = jsonHeader{
 			PacketType: packType,
 			Data:       data,
-			EchoCode:   data.(WithEchoCoder).EchoCode(),
+			EchoCode:   ec,
 		}
 	} else {
 		hd = jsonHeader{
@@ -281,7 +286,6 @@ func ParseS2CPacket(data []byte) (interface{}, error) {
 		err = json.Unmarshal(data, &header)
 	case "device-info":
 		header.Data = new(S2CDeviceInfoBroadcastPacket)
-		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	case "query-status-resp":
 		header.Data = new(S2CQueryStatusRespPacket)
