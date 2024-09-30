@@ -180,6 +180,8 @@ func dataToPacketTypeInString(data interface{}) (string, bool) {
 		return "push-msg", true
 	case *S2COtherDeviceKickNotifyPacket:
 		return "other-kick-notify", true
+	case *C2SBizMessagePacket:
+		return "biz-msg", true
 	}
 
 	return "", false
