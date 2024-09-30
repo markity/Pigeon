@@ -358,7 +358,7 @@ func main() {
 				err := json.Unmarshal([]byte(c.Data), &m)
 				if err != nil {
 					win.SendLineBack("invalid json data: " + err.Error())
-					return
+					break
 				}
 				win.SendLineBack("send send biz packet, echoCode: " + echoCode)
 				var p = &protocol.C2SBizMessagePacket{
