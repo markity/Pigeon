@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"pigeon/im-gateway/protocol"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imauthroute"
 	"pigeon/kitex_gen/service/imrelay"
 
@@ -29,8 +30,8 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		var resp protocol.S2CQueryStatusRespPacket
 		if connState.StateCode == StateCodeLogin {
 			resp.Status = "login"
-			resp.Username = *connState.Username
-			resp.SessionId = *connState.SessionId
+			resp.Username = connState.LoginSession.Username
+			resp.SessionId = connState.LoginSession.SessionId
 		} else {
 			resp.Status = "unlogin"
 		}
@@ -41,7 +42,7 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 			resp.Version = 0
 		} else {
 			queryuserRouteResp, err := evloopCtx.AuthRouteCli.QueryUserRoute(context.Background(), &imauthroute.QueryUserRouteReq{
-				Username: *connState.Username,
+				Username: connState.LoginSession.Username,
 			})
 			if err != nil {
 				log.Printf("failed to call auth query user route: %v\n", err)
@@ -73,9 +74,9 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		// 如果已经登录, 直接返回, 这里给一个特殊语意, 已登录就query路由信息吧
 		if connState.StateCode == StateCodeLogin {
 			send.Code = protocol.LoginRespCodeAlreadyLogin
-			send.SessionId = *connState.SessionId
+			send.SessionId = connState.LoginSession.SessionId
 			queryResp, err := evloopCtx.AuthRouteCli.QueryUserRoute(context.Background(), &imauthroute.QueryUserRouteReq{
-				Username: *connState.Username,
+				Username: connState.LoginSession.Username,
 			})
 			if err != nil {
 				log.Printf("failed to call auth route: %v\n", err)
@@ -110,19 +111,27 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		}
 
 		sessions := make([]*protocol.DeviceSessionEntry, 0, len(loginResp.Sessions))
+		var selfSession *base.SessionEntry
 		for _, v := range loginResp.Sessions {
 			sessions = append(sessions, &protocol.DeviceSessionEntry{
 				SessionId:  v.SessionId,
 				LoginAt:    v.LoginAt,
 				DeviceDesc: v.DeviceDesc,
 			})
+			if v.SessionId == loginResp.SessionId {
+				selfSession = v
+			}
+		}
+		if selfSession == nil {
+			log.Printf("unexpected: self session is not found in login resp\n")
+			conn.ForceClose()
+			return
 		}
 		send.Version = loginResp.Version
 		send.Sessions = sessions
 		switch loginResp.Code {
 		case imauthroute.LoginResp_SUCCESS:
-			connState.SessionId = &loginResp.SessionId
-			connState.Username = &pack.Username
+			connState.LoginSession = selfSession
 			connState.StateCode = StateCodeLogin
 			evloopCtx.LoginedConnInfo[loginResp.SessionId] = connState
 			evloopCtx.EvloopRoute.Store(loginResp.SessionId, conn.GetEventLoop())
@@ -151,8 +160,8 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 
 		// 已经登录,调用rpc
 		logoutResp, err := evloopCtx.AuthRouteCli.Logout(context.Background(), &imauthroute.LogoutReq{
-			SessionId: *connState.SessionId,
-			Username:  *connState.Username,
+			SessionId: connState.LoginSession.SessionId,
+			Username:  connState.LoginSession.Username,
 		})
 		if err != nil {
 			log.Printf("failed to call auth route: %v\n", err)
@@ -167,10 +176,9 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		}
 
 		// 路由删除成功了, 删除本地状态
-		evloopCtx.EvloopRoute.Delete(*connState.SessionId)
+		evloopCtx.EvloopRoute.Delete(connState.LoginSession.SessionId)
 		connState.StateCode = StateCodeUnLogin
-		connState.Username = nil
-		connState.SessionId = nil
+		connState.LoginSession = nil
 		send.Success = true
 		send.Version = logoutResp.Version
 		send.Sessions = make([]*protocol.DeviceSessionEntry, 0, len(logoutResp.Sessions))
@@ -195,15 +203,16 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 			Sessions: make([]*protocol.DeviceSessionEntry, 0),
 		}
 		send.SetEchoCode(pack.EchoCode())
-		if connState.StateCode == StateCodeUnLogin || *connState.SessionId == pack.SessionId {
+		if connState.StateCode == StateCodeUnLogin ||
+			connState.LoginSession.SessionId == pack.SessionId {
 			conn.ForceClose()
 			return
 		}
 
 		// 调用rpc
 		kickResp, err := evloopCtx.AuthRouteCli.ForceOffline(context.Background(), &imauthroute.ForceOfflineReq{
-			Username:        *connState.Username,
-			SelfSessionId:   *connState.SessionId,
+			Username:        connState.LoginSession.Username,
+			SelfSessionId:   connState.LoginSession.SessionId,
 			RemoteSessionId: pack.SessionId,
 		})
 		if err != nil {
@@ -234,7 +243,13 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 		}
 		conn.Send(protocol.PackData(protocol.MustEncodePacket(send)))
 	case *protocol.C2SBizMessagePacket:
+		if connState.StateCode == StateCodeUnLogin {
+			// 不care太多细节了, 直接force close
+			conn.ForceClose()
+			return
+		}
 		_, err := evloopCtx.RelayCli.BizMessage(context.Background(), &imrelay.BizMessageReq{
+			Session:  connState.LoginSession,
 			Biz:      pack.BizType,
 			EchoCode: pack.EchoCode(),
 			Data:     pack.Data.([]byte),

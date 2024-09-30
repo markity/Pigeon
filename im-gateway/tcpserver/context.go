@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"pigeon/im-gateway/protocol"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imauthroute"
 	authroute "pigeon/kitex_gen/service/imauthroute/imauthroute"
 	relay "pigeon/kitex_gen/service/imrelay/imrelay"
@@ -52,8 +53,7 @@ type ConnState struct {
 	Conn goreactor.TCPConnection
 
 	// 已登录状态下有效的变量
-	Username  *string
-	SessionId *string
+	LoginSession *base.SessionEntry
 }
 
 func SetUpEvLoopContext(loop eventloop.EventLoop, ctx EvloopContext) {
@@ -83,7 +83,7 @@ func SetUpConn(conn goreactor.TCPConnection) {
 		StateCode:               StateCodeUnLogin,
 		HeartbeatTimerId:        heartbeatTimerId,
 		HeartbeatTimeoutTimerId: heartbeatTimeoutTimerId,
-		SessionId:               nil,
+		LoginSession:            nil,
 		Conn:                    conn,
 	})
 }
@@ -96,22 +96,22 @@ func ReleaseConn(conn goreactor.TCPConnection) {
 	conn.GetEventLoop().CancelTimer(state.HeartbeatTimerId)
 	conn.GetEventLoop().CancelTimer(state.HeartbeatTimeoutTimerId)
 	if state.StateCode == StateCodeLogin {
-		_, ok := MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo[*state.SessionId]
+		_, ok := MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo[state.LoginSession.SessionId]
 		if !ok {
 			panic("check me")
 		}
 
 		// 调用rpc 删除evloop-route中的路由表
 		resp, err := ctx.AuthRouteCli.Logout(context.Background(), &imauthroute.LogoutReq{
-			SessionId: *state.SessionId,
-			Username:  *state.Username,
+			SessionId: state.LoginSession.SessionId,
+			Username:  state.LoginSession.Username,
 		})
 		if err != nil || !resp.Success {
 			fmt.Printf("failed to logout: resp: %v, err: %v\n", resp, err)
 		}
 
-		delete(MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo, *state.SessionId)
-		ctx.EvloopRoute.Delete(*state.SessionId)
+		delete(MustLoadEvLoopContext(conn.GetEventLoop()).LoginedConnInfo, *&state.LoginSession.SessionId)
+		ctx.EvloopRoute.Delete(*&state.LoginSession.SessionId)
 	}
 }
 

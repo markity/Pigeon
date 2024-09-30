@@ -25,8 +25,7 @@ func OtherDeveiceKick(evloop eventloop.EventLoop, toSessionId string, kickMessag
 	}
 
 	connInfo.StateCode = StateCodeUnLogin
-	connInfo.SessionId = nil
-	connInfo.Username = nil
+	connInfo.LoginSession = nil
 	delete(evLoopCtx.LoginedConnInfo, toSessionId)
 	evLoopCtx.EvloopRoute.Delete(toSessionId)
 	connInfo.Conn.Send(kickMessage)

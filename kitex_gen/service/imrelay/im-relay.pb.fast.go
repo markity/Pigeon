@@ -5,6 +5,7 @@ package imrelay
 import (
 	fmt "fmt"
 	fastpb "github.com/cloudwego/fastpb"
+	base "pigeon/kitex_gen/service/base"
 )
 
 var (
@@ -29,6 +30,11 @@ func (x *BizMessageReq) FastRead(buf []byte, _type int8, number int32) (offset i
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 4:
+		offset, err = x.fastReadField4(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -43,16 +49,26 @@ ReadFieldError:
 }
 
 func (x *BizMessageReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	var v base.SessionEntry
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Session = &v
+	return offset, nil
+}
+
+func (x *BizMessageReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	x.Biz, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
-func (x *BizMessageReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+func (x *BizMessageReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.EchoCode, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
-func (x *BizMessageReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+func (x *BizMessageReq) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	x.Data, offset, err = fastpb.ReadBytes(buf, _type)
 	return offset, err
 }
@@ -77,30 +93,39 @@ func (x *BizMessageReq) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
+	offset += x.fastWriteField4(buf[offset:])
 	return offset
 }
 
 func (x *BizMessageReq) fastWriteField1(buf []byte) (offset int) {
-	if x.Biz == "" {
+	if x.Session == nil {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 1, x.GetBiz())
+	offset += fastpb.WriteMessage(buf[offset:], 1, x.GetSession())
 	return offset
 }
 
 func (x *BizMessageReq) fastWriteField2(buf []byte) (offset int) {
-	if x.EchoCode == "" {
+	if x.Biz == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetEchoCode())
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetBiz())
 	return offset
 }
 
 func (x *BizMessageReq) fastWriteField3(buf []byte) (offset int) {
+	if x.EchoCode == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 3, x.GetEchoCode())
+	return offset
+}
+
+func (x *BizMessageReq) fastWriteField4(buf []byte) (offset int) {
 	if len(x.Data) == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 3, x.GetData())
+	offset += fastpb.WriteBytes(buf[offset:], 4, x.GetData())
 	return offset
 }
 
@@ -118,30 +143,39 @@ func (x *BizMessageReq) Size() (n int) {
 	n += x.sizeField1()
 	n += x.sizeField2()
 	n += x.sizeField3()
+	n += x.sizeField4()
 	return n
 }
 
 func (x *BizMessageReq) sizeField1() (n int) {
-	if x.Biz == "" {
+	if x.Session == nil {
 		return n
 	}
-	n += fastpb.SizeString(1, x.GetBiz())
+	n += fastpb.SizeMessage(1, x.GetSession())
 	return n
 }
 
 func (x *BizMessageReq) sizeField2() (n int) {
-	if x.EchoCode == "" {
+	if x.Biz == "" {
 		return n
 	}
-	n += fastpb.SizeString(2, x.GetEchoCode())
+	n += fastpb.SizeString(2, x.GetBiz())
 	return n
 }
 
 func (x *BizMessageReq) sizeField3() (n int) {
+	if x.EchoCode == "" {
+		return n
+	}
+	n += fastpb.SizeString(3, x.GetEchoCode())
+	return n
+}
+
+func (x *BizMessageReq) sizeField4() (n int) {
 	if len(x.Data) == 0 {
 		return n
 	}
-	n += fastpb.SizeBytes(3, x.GetData())
+	n += fastpb.SizeBytes(4, x.GetData())
 	return n
 }
 
@@ -153,9 +187,12 @@ func (x *BizMessageResp) Size() (n int) {
 }
 
 var fieldIDToName_BizMessageReq = map[int32]string{
-	1: "Biz",
-	2: "EchoCode",
-	3: "Data",
+	1: "Session",
+	2: "Biz",
+	3: "EchoCode",
+	4: "Data",
 }
 
 var fieldIDToName_BizMessageResp = map[int32]string{}
+
+var _ = base.File_base_base_proto

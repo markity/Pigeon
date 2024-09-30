@@ -4,13 +4,14 @@ syntax = "proto3";
 package imrelay;
 option go_package = "service/imrelay";
 
-// import "base/base.proto";
+import "base/base.proto";
 
 message BizMessageReq {
   // biz-group -> group
-  string biz = 1;
-  string echo_code = 2;
-  bytes data = 3;
+  base.SessionEntry session = 1;
+  string biz = 2;
+  string echo_code = 3;
+  bytes data = 4;
 }
 
 message BizMessageResp {};
