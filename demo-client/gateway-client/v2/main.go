@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -39,6 +40,12 @@ type cmdLogout struct {
 type cmdKickOtherSession struct {
 	SessionId string
 	EchoCode  *string
+}
+
+type cmdSendBiz struct {
+	Biz      string
+	Data     string
+	EchoCode *string
 }
 
 type exitCmd struct{}
@@ -120,6 +127,22 @@ func parseCommand(line string) interface{} {
 		}
 		if len(cmds) == 1 {
 			return &statusCmd{
+				EchoCode: nil,
+			}
+		}
+	case "sendbiz":
+		if len(cmds) == 4 {
+			var ec = cmds[3]
+			return &cmdSendBiz{
+				Biz:      cmds[1],
+				Data:     cmds[2],
+				EchoCode: &ec,
+			}
+		}
+		if len(cmds) == 3 {
+			return &cmdSendBiz{
+				Biz:      cmds[1],
+				Data:     cmds[2],
 				EchoCode: nil,
 			}
 		}
@@ -323,6 +346,26 @@ func main() {
 					win.SendLineBack("hide heartbeat")
 				}
 				hideHeartbeat = !hideHeartbeat
+			case *cmdSendBiz:
+				echoCode := ""
+				if c.EchoCode == nil {
+					echoCode = uuid.NewString()
+				} else {
+					echoCode = *c.EchoCode
+				}
+				var m map[string]interface{}
+				err := json.Unmarshal([]byte(c.Data), &m)
+				if err != nil {
+					win.SendLineBack("invalid json data: " + err.Error())
+					return
+				}
+				win.SendLineBack("send send biz packet, echoCode: " + echoCode)
+				var p = &protocol.C2SBizMessagePacket{
+					BizType: c.Biz,
+					Data:    m,
+				}
+				p.SetEchoCode(echoCode)
+				uq.Push(protocol.PackData(protocol.MustEncodePacket(p)))
 			case *emptyCmd:
 			default:
 				win.SendLineBack("unknown command")
