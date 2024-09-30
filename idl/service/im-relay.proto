@@ -15,6 +15,6 @@ message BizMessageReq {
 
 message BizMessageResp {};
 
-service IMGateway {
+service IMRelay {
   rpc BizMessage(BizMessageReq) returns (BizMessageResp);
 }

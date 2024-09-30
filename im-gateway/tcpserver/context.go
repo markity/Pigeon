@@ -11,6 +11,7 @@ import (
 	"pigeon/im-gateway/protocol"
 	"pigeon/kitex_gen/service/imauthroute"
 	authroute "pigeon/kitex_gen/service/imauthroute/imauthroute"
+	relay "pigeon/kitex_gen/service/imrelay/imrelay"
 
 	goreactor "github.com/markity/go-reactor"
 	eventloop "github.com/markity/go-reactor/pkg/event_loop"
@@ -20,7 +21,7 @@ const evloopContextKey = "_ev_loop_ctx"
 const connStateKey = "_ev_conn_state"
 
 type EvloopContext struct {
-	RelayCli          interface{}
+	RelayCli          relay.Client
 	AuthRouteCli      authroute.Client
 	ConnMetrics       *atomic.Int64
 	HeartbeatInterval time.Duration

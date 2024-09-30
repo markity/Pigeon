@@ -12,9 +12,9 @@ func TestProtocol(t *testing.T) {
 	}
 	p.SetEchoCode("123123")
 
-	b, ok := ParseC2SPacket(MustEncodePacket(p))
-	if !ok {
-		t.Fatalf("parse packet failed")
+	b, err := ParseC2SPacket(MustEncodePacket(p))
+	if err != nil {
+		t.Fatalf("parse packet failed: " + err.Error())
 	}
 
 	bb := b.(*C2SLoginPacket)

@@ -3,6 +3,7 @@ package protocol
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type PacketType int
@@ -138,9 +139,16 @@ type S2COtherDeviceKickNotifyPacket struct {
 	FromSessionDesc string `json:"from_session_desc"`
 }
 
+type C2SBizMessagePacket struct {
+	WithEchoCode
+	BizType string      `json:"biz_type"`
+	Data    interface{} `json:"data"`
+}
+
 type jsonHeader struct {
 	PacketType string      `json:"packet_type"`
 	PushType   string      `json:"push_type,omitempty"`
+	BizType    string      `json:"biz_type,omitempty"`
 	Data       interface{} `json:"data"`
 	// 用户帮助客户端辅助定位请求的response
 	EchoCode string `json:"echo_code"`
@@ -210,6 +218,11 @@ func MustEncodePacket(data interface{}, echoCode ...string) []byte {
 		hd.PushType = data.(*S2CPushMessagePacket).PushType
 	}
 
+	if packType == "biz-msg" {
+		hd.Data = data.(*C2SBizMessagePacket).Data
+		hd.BizType = data.(*C2SBizMessagePacket).BizType
+	}
+
 	bs, err := json.Marshal(hd)
 	if err != nil {
 		panic(err)
@@ -217,10 +230,10 @@ func MustEncodePacket(data interface{}, echoCode ...string) []byte {
 	return bs
 }
 
-func ParseC2SPacket(data []byte) (interface{}, bool) {
+func ParseC2SPacket(data []byte) (interface{}, error) {
 	var header jsonHeader
 	if err := json.Unmarshal(data, &header); err != nil {
-		return nil, false
+		return nil, err
 	}
 
 	var err error
@@ -231,7 +244,7 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 		if !IsUsernameValid(header.Data.(*C2SLoginPacket).Username) || !IsPasswordValid(header.Data.(*C2SLoginPacket).Password) {
-			return nil, false
+			return nil, errors.New("login packet validate failed: " + fmt.Sprint(header.Data.(*C2SLoginPacket)))
 		}
 	case "logout":
 		header.Data = new(C2SLogoutPacket)
@@ -249,14 +262,30 @@ func ParseC2SPacket(data []byte) (interface{}, bool) {
 		header.Data = new(C2SQueryStatusPacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
+	case "biz-msg":
+		header.Data = map[string]interface{}{}
+		err = json.Unmarshal(data, &header)
+		if err != nil {
+			return nil, err
+		}
+		bs, err := json.Marshal(header.Data)
+		if err != nil {
+			return nil, err
+		}
+		header.Data = bs
+		p := &C2SBizMessagePacket{
+			BizType: header.BizType,
+			Data:    bs,
+		}
+		p.SetEchoCode(header.EchoCode)
+		return p, nil
 	default:
-		return nil, false
-		//panic "packet type
+		return nil, errors.New("packet type not found")
 	}
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
-	return header.Data, true
+	return header.Data, nil
 }
 
 func ParseS2CPacket(data []byte) (interface{}, error) {

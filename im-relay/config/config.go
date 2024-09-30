@@ -16,21 +16,13 @@ type EtcdConfig struct {
 	Port int    `yaml:"port"`
 }
 
-type RedisConfig struct {
-	Host      string `yaml:"host"`
-	Port      int    `yaml:"port"`
-	KeyPrefix string `yaml:"keyprefix"`
-}
-
 type AppConfig struct {
 	RPCAdvertiseAddrport string `yaml:"rpc-advertise-addrport"`
-	DeviceNumLimit       int    `yaml:"device-num-limit"`
 }
 
 type Config struct {
 	RPCServerConfig RPCServerConfig `yaml:"rpc-server"`
 	EtcdConfig      []EtcdConfig    `yaml:"etcd"`
-	RedisConfig     RedisConfig     `yaml:"redis"`
 	AppConfig       AppConfig       `yaml:"app"`
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"pigeon/im-gateway/protocol"
 	"pigeon/kitex_gen/service/imauthroute"
+	"pigeon/kitex_gen/service/imrelay"
 
 	goreactor "github.com/markity/go-reactor"
 )
@@ -232,5 +233,15 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 			})
 		}
 		conn.Send(protocol.PackData(protocol.MustEncodePacket(send)))
+	case *protocol.C2SBizMessagePacket:
+		_, err := evloopCtx.RelayCli.BizMessage(context.Background(), &imrelay.BizMessageReq{
+			Biz:      pack.BizType,
+			EchoCode: pack.EchoCode(),
+			Data:     pack.Data.([]byte),
+		})
+		if err != nil {
+			log.Printf("failed to call relay: %v\n", err)
+			conn.ForceClose()
+		}
 	}
 }

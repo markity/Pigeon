@@ -18,8 +18,8 @@ func OnMessage(conn goreactor.TCPConnection, buf buffer.Buffer) {
 			return
 		}
 
-		c2sPacket, ok := protocol.ParseC2SPacket(pack)
-		if !ok {
+		c2sPacket, err := protocol.ParseC2SPacket(pack)
+		if err != nil {
 			conn.ForceClose()
 			return
 		}

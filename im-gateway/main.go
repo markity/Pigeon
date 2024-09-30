@@ -57,8 +57,8 @@ func main() {
 		panic(err)
 	}
 
-	relayCli := api.MustNewIMRelayClient(resolver)
-	authRouteCli, err := api.MustNewIMAuthRouteClient(resolver)
+	relayCli := api.MustNewIMRelayClient((resolver))
+	authRouteCli := api.MustNewIMAuthRouteClient(resolver)
 	if err != nil {
 		panic(err)
 	}
