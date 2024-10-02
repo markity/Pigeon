@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package imrelation;
+option go_package = "service/imrelation";
+
+import "base/base.proto";
+
+message CreateGroupReq {
+  base.SessionEntry session = 1;
+};
+
+message CreateGroupResp {
+  string group_id = 1;
+};
+
+service IMRelation {
+  rpc CreateGroup(CreateGroupReq) returns (CreateGroupResp);
+}

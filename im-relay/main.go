@@ -6,6 +6,7 @@ import (
 	"net"
 
 	regetcd "pigeon/common/kitex-registry/etcd"
+	"pigeon/im-relay/api"
 	"pigeon/im-relay/config"
 	"pigeon/im-relay/rpcserver"
 	"pigeon/kitex_gen/service/imrelay/imrelay"
@@ -36,6 +37,13 @@ func main() {
 		panic(err)
 	}
 
+	res, err := regetcd.NewEtcdResolver(etcdEndpoints)
+	if err != nil {
+		panic(err)
+	}
+
+	relationCli := api.MustNewIMRelationClient(res)
+
 	listenAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%v", cfg.RPCServerConfig.Host, cfg.RPCServerConfig.Port))
 	if err != nil {
 		panic(err)
@@ -44,7 +52,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	server := imrelay.NewServer(&rpcserver.RPCServer{},
+	server := imrelay.NewServer(
+		&rpcserver.RPCServer{
+			RPCContext: rpcserver.RPCContext{
+				RelationCli: relationCli,
+			},
+		},
 		server.WithRegistry(reg), server.WithServiceAddr(listenAddr),
 		server.WithRegistryInfo(&registry.Info{
 			ServiceName: "im-relay",

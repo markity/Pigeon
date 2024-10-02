@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 package imgateway;
 option go_package = "service/imgateway";
 

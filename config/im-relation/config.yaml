@@ -1,0 +1,24 @@
+# grpc为内部集群提供接口
+rpc-server:
+  host: 0.0.0.0
+  port: 6001
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  keyprefix: im_auth_route/
+
+etcd:
+  -
+    host: 127.0.0.1
+    port: 2379
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: debian-sys-maint
+  pwd : 8B2e4SuzKFCpn7AD
+  db: im_relation
+
+app:
+  advertise-addrport: "127.0.0.1:6001"
