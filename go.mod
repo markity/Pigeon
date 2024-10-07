@@ -14,11 +14,11 @@ require (
 	github.com/redis/go-redis/v9 v9.6.1
 	go.etcd.io/etcd/api/v3 v3.5.16
 	go.etcd.io/etcd/client/v3 v3.5.16
-	golang.org/x/time v0.6.0
 	google.golang.org/protobuf v1.34.1
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.7
+	stathat.com/c/consistent v1.0.0
 )
 
 require (

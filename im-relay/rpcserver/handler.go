@@ -41,3 +41,10 @@ func (s *RPCServer) handleBizMessage(req *imrelay.BizMessageReq) {
 	default:
 	}
 }
+
+func (s *RPCServer) CreateChatEventLoop(ctx context.Context, req *imrelay.CreateChatEventLoopReq) (res *imrelay.CreateChatEventLoopResp, err error) {
+	return
+}
+func (s *RPCServer) RedirectToChatEventLoop(ctx context.Context, req *imrelay.RedirectToChatEventLoopReq) (res *imrelay.RedirectToChatEventLoopResp, err error) {
+	return
+}
