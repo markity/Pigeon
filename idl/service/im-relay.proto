@@ -15,26 +15,24 @@ message BizMessageReq {
 message BizMessageResp {};
 
 message CreateChatEventLoopReq {
-  int64 config_version = 1;
-  string group_id = 2;
+  string group_id = 1;
+  string owner_id = 2;
 };
 
 // 当config version对不上自己的配置的时候, 需要让im-relay自己更新config, 然后重新发起rpc
 message CreateChatEventLoopResp {
   bool success = 1;
-  int64 config_version = 2;
 };
 
+// 将消息重定向到event loop中, 并且获得响应, 调用这个接口的前期是保证这个group_id存在 
 message RedirectToChatEventLoopReq {
-  int64 config_version = 1;
-  string group_id = 2;
-  bytes input = 3;
+  string group_id = 1;
+  bytes input = 2;
 };
 
 message RedirectToChatEventLoopResp {
   bool success = 1;
-  int64 config_version = 2;
-  bytes output = 3;
+  bytes output = 2;
 };
 
 service IMRelay {

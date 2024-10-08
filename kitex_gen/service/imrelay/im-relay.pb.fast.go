@@ -112,12 +112,12 @@ ReadFieldError:
 }
 
 func (x *CreateChatEventLoopReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.ConfigVersion, offset, err = fastpb.ReadInt64(buf, _type)
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *CreateChatEventLoopReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
+	x.OwnerId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -125,11 +125,6 @@ func (x *CreateChatEventLoopResp) FastRead(buf []byte, _type int8, number int32)
 	switch number {
 	case 1:
 		offset, err = x.fastReadField1(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -151,11 +146,6 @@ func (x *CreateChatEventLoopResp) fastReadField1(buf []byte, _type int8) (offset
 	return offset, err
 }
 
-func (x *CreateChatEventLoopResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.ConfigVersion, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
 func (x *RedirectToChatEventLoopReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
 	case 1:
@@ -165,11 +155,6 @@ func (x *RedirectToChatEventLoopReq) FastRead(buf []byte, _type int8, number int
 		}
 	case 2:
 		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 3:
-		offset, err = x.fastReadField3(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -187,16 +172,11 @@ ReadFieldError:
 }
 
 func (x *RedirectToChatEventLoopReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.ConfigVersion, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *RedirectToChatEventLoopReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
-func (x *RedirectToChatEventLoopReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+func (x *RedirectToChatEventLoopReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	x.Input, offset, err = fastpb.ReadBytes(buf, _type)
 	return offset, err
 }
@@ -210,11 +190,6 @@ func (x *RedirectToChatEventLoopResp) FastRead(buf []byte, _type int8, number in
 		}
 	case 2:
 		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 3:
-		offset, err = x.fastReadField3(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -237,11 +212,6 @@ func (x *RedirectToChatEventLoopResp) fastReadField1(buf []byte, _type int8) (of
 }
 
 func (x *RedirectToChatEventLoopResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.ConfigVersion, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *RedirectToChatEventLoopResp) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.Output, offset, err = fastpb.ReadBytes(buf, _type)
 	return offset, err
 }
@@ -306,18 +276,18 @@ func (x *CreateChatEventLoopReq) FastWrite(buf []byte) (offset int) {
 }
 
 func (x *CreateChatEventLoopReq) fastWriteField1(buf []byte) (offset int) {
-	if x.ConfigVersion == 0 {
+	if x.GroupId == "" {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetConfigVersion())
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
 	return offset
 }
 
 func (x *CreateChatEventLoopReq) fastWriteField2(buf []byte) (offset int) {
-	if x.GroupId == "" {
+	if x.OwnerId == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetGroupId())
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetOwnerId())
 	return offset
 }
 
@@ -326,7 +296,6 @@ func (x *CreateChatEventLoopResp) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
@@ -338,45 +307,28 @@ func (x *CreateChatEventLoopResp) fastWriteField1(buf []byte) (offset int) {
 	return offset
 }
 
-func (x *CreateChatEventLoopResp) fastWriteField2(buf []byte) (offset int) {
-	if x.ConfigVersion == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetConfigVersion())
-	return offset
-}
-
 func (x *RedirectToChatEventLoopReq) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
-	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
 func (x *RedirectToChatEventLoopReq) fastWriteField1(buf []byte) (offset int) {
-	if x.ConfigVersion == 0 {
+	if x.GroupId == "" {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetConfigVersion())
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
 	return offset
 }
 
 func (x *RedirectToChatEventLoopReq) fastWriteField2(buf []byte) (offset int) {
-	if x.GroupId == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetGroupId())
-	return offset
-}
-
-func (x *RedirectToChatEventLoopReq) fastWriteField3(buf []byte) (offset int) {
 	if len(x.Input) == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 3, x.GetInput())
+	offset += fastpb.WriteBytes(buf[offset:], 2, x.GetInput())
 	return offset
 }
 
@@ -386,7 +338,6 @@ func (x *RedirectToChatEventLoopResp) FastWrite(buf []byte) (offset int) {
 	}
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
-	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
@@ -399,18 +350,10 @@ func (x *RedirectToChatEventLoopResp) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *RedirectToChatEventLoopResp) fastWriteField2(buf []byte) (offset int) {
-	if x.ConfigVersion == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetConfigVersion())
-	return offset
-}
-
-func (x *RedirectToChatEventLoopResp) fastWriteField3(buf []byte) (offset int) {
 	if len(x.Output) == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 3, x.GetOutput())
+	offset += fastpb.WriteBytes(buf[offset:], 2, x.GetOutput())
 	return offset
 }
 
@@ -474,18 +417,18 @@ func (x *CreateChatEventLoopReq) Size() (n int) {
 }
 
 func (x *CreateChatEventLoopReq) sizeField1() (n int) {
-	if x.ConfigVersion == 0 {
+	if x.GroupId == "" {
 		return n
 	}
-	n += fastpb.SizeInt64(1, x.GetConfigVersion())
+	n += fastpb.SizeString(1, x.GetGroupId())
 	return n
 }
 
 func (x *CreateChatEventLoopReq) sizeField2() (n int) {
-	if x.GroupId == "" {
+	if x.OwnerId == "" {
 		return n
 	}
-	n += fastpb.SizeString(2, x.GetGroupId())
+	n += fastpb.SizeString(2, x.GetOwnerId())
 	return n
 }
 
@@ -494,7 +437,6 @@ func (x *CreateChatEventLoopResp) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
-	n += x.sizeField2()
 	return n
 }
 
@@ -506,45 +448,28 @@ func (x *CreateChatEventLoopResp) sizeField1() (n int) {
 	return n
 }
 
-func (x *CreateChatEventLoopResp) sizeField2() (n int) {
-	if x.ConfigVersion == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(2, x.GetConfigVersion())
-	return n
-}
-
 func (x *RedirectToChatEventLoopReq) Size() (n int) {
 	if x == nil {
 		return n
 	}
 	n += x.sizeField1()
 	n += x.sizeField2()
-	n += x.sizeField3()
 	return n
 }
 
 func (x *RedirectToChatEventLoopReq) sizeField1() (n int) {
-	if x.ConfigVersion == 0 {
+	if x.GroupId == "" {
 		return n
 	}
-	n += fastpb.SizeInt64(1, x.GetConfigVersion())
+	n += fastpb.SizeString(1, x.GetGroupId())
 	return n
 }
 
 func (x *RedirectToChatEventLoopReq) sizeField2() (n int) {
-	if x.GroupId == "" {
-		return n
-	}
-	n += fastpb.SizeString(2, x.GetGroupId())
-	return n
-}
-
-func (x *RedirectToChatEventLoopReq) sizeField3() (n int) {
 	if len(x.Input) == 0 {
 		return n
 	}
-	n += fastpb.SizeBytes(3, x.GetInput())
+	n += fastpb.SizeBytes(2, x.GetInput())
 	return n
 }
 
@@ -554,7 +479,6 @@ func (x *RedirectToChatEventLoopResp) Size() (n int) {
 	}
 	n += x.sizeField1()
 	n += x.sizeField2()
-	n += x.sizeField3()
 	return n
 }
 
@@ -567,18 +491,10 @@ func (x *RedirectToChatEventLoopResp) sizeField1() (n int) {
 }
 
 func (x *RedirectToChatEventLoopResp) sizeField2() (n int) {
-	if x.ConfigVersion == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(2, x.GetConfigVersion())
-	return n
-}
-
-func (x *RedirectToChatEventLoopResp) sizeField3() (n int) {
 	if len(x.Output) == 0 {
 		return n
 	}
-	n += fastpb.SizeBytes(3, x.GetOutput())
+	n += fastpb.SizeBytes(2, x.GetOutput())
 	return n
 }
 
@@ -592,25 +508,22 @@ var fieldIDToName_BizMessageReq = map[int32]string{
 var fieldIDToName_BizMessageResp = map[int32]string{}
 
 var fieldIDToName_CreateChatEventLoopReq = map[int32]string{
-	1: "ConfigVersion",
-	2: "GroupId",
+	1: "GroupId",
+	2: "OwnerId",
 }
 
 var fieldIDToName_CreateChatEventLoopResp = map[int32]string{
 	1: "Success",
-	2: "ConfigVersion",
 }
 
 var fieldIDToName_RedirectToChatEventLoopReq = map[int32]string{
-	1: "ConfigVersion",
-	2: "GroupId",
-	3: "Input",
+	1: "GroupId",
+	2: "Input",
 }
 
 var fieldIDToName_RedirectToChatEventLoopResp = map[int32]string{
 	1: "Success",
-	2: "ConfigVersion",
-	3: "Output",
+	2: "Output",
 }
 
 var _ = base.File_base_base_proto

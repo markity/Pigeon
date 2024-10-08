@@ -12,6 +12,19 @@ var (
 	_ = fastpb.Skip
 )
 
+func (x *Empty) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+}
+
 func (x *SessionEntry) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
 	case 1:
@@ -77,6 +90,13 @@ func (x *SessionEntry) fastReadField5(buf []byte, _type int8) (offset int, err e
 	return offset, err
 }
 
+func (x *Empty) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	return offset
+}
+
 func (x *SessionEntry) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -127,6 +147,13 @@ func (x *SessionEntry) fastWriteField5(buf []byte) (offset int) {
 	}
 	offset += fastpb.WriteString(buf[offset:], 5, x.GetGwAdvertiseAddrPort())
 	return offset
+}
+
+func (x *Empty) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	return n
 }
 
 func (x *SessionEntry) Size() (n int) {
@@ -180,6 +207,8 @@ func (x *SessionEntry) sizeField5() (n int) {
 	n += fastpb.SizeString(5, x.GetGwAdvertiseAddrPort())
 	return n
 }
+
+var fieldIDToName_Empty = map[int32]string{}
 
 var fieldIDToName_SessionEntry = map[int32]string{
 	1: "LoginAt",

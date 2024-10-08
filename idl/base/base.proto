@@ -3,6 +3,8 @@ syntax = "proto3";
 package base;
 option go_package = "service/base";
 
+message Empty {};
+
 message SessionEntry {
     int64 login_at = 1;
     string username = 2;

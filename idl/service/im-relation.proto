@@ -7,12 +7,143 @@ import "base/base.proto";
 
 message CreateGroupReq {
   base.SessionEntry session = 1;
+  string echo_code = 2;
+  string owner_id = 3;
 };
 
 message CreateGroupResp {
   string group_id = 1;
+  int64 create_at = 2;
 };
 
+message RelationEntry {
+  string user_id = 1;
+  string group_id = 2;
+  int64 relation_id = 3;
+  bool in_group = 4;
+  int64 create_at = 5;
+}
+
+message GroupInfo {
+  string group_id = 2;
+  string owner_id = 3;
+  int64 create_at = 4;
+  bool disbanded = 5;
+  repeated RelationEntry relations = 6;
+}
+
+message GetGroupInfoReq {
+  base.SessionEntry session = 1;
+  string echo_code = 2;
+  string group_id = 3;
+  GroupInfo info = 4;
+}
+
+message GetGroupInfoResp {
+  bool exists = 1;
+  GroupInfo info = 2;
+}
+
+// 拉全量关系
+message FetchAllRelationsReq {
+  base.SessionEntry session = 1;
+  string echo_code = 2;
+}
+
+message FetchAllRelationsResp {
+  bool exists = 1;
+  repeated RelationEntry relations = 2;
+}
+
+// 申请加入群
+message ApplyGroupReq {
+  base.SessionEntry session = 1;
+  string echo_code = 2;
+  string group_id = 4;
+  // 申请理由
+  string apply_msg = 5;
+}
+
+message ApplyGroupReqResp {
+  enum ApplyGroupReqRespCode {
+    OK = 0;
+    GROUP_DISBANDED = 1;
+    USER_IN_GROUP = 2;
+  }
+
+  // 对于同一个群, 多次申请, apply_id是递增的
+  int64 apply_id = 1;
+  int64 relation_id = 2;
+  int64 apply_at = 3;
+}
+
+message ApplyEntry {
+  int64 user_id = 1;
+  int64 group_id = 2;
+  int64 apply_id = 3;
+  int64 apply_at = 4;
+  string apply_msg = 5;
+}
+
+message FetchAllApplicationsReq {
+  base.SessionEntry session = 1;
+  string echo_code = 2;
+}
+
+message FetchAllApplicationsResp {
+  repeated ApplyEntry applications = 1;
+}
+
+message HandleApplyReq {
+  base.SessionEntry session = 1;
+  string user_id = 2;
+  int64 group_id = 3;
+  bool accept = 4;
+}
+
+message HandleApplyResp {
+  enum HandleApplyRespCode {
+    OK = 0;
+    NO_PERMISSION = 1;
+    NO_APPLY = 2;
+  }
+  
+  // 一个人关于一个群的关系, 是递增的, 每次被踢/加入都会+1
+  int64 relation_id = 1;
+  // 最新的申请id和申请信息
+  int64 apply_id = 2;
+  string apply_msg = 3;
+  int64 apply_at = 4;
+}
+
+message QuitGroupReq {
+  base.SessionEntry session = 1;
+  string echo_code = 2;
+  string group_id = 3;
+}
+
+message QuitGroupResp {
+  enum HandleApplyRespCode {
+    OK = 0;
+    NO_MEMBER = 1;
+  }
+  HandleApplyRespCode code = 1;
+  int64 relation_id = 2;
+}
+
 service IMRelation {
+  // im-relay调用, 创建群
   rpc CreateGroup(CreateGroupReq) returns (CreateGroupResp);
+  // im-relay调用, 获取群信息, 确认群是存在的, 如果不存在就不一致性hash定位群了
+  rpc GetGroupInfo(GetGroupInfoReq) returns (GroupInfo);
+  // im-relay调用, 拉全量关系, 用于客户端登录后拉取全量关系
+  rpc FetchAllRelations(FetchAllRelationsReq) returns (FetchAllRelationsResp);
+  // im-relay调用, 拉全量申请, 用户客户端登录上拉取全量申请
+  rpc FetchAllApplications(FetchAllApplicationsReq) returns (FetchAllApplicationsResp);
+  // im-relay调用, 申请加入群
+  rpc ApplyGroup(ApplyGroupReq) returns (ApplyGroupReqResp);
+  // im-relay调用, 处理申请
+  rpc HandleApply(HandleApplyReq) returns (HandleApplyResp);
+  // im-relay调用, 退出群
+  rpc QuitGroup(QuitGroupReq) returns (QuitGroupResp);
 }

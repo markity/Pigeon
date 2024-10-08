@@ -66,13 +66,23 @@ func InitConfig(cli *clientv3.Client) {
 	}
 }
 
+type updateChan struct {
+	version  int64
+	respChan chan int64
+}
+
+type waitUpdateChans struct {
+	version int64
+	ch      chan int64
+}
+
 type ChatevWatcher struct {
 	mu sync.Mutex
 
 	stopChan chan struct{}
 	stopped  bool
 
-	forceUpdateChan chan int64
+	forceUpdateChan chan *updateChan
 
 	currentVersion int64
 	configs        map[int64]*Config
@@ -82,6 +92,8 @@ type ChatevWatcher struct {
 
 	currentConfig     map[string]*ConfigEntry
 	currentConsistent *consistent.Consistent
+
+	waitUpdateChans []*waitUpdateChans
 }
 
 func NewWatcher(cli *clientv3.Client) *ChatevWatcher {
@@ -179,7 +191,9 @@ func NewWatcher(cli *clientv3.Client) *ChatevWatcher {
 		currentConfig:     currentNodes,
 		currentConsistent: c,
 		stopChan:          make(chan struct{}, 1),
-		forceUpdateChan:   make(chan int64),
+		forceUpdateChan:   make(chan *updateChan),
+
+		waitUpdateChans: make([]*waitUpdateChans, 0),
 	}
 
 	go func() {
@@ -229,11 +243,36 @@ func NewWatcher(cli *clientv3.Client) *ChatevWatcher {
 					ewc.currentVersion = i64
 					ewc.currentConsistent = newConsistent
 					ewc.mu.Unlock()
+					newWcs := make([]*waitUpdateChans, 0)
+					// ewc.waitUpdateChans仅仅由这个loop读写， 所以不需要加锁
+					for _, v := range ewc.waitUpdateChans {
+						if i64 >= version {
+							v.ch <- i64
+							continue
+						}
+						newWcs = append(newWcs, v)
+					}
+					ewc.waitUpdateChans = newWcs
 					versionKVModReversion = event.Kv.Version
 					log.Printf("chatevloop_config, version changed: %v\n", i64)
 				}
 			case <-ewc.stopChan:
 				return
+			case v := <-ewc.forceUpdateChan:
+				ewc.mu.Lock()
+				curVersion := ewc.currentVersion
+				if curVersion >= v.version {
+					ewc.mu.Unlock()
+					v.respChan <- curVersion
+					continue
+				}
+
+				ewc.waitUpdateChans = append(ewc.waitUpdateChans, &waitUpdateChans{
+					version: v.version,
+					ch:      v.respChan,
+				})
+
+				go ewc.mu.Unlock()
 			}
 		}
 	}()
@@ -275,4 +314,16 @@ func (cwc *ChatevWatcher) GetLastVersionNode(groupId string) (*ConfigEntry, int6
 	m := cwc.lastConfig[n]
 	v := cwc.currentVersion - 1
 	return m, v
+}
+
+func (cwc *ChatevWatcher) ForceUpdate(leastVersion int64) int64 {
+	cwc.mu.Lock()
+	resp := make(chan int64, 1)
+	cwc.forceUpdateChan <- &updateChan{
+		version:  leastVersion,
+		respChan: resp,
+	}
+	cwc.mu.Unlock()
+	v := <-resp
+	return v
 }
