@@ -8,7 +8,6 @@ import "base/base.proto";
 message CreateGroupReq {
   base.SessionEntry session = 1;
   string echo_code = 2;
-  string owner_id = 3;
 };
 
 message CreateGroupResp {
@@ -29,7 +28,8 @@ message GroupInfo {
   string owner_id = 3;
   int64 create_at = 4;
   bool disbanded = 5;
-  repeated RelationEntry relations = 6;
+  int64 disbaned_at = 6;
+  repeated RelationEntry relations = 7;
 }
 
 message GetGroupInfoReq {
@@ -135,7 +135,7 @@ service IMRelation {
   // im-relay调用, 创建群
   rpc CreateGroup(CreateGroupReq) returns (CreateGroupResp);
   // im-relay调用, 获取群信息, 确认群是存在的, 如果不存在就不一致性hash定位群了
-  rpc GetGroupInfo(GetGroupInfoReq) returns (GroupInfo);
+  rpc GetGroupInfo(GetGroupInfoReq) returns (GetGroupInfoResp);
   // im-relay调用, 拉全量关系, 用于客户端登录后拉取全量关系
   rpc FetchAllRelations(FetchAllRelationsReq) returns (FetchAllRelationsResp);
   // im-relay调用, 拉全量申请, 用户客户端登录上拉取全量申请

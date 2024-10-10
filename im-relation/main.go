@@ -7,10 +7,10 @@ import (
 	"net"
 
 	regetcd "pigeon/common/kitex-registry/etcd"
-	"pigeon/im-auth-route/db"
-	"pigeon/im-auth-route/db/model"
-	"pigeon/im-auth-route/rds"
 	"pigeon/im-relation/config"
+	"pigeon/im-relation/db"
+	"pigeon/im-relation/db/model"
+	"pigeon/im-relation/rds"
 	"pigeon/im-relation/rpcserver"
 	"pigeon/kitex_gen/service/imrelation/imrelation"
 

@@ -13,5 +13,5 @@ func MustNewIMRelayClient(resolver discovery.Resolver) relay.Client {
 }
 
 func MustNewIMAuthRouteClient(resolver discovery.Resolver) authroute.Client {
-	return authroute.MustNewClient("im-auth-route", client.WithResolver(resolver))
+	return authroute.MustNewClient("im-authroute", client.WithResolver(resolver))
 }

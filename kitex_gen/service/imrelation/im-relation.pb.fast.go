@@ -25,11 +25,6 @@ func (x *CreateGroupReq) FastRead(buf []byte, _type int8, number int32) (offset 
 		if err != nil {
 			goto ReadFieldError
 		}
-	case 3:
-		offset, err = x.fastReadField3(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -55,11 +50,6 @@ func (x *CreateGroupReq) fastReadField1(buf []byte, _type int8) (offset int, err
 
 func (x *CreateGroupReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	x.EchoCode, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
-
-func (x *CreateGroupReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.OwnerId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -190,6 +180,11 @@ func (x *GroupInfo) FastRead(buf []byte, _type int8, number int32) (offset int, 
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 7:
+		offset, err = x.fastReadField7(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -224,6 +219,11 @@ func (x *GroupInfo) fastReadField5(buf []byte, _type int8) (offset int, err erro
 }
 
 func (x *GroupInfo) fastReadField6(buf []byte, _type int8) (offset int, err error) {
+	x.DisbanedAt, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *GroupInfo) fastReadField7(buf []byte, _type int8) (offset int, err error) {
 	var v RelationEntry
 	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
@@ -869,7 +869,6 @@ func (x *CreateGroupReq) FastWrite(buf []byte) (offset int) {
 	}
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
-	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
@@ -886,14 +885,6 @@ func (x *CreateGroupReq) fastWriteField2(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteString(buf[offset:], 2, x.GetEchoCode())
-	return offset
-}
-
-func (x *CreateGroupReq) fastWriteField3(buf []byte) (offset int) {
-	if x.OwnerId == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 3, x.GetOwnerId())
 	return offset
 }
 
@@ -983,6 +974,7 @@ func (x *GroupInfo) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField4(buf[offset:])
 	offset += x.fastWriteField5(buf[offset:])
 	offset += x.fastWriteField6(buf[offset:])
+	offset += x.fastWriteField7(buf[offset:])
 	return offset
 }
 
@@ -1019,11 +1011,19 @@ func (x *GroupInfo) fastWriteField5(buf []byte) (offset int) {
 }
 
 func (x *GroupInfo) fastWriteField6(buf []byte) (offset int) {
+	if x.DisbanedAt == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 6, x.GetDisbanedAt())
+	return offset
+}
+
+func (x *GroupInfo) fastWriteField7(buf []byte) (offset int) {
 	if x.Relations == nil {
 		return offset
 	}
 	for i := range x.GetRelations() {
-		offset += fastpb.WriteMessage(buf[offset:], 6, x.GetRelations()[i])
+		offset += fastpb.WriteMessage(buf[offset:], 7, x.GetRelations()[i])
 	}
 	return offset
 }
@@ -1471,7 +1471,6 @@ func (x *CreateGroupReq) Size() (n int) {
 	}
 	n += x.sizeField1()
 	n += x.sizeField2()
-	n += x.sizeField3()
 	return n
 }
 
@@ -1488,14 +1487,6 @@ func (x *CreateGroupReq) sizeField2() (n int) {
 		return n
 	}
 	n += fastpb.SizeString(2, x.GetEchoCode())
-	return n
-}
-
-func (x *CreateGroupReq) sizeField3() (n int) {
-	if x.OwnerId == "" {
-		return n
-	}
-	n += fastpb.SizeString(3, x.GetOwnerId())
 	return n
 }
 
@@ -1585,6 +1576,7 @@ func (x *GroupInfo) Size() (n int) {
 	n += x.sizeField4()
 	n += x.sizeField5()
 	n += x.sizeField6()
+	n += x.sizeField7()
 	return n
 }
 
@@ -1621,11 +1613,19 @@ func (x *GroupInfo) sizeField5() (n int) {
 }
 
 func (x *GroupInfo) sizeField6() (n int) {
+	if x.DisbanedAt == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(6, x.GetDisbanedAt())
+	return n
+}
+
+func (x *GroupInfo) sizeField7() (n int) {
 	if x.Relations == nil {
 		return n
 	}
 	for i := range x.GetRelations() {
-		n += fastpb.SizeMessage(6, x.GetRelations()[i])
+		n += fastpb.SizeMessage(7, x.GetRelations()[i])
 	}
 	return n
 }
@@ -2070,7 +2070,6 @@ func (x *QuitGroupResp) sizeField2() (n int) {
 var fieldIDToName_CreateGroupReq = map[int32]string{
 	1: "Session",
 	2: "EchoCode",
-	3: "OwnerId",
 }
 
 var fieldIDToName_CreateGroupResp = map[int32]string{
@@ -2091,7 +2090,8 @@ var fieldIDToName_GroupInfo = map[int32]string{
 	3: "OwnerId",
 	4: "CreateAt",
 	5: "Disbanded",
-	6: "Relations",
+	6: "DisbanedAt",
+	7: "Relations",
 }
 
 var fieldIDToName_GetGroupInfoReq = map[int32]string{

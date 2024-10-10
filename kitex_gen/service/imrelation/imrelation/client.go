@@ -12,7 +12,7 @@ import (
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
 	CreateGroup(ctx context.Context, Req *imrelation.CreateGroupReq, callOptions ...callopt.Option) (r *imrelation.CreateGroupResp, err error)
-	GetGroupInfo(ctx context.Context, Req *imrelation.GetGroupInfoReq, callOptions ...callopt.Option) (r *imrelation.GroupInfo, err error)
+	GetGroupInfo(ctx context.Context, Req *imrelation.GetGroupInfoReq, callOptions ...callopt.Option) (r *imrelation.GetGroupInfoResp, err error)
 	FetchAllRelations(ctx context.Context, Req *imrelation.FetchAllRelationsReq, callOptions ...callopt.Option) (r *imrelation.FetchAllRelationsResp, err error)
 	FetchAllApplications(ctx context.Context, Req *imrelation.FetchAllApplicationsReq, callOptions ...callopt.Option) (r *imrelation.FetchAllApplicationsResp, err error)
 	ApplyGroup(ctx context.Context, Req *imrelation.ApplyGroupReq, callOptions ...callopt.Option) (r *imrelation.ApplyGroupReqResp, err error)
@@ -54,7 +54,7 @@ func (p *kIMRelationClient) CreateGroup(ctx context.Context, Req *imrelation.Cre
 	return p.kClient.CreateGroup(ctx, Req)
 }
 
-func (p *kIMRelationClient) GetGroupInfo(ctx context.Context, Req *imrelation.GetGroupInfoReq, callOptions ...callopt.Option) (r *imrelation.GroupInfo, err error) {
+func (p *kIMRelationClient) GetGroupInfo(ctx context.Context, Req *imrelation.GetGroupInfoReq, callOptions ...callopt.Option) (r *imrelation.GetGroupInfoResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetGroupInfo(ctx, Req)
 }

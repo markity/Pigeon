@@ -89,7 +89,7 @@ func main() {
 		panic(err)
 	}
 
-	cli, err := imauthroute.NewClient("im-auth-route", client.WithResolver(res))
+	cli, err := imauthroute.NewClient("im-authroute", client.WithResolver(res))
 	if err != nil {
 		panic(err)
 	}

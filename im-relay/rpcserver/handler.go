@@ -2,17 +2,23 @@ package rpcserver
 
 import (
 	"context"
+	"errors"
+	"log"
 	"strings"
 
+	chatevloopconfig "pigeon/common/chatevloop-config"
+	"pigeon/im-relay/api"
 	"pigeon/im-relay/handle"
 	"pigeon/im-relay/handle/chat"
 	"pigeon/im-relay/handle/echo"
+	"pigeon/kitex_gen/service/imchatevloop"
 	"pigeon/kitex_gen/service/imrelation/imrelation"
 	"pigeon/kitex_gen/service/imrelay"
 )
 
 type RPCContext struct {
-	RelationCli imrelation.Client
+	EvCfgWatcher *chatevloopconfig.ChatevWatcher
+	RelationCli  imrelation.Client
 }
 
 type RPCServer struct {
@@ -42,8 +48,34 @@ func (s *RPCServer) handleBizMessage(req *imrelay.BizMessageReq) {
 	}
 }
 
+// 由im-relation调用, 创造群聊event loop
 func (s *RPCServer) CreateChatEventLoop(ctx context.Context, req *imrelay.CreateChatEventLoopReq) (res *imrelay.CreateChatEventLoopResp, err error) {
-	return
+	for {
+		nodeEntry, version := s.EvCfgWatcher.GetNode(req.GroupId)
+		if nodeEntry == nil {
+			log.Printf("consistent ring get node failed, no node available\n")
+			return nil, errors.New("no node availabel")
+		}
+
+		evloopCli := api.MustNewChatEvLoopCliFromAdAddr(nodeEntry.IPPort)
+		resp, err := evloopCli.CreateGroup(context.Background(), &imchatevloop.CreateGroupRequest{
+			Version:      version,
+			GroupId:      req.GroupId,
+			GroupOwnerId: req.OwnerId,
+		})
+		if err != nil {
+			log.Printf("create group failed, err: %v\n", err)
+			return nil, errors.New("create group failed")
+		}
+		if !resp.Success || resp.Version != version {
+			s.EvCfgWatcher.ForceUpdate(resp.Version)
+			log.Printf("version not match, current version: %d, server version: %d, retrying...\n", version, resp.Version)
+			continue
+		}
+		return &imrelay.CreateChatEventLoopResp{
+			Success: true,
+		}, nil
+	}
 }
 func (s *RPCServer) RedirectToChatEventLoop(ctx context.Context, req *imrelay.RedirectToChatEventLoopReq) (res *imrelay.RedirectToChatEventLoopResp, err error) {
 	return

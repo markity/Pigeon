@@ -75,7 +75,7 @@ func main() {
 		},
 	}, server.WithRegistry(reg), server.WithServiceAddr(listenAddr),
 		server.WithRegistryInfo(&registry.Info{
-			ServiceName: "im-auth-route",
+			ServiceName: "im-authroute",
 			Addr:        adAddr,
 		}))
 	err = server.Run()

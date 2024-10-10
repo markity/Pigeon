@@ -375,14 +375,14 @@ func (p *GetGroupInfoArgs) GetFirstArgument() interface{} {
 }
 
 type GetGroupInfoResult struct {
-	Success *imrelation.GroupInfo
+	Success *imrelation.GetGroupInfoResp
 }
 
-var GetGroupInfoResult_Success_DEFAULT *imrelation.GroupInfo
+var GetGroupInfoResult_Success_DEFAULT *imrelation.GetGroupInfoResp
 
 func (p *GetGroupInfoResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
 	if !p.IsSetSuccess() {
-		p.Success = new(imrelation.GroupInfo)
+		p.Success = new(imrelation.GetGroupInfoResp)
 	}
 	return p.Success.FastRead(buf, _type, number)
 }
@@ -409,7 +409,7 @@ func (p *GetGroupInfoResult) Marshal(out []byte) ([]byte, error) {
 }
 
 func (p *GetGroupInfoResult) Unmarshal(in []byte) error {
-	msg := new(imrelation.GroupInfo)
+	msg := new(imrelation.GetGroupInfoResp)
 	if err := proto.Unmarshal(in, msg); err != nil {
 		return err
 	}
@@ -417,7 +417,7 @@ func (p *GetGroupInfoResult) Unmarshal(in []byte) error {
 	return nil
 }
 
-func (p *GetGroupInfoResult) GetSuccess() *imrelation.GroupInfo {
+func (p *GetGroupInfoResult) GetSuccess() *imrelation.GetGroupInfoResp {
 	if !p.IsSetSuccess() {
 		return GetGroupInfoResult_Success_DEFAULT
 	}
@@ -425,7 +425,7 @@ func (p *GetGroupInfoResult) GetSuccess() *imrelation.GroupInfo {
 }
 
 func (p *GetGroupInfoResult) SetSuccess(x interface{}) {
-	p.Success = x.(*imrelation.GroupInfo)
+	p.Success = x.(*imrelation.GetGroupInfoResp)
 }
 
 func (p *GetGroupInfoResult) IsSetSuccess() bool {
@@ -1221,7 +1221,7 @@ func (p *kClient) CreateGroup(ctx context.Context, Req *imrelation.CreateGroupRe
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) GetGroupInfo(ctx context.Context, Req *imrelation.GetGroupInfoReq) (r *imrelation.GroupInfo, err error) {
+func (p *kClient) GetGroupInfo(ctx context.Context, Req *imrelation.GetGroupInfoReq) (r *imrelation.GetGroupInfoResp, err error) {
 	var _args GetGroupInfoArgs
 	_args.Req = Req
 	var _result GetGroupInfoResult

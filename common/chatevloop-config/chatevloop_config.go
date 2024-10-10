@@ -292,14 +292,14 @@ func (cwc *ChatevWatcher) Stop() {
 
 func (cwc *ChatevWatcher) GetNode(groupId string) (*ConfigEntry, int64) {
 	cwc.mu.Lock()
+	defer cwc.mu.Unlock()
 	c := cwc.currentConsistent
 	n, err := c.Get(groupId)
+	v := cwc.currentVersion
 	if err != nil {
-		panic(err)
+		return nil, v
 	}
 	m := cwc.currentConfig[n]
-	v := cwc.currentVersion
-	cwc.mu.Unlock()
 	return m, v
 }
 
