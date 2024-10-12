@@ -12,10 +12,7 @@ import (
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
 	CreateGroup(ctx context.Context, Req *imchatevloop.CreateGroupRequest, callOptions ...callopt.Option) (r *imchatevloop.CreateGroupResponse, err error)
-	AlterGroupMember(ctx context.Context, Req *imchatevloop.AlterGroupMemberRequest, callOptions ...callopt.Option) (r *imchatevloop.AlterGroupMemberResponse, err error)
-	SubscribeGroup(ctx context.Context, Req *imchatevloop.SubscribeGroupRequest, callOptions ...callopt.Option) (r *imchatevloop.SubscribeGroupResponse, err error)
-	SendMessage(ctx context.Context, Req *imchatevloop.SendMessageRequest, callOptions ...callopt.Option) (r *imchatevloop.SendMessageResponse, err error)
-	DisbandGroup(ctx context.Context, Req *imchatevloop.DisbandGroupRequest, callOptions ...callopt.Option) (r *imchatevloop.DisbandGroupResponse, err error)
+	UniversalGroupEvloopRequest(ctx context.Context, Req *imchatevloop.UniversalGroupEvloopRequestReq, callOptions ...callopt.Option) (r *imchatevloop.UniversalGroupEvloopRequestResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -52,22 +49,7 @@ func (p *kIMChatEvloopClient) CreateGroup(ctx context.Context, Req *imchatevloop
 	return p.kClient.CreateGroup(ctx, Req)
 }
 
-func (p *kIMChatEvloopClient) AlterGroupMember(ctx context.Context, Req *imchatevloop.AlterGroupMemberRequest, callOptions ...callopt.Option) (r *imchatevloop.AlterGroupMemberResponse, err error) {
+func (p *kIMChatEvloopClient) UniversalGroupEvloopRequest(ctx context.Context, Req *imchatevloop.UniversalGroupEvloopRequestReq, callOptions ...callopt.Option) (r *imchatevloop.UniversalGroupEvloopRequestResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.AlterGroupMember(ctx, Req)
-}
-
-func (p *kIMChatEvloopClient) SubscribeGroup(ctx context.Context, Req *imchatevloop.SubscribeGroupRequest, callOptions ...callopt.Option) (r *imchatevloop.SubscribeGroupResponse, err error) {
-	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.SubscribeGroup(ctx, Req)
-}
-
-func (p *kIMChatEvloopClient) SendMessage(ctx context.Context, Req *imchatevloop.SendMessageRequest, callOptions ...callopt.Option) (r *imchatevloop.SendMessageResponse, err error) {
-	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.SendMessage(ctx, Req)
-}
-
-func (p *kIMChatEvloopClient) DisbandGroup(ctx context.Context, Req *imchatevloop.DisbandGroupRequest, callOptions ...callopt.Option) (r *imchatevloop.DisbandGroupResponse, err error) {
-	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.DisbandGroup(ctx, Req)
+	return p.kClient.UniversalGroupEvloopRequest(ctx, Req)
 }

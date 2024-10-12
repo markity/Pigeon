@@ -5,6 +5,7 @@ package imchatevloop;
 option go_package = "service/imchatevloop";
 
 import "base/base.proto";
+import "base/evloopio.proto";
 
 // 创建群组, 由im-relation调用
 message CreateGroupRequest {
@@ -18,80 +19,20 @@ message CreateGroupResponse {
   int64 version = 2;
 }
 
-// 更改群组成员, 由im-relation调用
-message AlterGroupMemberRequest {
+message UniversalGroupEvloopRequestReq {
   int64 version = 1;
-  int64 group_id = 2;
-  bool is_add = 3;
-  string member_id = 4;
-  int64 relation_id = 5; 
+  string group_id = 2;
+  evloopio.UniversalGroupEvloopInput input = 3;
 }
 
-message AlterGroupMemberResponse {
+message UniversalGroupEvloopRequestResp {
   bool success = 1;
   int64 version = 2;
+  evloopio.UniversalGroupEvloopOutput output = 3;
 }
 
-// 订阅群组, 由im-relay调用, 某个人订阅群组, im-relay先确认是否存在这个群(请求im-relation), 然后一致性hash
-message SubscribeGroupRequest {
-  int64 version = 1;
-  int64 groupId = 2;
-  string gw_advertise_addr_port = 3;
-  string sessionId = 4;
-}
-
-message SubscribeGroupResponse {
-  enum SubscribeGroupCode {
-    OK = 0;
-    VERSION_OLD = 1;        // 这个错误, version有效调用方可以等待version更新后重试
-    NO_PERMISSION = 2;      // 这个错误, 没有权限, relation_id是有效的
-    GROUP_DISBANDED = 3;    // 这个错误, 群组解散, relation_id和max_seq_id是有效的
-  }
-  SubscribeGroupCode code = 1;
-  int64 version = 2;
-  int64 relation_id = 3;
-  int64 max_seq_id = 4;
-}
-
-// 发送消息
-message SendMessageRequest {
-  int64 version = 1;
-  int64 groupId = 2;
-  bytes message_data = 3;
-  bool check_idempotent = 4;   // 是否需要检查幂等
-  string idempotent_key = 5;  // 幂等key
-}
-
-message SendMessageResponse {
-  enum SendMessageCode {
-    OK = 0;
-    VERSION_OLD = 1;        // 这个错误, version有效调用方可以等待version更新后重试
-    NO_PERMISSION = 2;      // 这个错误, 没有权限, relation_id是有效的
-    GROUP_DISBANDED = 3;    // 这个错误, 群组解散, relation_id和max_seq_id是有效的
-  }
-  
-  SendMessageCode code = 1;
-  int64 version = 2;
-  int64 relation_id = 3;
-  int64 max_seq_id = 4;
-  int64 message_seq = 5;
-}
-
-// 解散群
-message DisbandGroupRequest {
-  int64 version = 1;
-  int64 groupId = 2;
-}
-
-message DisbandGroupResponse {
-  bool success = 1;
-  int64 version = 2;
-}
 
 service IMChatEvloop {
     rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
-    rpc AlterGroupMember(AlterGroupMemberRequest) returns (AlterGroupMemberResponse);
-    rpc SubscribeGroup(SubscribeGroupRequest) returns (SubscribeGroupResponse);
-    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
-    rpc DisbandGroup(DisbandGroupRequest) returns (DisbandGroupResponse);
+    rpc UniversalGroupEvloopRequest(UniversalGroupEvloopRequestReq) returns (UniversalGroupEvloopRequestResp);
 }

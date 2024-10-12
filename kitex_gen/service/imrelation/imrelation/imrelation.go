@@ -834,14 +834,14 @@ func (p *ApplyGroupArgs) GetFirstArgument() interface{} {
 }
 
 type ApplyGroupResult struct {
-	Success *imrelation.ApplyGroupReqResp
+	Success *imrelation.ApplyGroupResp
 }
 
-var ApplyGroupResult_Success_DEFAULT *imrelation.ApplyGroupReqResp
+var ApplyGroupResult_Success_DEFAULT *imrelation.ApplyGroupResp
 
 func (p *ApplyGroupResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
 	if !p.IsSetSuccess() {
-		p.Success = new(imrelation.ApplyGroupReqResp)
+		p.Success = new(imrelation.ApplyGroupResp)
 	}
 	return p.Success.FastRead(buf, _type, number)
 }
@@ -868,7 +868,7 @@ func (p *ApplyGroupResult) Marshal(out []byte) ([]byte, error) {
 }
 
 func (p *ApplyGroupResult) Unmarshal(in []byte) error {
-	msg := new(imrelation.ApplyGroupReqResp)
+	msg := new(imrelation.ApplyGroupResp)
 	if err := proto.Unmarshal(in, msg); err != nil {
 		return err
 	}
@@ -876,7 +876,7 @@ func (p *ApplyGroupResult) Unmarshal(in []byte) error {
 	return nil
 }
 
-func (p *ApplyGroupResult) GetSuccess() *imrelation.ApplyGroupReqResp {
+func (p *ApplyGroupResult) GetSuccess() *imrelation.ApplyGroupResp {
 	if !p.IsSetSuccess() {
 		return ApplyGroupResult_Success_DEFAULT
 	}
@@ -884,7 +884,7 @@ func (p *ApplyGroupResult) GetSuccess() *imrelation.ApplyGroupReqResp {
 }
 
 func (p *ApplyGroupResult) SetSuccess(x interface{}) {
-	p.Success = x.(*imrelation.ApplyGroupReqResp)
+	p.Success = x.(*imrelation.ApplyGroupResp)
 }
 
 func (p *ApplyGroupResult) IsSetSuccess() bool {
@@ -1251,7 +1251,7 @@ func (p *kClient) FetchAllApplications(ctx context.Context, Req *imrelation.Fetc
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) ApplyGroup(ctx context.Context, Req *imrelation.ApplyGroupReq) (r *imrelation.ApplyGroupReqResp, err error) {
+func (p *kClient) ApplyGroup(ctx context.Context, Req *imrelation.ApplyGroupReq) (r *imrelation.ApplyGroupResp, err error) {
 	var _args ApplyGroupArgs
 	_args.Req = Req
 	var _result ApplyGroupResult

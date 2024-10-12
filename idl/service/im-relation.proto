@@ -20,7 +20,7 @@ message RelationEntry {
   string group_id = 2;
   int64 relation_id = 3;
   bool in_group = 4;
-  int64 create_at = 5;
+  int64 updated_at = 5;
 }
 
 message GroupInfo {
@@ -51,8 +51,7 @@ message FetchAllRelationsReq {
 }
 
 message FetchAllRelationsResp {
-  bool exists = 1;
-  repeated RelationEntry relations = 2;
+  repeated RelationEntry relations = 1;
 }
 
 // 申请加入群
@@ -64,25 +63,34 @@ message ApplyGroupReq {
   string apply_msg = 5;
 }
 
-message ApplyGroupReqResp {
-  enum ApplyGroupReqRespCode {
+message ApplyGroupResp {
+  enum ApplyGroupRespCode {
     OK = 0;
     GROUP_DISBANDED = 1;
     USER_IN_GROUP = 2;
+    NO_GROUP = 3;
   }
 
-  // 对于同一个群, 多次申请, apply_id是递增的
-  int64 apply_id = 1;
-  int64 relation_id = 2;
-  int64 apply_at = 3;
+  ApplyGroupRespCode code = 1;
+
+  // 对于同一个群, 多次申请, apply_version是递增的
+  int64 apply_version = 2;
+  int64 apply_at = 4;
 }
 
 message ApplyEntry {
-  int64 user_id = 1;
-  int64 group_id = 2;
-  int64 apply_id = 3;
+  enum ApplyStatus {
+    PENDING = 0;
+    ACCEPTED = 1;
+    REJECTED = 2;
+    GROUP_DISBANDED = 3;
+  };
+  string user_id = 1;
+  string group_id = 2;
+  int64 apply_version = 3;
   int64 apply_at = 4;
   string apply_msg = 5;
+  ApplyStatus status = 6;
 }
 
 message FetchAllApplicationsReq {
@@ -97,7 +105,7 @@ message FetchAllApplicationsResp {
 message HandleApplyReq {
   base.SessionEntry session = 1;
   string user_id = 2;
-  int64 group_id = 3;
+  string group_id = 3;
   bool accept = 4;
 }
 
@@ -105,15 +113,19 @@ message HandleApplyResp {
   enum HandleApplyRespCode {
     OK = 0;
     NO_PERMISSION = 1;
-    NO_APPLY = 2;
+    NO_APPLY = 2; // 申请不存在, 或者申请不是pending状态
+    NO_GROUP = 3;
+    GROUP_DISBANDED = 4;
   }
+
+  HandleApplyRespCode code = 1;
   
   // 一个人关于一个群的关系, 是递增的, 每次被踢/加入都会+1
-  int64 relation_id = 1;
+  int64 relation_version = 2;
   // 最新的申请id和申请信息
-  int64 apply_id = 2;
-  string apply_msg = 3;
-  int64 apply_at = 4;
+  int64 apply_id = 3;
+  string apply_msg = 4;
+  int64 apply_at = 5;
 }
 
 message QuitGroupReq {
@@ -128,7 +140,7 @@ message QuitGroupResp {
     NO_MEMBER = 1;
   }
   HandleApplyRespCode code = 1;
-  int64 relation_id = 2;
+  int64 relation_version = 2;
 }
 
 service IMRelation {
@@ -141,7 +153,7 @@ service IMRelation {
   // im-relay调用, 拉全量申请, 用户客户端登录上拉取全量申请
   rpc FetchAllApplications(FetchAllApplicationsReq) returns (FetchAllApplicationsResp);
   // im-relay调用, 申请加入群
-  rpc ApplyGroup(ApplyGroupReq) returns (ApplyGroupReqResp);
+  rpc ApplyGroup(ApplyGroupReq) returns (ApplyGroupResp);
   // im-relay调用, 处理申请
   rpc HandleApply(HandleApplyReq) returns (HandleApplyResp);
   // im-relay调用, 退出群

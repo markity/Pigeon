@@ -22,31 +22,10 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingUnary),
 	),
-	"AlterGroupMember": kitex.NewMethodInfo(
-		alterGroupMemberHandler,
-		newAlterGroupMemberArgs,
-		newAlterGroupMemberResult,
-		false,
-		kitex.WithStreamingMode(kitex.StreamingUnary),
-	),
-	"SubscribeGroup": kitex.NewMethodInfo(
-		subscribeGroupHandler,
-		newSubscribeGroupArgs,
-		newSubscribeGroupResult,
-		false,
-		kitex.WithStreamingMode(kitex.StreamingUnary),
-	),
-	"SendMessage": kitex.NewMethodInfo(
-		sendMessageHandler,
-		newSendMessageArgs,
-		newSendMessageResult,
-		false,
-		kitex.WithStreamingMode(kitex.StreamingUnary),
-	),
-	"DisbandGroup": kitex.NewMethodInfo(
-		disbandGroupHandler,
-		newDisbandGroupArgs,
-		newDisbandGroupResult,
+	"UniversalGroupEvloopRequest": kitex.NewMethodInfo(
+		universalGroupEvloopRequestHandler,
+		newUniversalGroupEvloopRequestArgs,
+		newUniversalGroupEvloopRequestResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingUnary),
 	),
@@ -269,73 +248,73 @@ func (p *CreateGroupResult) GetResult() interface{} {
 	return p.Success
 }
 
-func alterGroupMemberHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+func universalGroupEvloopRequestHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	switch s := arg.(type) {
 	case *streaming.Args:
 		st := s.Stream
-		req := new(imchatevloop.AlterGroupMemberRequest)
+		req := new(imchatevloop.UniversalGroupEvloopRequestReq)
 		if err := st.RecvMsg(req); err != nil {
 			return err
 		}
-		resp, err := handler.(imchatevloop.IMChatEvloop).AlterGroupMember(ctx, req)
+		resp, err := handler.(imchatevloop.IMChatEvloop).UniversalGroupEvloopRequest(ctx, req)
 		if err != nil {
 			return err
 		}
 		return st.SendMsg(resp)
-	case *AlterGroupMemberArgs:
-		success, err := handler.(imchatevloop.IMChatEvloop).AlterGroupMember(ctx, s.Req)
+	case *UniversalGroupEvloopRequestArgs:
+		success, err := handler.(imchatevloop.IMChatEvloop).UniversalGroupEvloopRequest(ctx, s.Req)
 		if err != nil {
 			return err
 		}
-		realResult := result.(*AlterGroupMemberResult)
+		realResult := result.(*UniversalGroupEvloopRequestResult)
 		realResult.Success = success
 		return nil
 	default:
 		return errInvalidMessageType
 	}
 }
-func newAlterGroupMemberArgs() interface{} {
-	return &AlterGroupMemberArgs{}
+func newUniversalGroupEvloopRequestArgs() interface{} {
+	return &UniversalGroupEvloopRequestArgs{}
 }
 
-func newAlterGroupMemberResult() interface{} {
-	return &AlterGroupMemberResult{}
+func newUniversalGroupEvloopRequestResult() interface{} {
+	return &UniversalGroupEvloopRequestResult{}
 }
 
-type AlterGroupMemberArgs struct {
-	Req *imchatevloop.AlterGroupMemberRequest
+type UniversalGroupEvloopRequestArgs struct {
+	Req *imchatevloop.UniversalGroupEvloopRequestReq
 }
 
-func (p *AlterGroupMemberArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+func (p *UniversalGroupEvloopRequestArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
 	if !p.IsSetReq() {
-		p.Req = new(imchatevloop.AlterGroupMemberRequest)
+		p.Req = new(imchatevloop.UniversalGroupEvloopRequestReq)
 	}
 	return p.Req.FastRead(buf, _type, number)
 }
 
-func (p *AlterGroupMemberArgs) FastWrite(buf []byte) (n int) {
+func (p *UniversalGroupEvloopRequestArgs) FastWrite(buf []byte) (n int) {
 	if !p.IsSetReq() {
 		return 0
 	}
 	return p.Req.FastWrite(buf)
 }
 
-func (p *AlterGroupMemberArgs) Size() (n int) {
+func (p *UniversalGroupEvloopRequestArgs) Size() (n int) {
 	if !p.IsSetReq() {
 		return 0
 	}
 	return p.Req.Size()
 }
 
-func (p *AlterGroupMemberArgs) Marshal(out []byte) ([]byte, error) {
+func (p *UniversalGroupEvloopRequestArgs) Marshal(out []byte) ([]byte, error) {
 	if !p.IsSetReq() {
 		return out, nil
 	}
 	return proto.Marshal(p.Req)
 }
 
-func (p *AlterGroupMemberArgs) Unmarshal(in []byte) error {
-	msg := new(imchatevloop.AlterGroupMemberRequest)
+func (p *UniversalGroupEvloopRequestArgs) Unmarshal(in []byte) error {
+	msg := new(imchatevloop.UniversalGroupEvloopRequestReq)
 	if err := proto.Unmarshal(in, msg); err != nil {
 		return err
 	}
@@ -343,59 +322,59 @@ func (p *AlterGroupMemberArgs) Unmarshal(in []byte) error {
 	return nil
 }
 
-var AlterGroupMemberArgs_Req_DEFAULT *imchatevloop.AlterGroupMemberRequest
+var UniversalGroupEvloopRequestArgs_Req_DEFAULT *imchatevloop.UniversalGroupEvloopRequestReq
 
-func (p *AlterGroupMemberArgs) GetReq() *imchatevloop.AlterGroupMemberRequest {
+func (p *UniversalGroupEvloopRequestArgs) GetReq() *imchatevloop.UniversalGroupEvloopRequestReq {
 	if !p.IsSetReq() {
-		return AlterGroupMemberArgs_Req_DEFAULT
+		return UniversalGroupEvloopRequestArgs_Req_DEFAULT
 	}
 	return p.Req
 }
 
-func (p *AlterGroupMemberArgs) IsSetReq() bool {
+func (p *UniversalGroupEvloopRequestArgs) IsSetReq() bool {
 	return p.Req != nil
 }
 
-func (p *AlterGroupMemberArgs) GetFirstArgument() interface{} {
+func (p *UniversalGroupEvloopRequestArgs) GetFirstArgument() interface{} {
 	return p.Req
 }
 
-type AlterGroupMemberResult struct {
-	Success *imchatevloop.AlterGroupMemberResponse
+type UniversalGroupEvloopRequestResult struct {
+	Success *imchatevloop.UniversalGroupEvloopRequestResp
 }
 
-var AlterGroupMemberResult_Success_DEFAULT *imchatevloop.AlterGroupMemberResponse
+var UniversalGroupEvloopRequestResult_Success_DEFAULT *imchatevloop.UniversalGroupEvloopRequestResp
 
-func (p *AlterGroupMemberResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+func (p *UniversalGroupEvloopRequestResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
 	if !p.IsSetSuccess() {
-		p.Success = new(imchatevloop.AlterGroupMemberResponse)
+		p.Success = new(imchatevloop.UniversalGroupEvloopRequestResp)
 	}
 	return p.Success.FastRead(buf, _type, number)
 }
 
-func (p *AlterGroupMemberResult) FastWrite(buf []byte) (n int) {
+func (p *UniversalGroupEvloopRequestResult) FastWrite(buf []byte) (n int) {
 	if !p.IsSetSuccess() {
 		return 0
 	}
 	return p.Success.FastWrite(buf)
 }
 
-func (p *AlterGroupMemberResult) Size() (n int) {
+func (p *UniversalGroupEvloopRequestResult) Size() (n int) {
 	if !p.IsSetSuccess() {
 		return 0
 	}
 	return p.Success.Size()
 }
 
-func (p *AlterGroupMemberResult) Marshal(out []byte) ([]byte, error) {
+func (p *UniversalGroupEvloopRequestResult) Marshal(out []byte) ([]byte, error) {
 	if !p.IsSetSuccess() {
 		return out, nil
 	}
 	return proto.Marshal(p.Success)
 }
 
-func (p *AlterGroupMemberResult) Unmarshal(in []byte) error {
-	msg := new(imchatevloop.AlterGroupMemberResponse)
+func (p *UniversalGroupEvloopRequestResult) Unmarshal(in []byte) error {
+	msg := new(imchatevloop.UniversalGroupEvloopRequestResp)
 	if err := proto.Unmarshal(in, msg); err != nil {
 		return err
 	}
@@ -403,481 +382,22 @@ func (p *AlterGroupMemberResult) Unmarshal(in []byte) error {
 	return nil
 }
 
-func (p *AlterGroupMemberResult) GetSuccess() *imchatevloop.AlterGroupMemberResponse {
+func (p *UniversalGroupEvloopRequestResult) GetSuccess() *imchatevloop.UniversalGroupEvloopRequestResp {
 	if !p.IsSetSuccess() {
-		return AlterGroupMemberResult_Success_DEFAULT
+		return UniversalGroupEvloopRequestResult_Success_DEFAULT
 	}
 	return p.Success
 }
 
-func (p *AlterGroupMemberResult) SetSuccess(x interface{}) {
-	p.Success = x.(*imchatevloop.AlterGroupMemberResponse)
+func (p *UniversalGroupEvloopRequestResult) SetSuccess(x interface{}) {
+	p.Success = x.(*imchatevloop.UniversalGroupEvloopRequestResp)
 }
 
-func (p *AlterGroupMemberResult) IsSetSuccess() bool {
+func (p *UniversalGroupEvloopRequestResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *AlterGroupMemberResult) GetResult() interface{} {
-	return p.Success
-}
-
-func subscribeGroupHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	switch s := arg.(type) {
-	case *streaming.Args:
-		st := s.Stream
-		req := new(imchatevloop.SubscribeGroupRequest)
-		if err := st.RecvMsg(req); err != nil {
-			return err
-		}
-		resp, err := handler.(imchatevloop.IMChatEvloop).SubscribeGroup(ctx, req)
-		if err != nil {
-			return err
-		}
-		return st.SendMsg(resp)
-	case *SubscribeGroupArgs:
-		success, err := handler.(imchatevloop.IMChatEvloop).SubscribeGroup(ctx, s.Req)
-		if err != nil {
-			return err
-		}
-		realResult := result.(*SubscribeGroupResult)
-		realResult.Success = success
-		return nil
-	default:
-		return errInvalidMessageType
-	}
-}
-func newSubscribeGroupArgs() interface{} {
-	return &SubscribeGroupArgs{}
-}
-
-func newSubscribeGroupResult() interface{} {
-	return &SubscribeGroupResult{}
-}
-
-type SubscribeGroupArgs struct {
-	Req *imchatevloop.SubscribeGroupRequest
-}
-
-func (p *SubscribeGroupArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
-	if !p.IsSetReq() {
-		p.Req = new(imchatevloop.SubscribeGroupRequest)
-	}
-	return p.Req.FastRead(buf, _type, number)
-}
-
-func (p *SubscribeGroupArgs) FastWrite(buf []byte) (n int) {
-	if !p.IsSetReq() {
-		return 0
-	}
-	return p.Req.FastWrite(buf)
-}
-
-func (p *SubscribeGroupArgs) Size() (n int) {
-	if !p.IsSetReq() {
-		return 0
-	}
-	return p.Req.Size()
-}
-
-func (p *SubscribeGroupArgs) Marshal(out []byte) ([]byte, error) {
-	if !p.IsSetReq() {
-		return out, nil
-	}
-	return proto.Marshal(p.Req)
-}
-
-func (p *SubscribeGroupArgs) Unmarshal(in []byte) error {
-	msg := new(imchatevloop.SubscribeGroupRequest)
-	if err := proto.Unmarshal(in, msg); err != nil {
-		return err
-	}
-	p.Req = msg
-	return nil
-}
-
-var SubscribeGroupArgs_Req_DEFAULT *imchatevloop.SubscribeGroupRequest
-
-func (p *SubscribeGroupArgs) GetReq() *imchatevloop.SubscribeGroupRequest {
-	if !p.IsSetReq() {
-		return SubscribeGroupArgs_Req_DEFAULT
-	}
-	return p.Req
-}
-
-func (p *SubscribeGroupArgs) IsSetReq() bool {
-	return p.Req != nil
-}
-
-func (p *SubscribeGroupArgs) GetFirstArgument() interface{} {
-	return p.Req
-}
-
-type SubscribeGroupResult struct {
-	Success *imchatevloop.SubscribeGroupResponse
-}
-
-var SubscribeGroupResult_Success_DEFAULT *imchatevloop.SubscribeGroupResponse
-
-func (p *SubscribeGroupResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
-	if !p.IsSetSuccess() {
-		p.Success = new(imchatevloop.SubscribeGroupResponse)
-	}
-	return p.Success.FastRead(buf, _type, number)
-}
-
-func (p *SubscribeGroupResult) FastWrite(buf []byte) (n int) {
-	if !p.IsSetSuccess() {
-		return 0
-	}
-	return p.Success.FastWrite(buf)
-}
-
-func (p *SubscribeGroupResult) Size() (n int) {
-	if !p.IsSetSuccess() {
-		return 0
-	}
-	return p.Success.Size()
-}
-
-func (p *SubscribeGroupResult) Marshal(out []byte) ([]byte, error) {
-	if !p.IsSetSuccess() {
-		return out, nil
-	}
-	return proto.Marshal(p.Success)
-}
-
-func (p *SubscribeGroupResult) Unmarshal(in []byte) error {
-	msg := new(imchatevloop.SubscribeGroupResponse)
-	if err := proto.Unmarshal(in, msg); err != nil {
-		return err
-	}
-	p.Success = msg
-	return nil
-}
-
-func (p *SubscribeGroupResult) GetSuccess() *imchatevloop.SubscribeGroupResponse {
-	if !p.IsSetSuccess() {
-		return SubscribeGroupResult_Success_DEFAULT
-	}
-	return p.Success
-}
-
-func (p *SubscribeGroupResult) SetSuccess(x interface{}) {
-	p.Success = x.(*imchatevloop.SubscribeGroupResponse)
-}
-
-func (p *SubscribeGroupResult) IsSetSuccess() bool {
-	return p.Success != nil
-}
-
-func (p *SubscribeGroupResult) GetResult() interface{} {
-	return p.Success
-}
-
-func sendMessageHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	switch s := arg.(type) {
-	case *streaming.Args:
-		st := s.Stream
-		req := new(imchatevloop.SendMessageRequest)
-		if err := st.RecvMsg(req); err != nil {
-			return err
-		}
-		resp, err := handler.(imchatevloop.IMChatEvloop).SendMessage(ctx, req)
-		if err != nil {
-			return err
-		}
-		return st.SendMsg(resp)
-	case *SendMessageArgs:
-		success, err := handler.(imchatevloop.IMChatEvloop).SendMessage(ctx, s.Req)
-		if err != nil {
-			return err
-		}
-		realResult := result.(*SendMessageResult)
-		realResult.Success = success
-		return nil
-	default:
-		return errInvalidMessageType
-	}
-}
-func newSendMessageArgs() interface{} {
-	return &SendMessageArgs{}
-}
-
-func newSendMessageResult() interface{} {
-	return &SendMessageResult{}
-}
-
-type SendMessageArgs struct {
-	Req *imchatevloop.SendMessageRequest
-}
-
-func (p *SendMessageArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
-	if !p.IsSetReq() {
-		p.Req = new(imchatevloop.SendMessageRequest)
-	}
-	return p.Req.FastRead(buf, _type, number)
-}
-
-func (p *SendMessageArgs) FastWrite(buf []byte) (n int) {
-	if !p.IsSetReq() {
-		return 0
-	}
-	return p.Req.FastWrite(buf)
-}
-
-func (p *SendMessageArgs) Size() (n int) {
-	if !p.IsSetReq() {
-		return 0
-	}
-	return p.Req.Size()
-}
-
-func (p *SendMessageArgs) Marshal(out []byte) ([]byte, error) {
-	if !p.IsSetReq() {
-		return out, nil
-	}
-	return proto.Marshal(p.Req)
-}
-
-func (p *SendMessageArgs) Unmarshal(in []byte) error {
-	msg := new(imchatevloop.SendMessageRequest)
-	if err := proto.Unmarshal(in, msg); err != nil {
-		return err
-	}
-	p.Req = msg
-	return nil
-}
-
-var SendMessageArgs_Req_DEFAULT *imchatevloop.SendMessageRequest
-
-func (p *SendMessageArgs) GetReq() *imchatevloop.SendMessageRequest {
-	if !p.IsSetReq() {
-		return SendMessageArgs_Req_DEFAULT
-	}
-	return p.Req
-}
-
-func (p *SendMessageArgs) IsSetReq() bool {
-	return p.Req != nil
-}
-
-func (p *SendMessageArgs) GetFirstArgument() interface{} {
-	return p.Req
-}
-
-type SendMessageResult struct {
-	Success *imchatevloop.SendMessageResponse
-}
-
-var SendMessageResult_Success_DEFAULT *imchatevloop.SendMessageResponse
-
-func (p *SendMessageResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
-	if !p.IsSetSuccess() {
-		p.Success = new(imchatevloop.SendMessageResponse)
-	}
-	return p.Success.FastRead(buf, _type, number)
-}
-
-func (p *SendMessageResult) FastWrite(buf []byte) (n int) {
-	if !p.IsSetSuccess() {
-		return 0
-	}
-	return p.Success.FastWrite(buf)
-}
-
-func (p *SendMessageResult) Size() (n int) {
-	if !p.IsSetSuccess() {
-		return 0
-	}
-	return p.Success.Size()
-}
-
-func (p *SendMessageResult) Marshal(out []byte) ([]byte, error) {
-	if !p.IsSetSuccess() {
-		return out, nil
-	}
-	return proto.Marshal(p.Success)
-}
-
-func (p *SendMessageResult) Unmarshal(in []byte) error {
-	msg := new(imchatevloop.SendMessageResponse)
-	if err := proto.Unmarshal(in, msg); err != nil {
-		return err
-	}
-	p.Success = msg
-	return nil
-}
-
-func (p *SendMessageResult) GetSuccess() *imchatevloop.SendMessageResponse {
-	if !p.IsSetSuccess() {
-		return SendMessageResult_Success_DEFAULT
-	}
-	return p.Success
-}
-
-func (p *SendMessageResult) SetSuccess(x interface{}) {
-	p.Success = x.(*imchatevloop.SendMessageResponse)
-}
-
-func (p *SendMessageResult) IsSetSuccess() bool {
-	return p.Success != nil
-}
-
-func (p *SendMessageResult) GetResult() interface{} {
-	return p.Success
-}
-
-func disbandGroupHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	switch s := arg.(type) {
-	case *streaming.Args:
-		st := s.Stream
-		req := new(imchatevloop.DisbandGroupRequest)
-		if err := st.RecvMsg(req); err != nil {
-			return err
-		}
-		resp, err := handler.(imchatevloop.IMChatEvloop).DisbandGroup(ctx, req)
-		if err != nil {
-			return err
-		}
-		return st.SendMsg(resp)
-	case *DisbandGroupArgs:
-		success, err := handler.(imchatevloop.IMChatEvloop).DisbandGroup(ctx, s.Req)
-		if err != nil {
-			return err
-		}
-		realResult := result.(*DisbandGroupResult)
-		realResult.Success = success
-		return nil
-	default:
-		return errInvalidMessageType
-	}
-}
-func newDisbandGroupArgs() interface{} {
-	return &DisbandGroupArgs{}
-}
-
-func newDisbandGroupResult() interface{} {
-	return &DisbandGroupResult{}
-}
-
-type DisbandGroupArgs struct {
-	Req *imchatevloop.DisbandGroupRequest
-}
-
-func (p *DisbandGroupArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
-	if !p.IsSetReq() {
-		p.Req = new(imchatevloop.DisbandGroupRequest)
-	}
-	return p.Req.FastRead(buf, _type, number)
-}
-
-func (p *DisbandGroupArgs) FastWrite(buf []byte) (n int) {
-	if !p.IsSetReq() {
-		return 0
-	}
-	return p.Req.FastWrite(buf)
-}
-
-func (p *DisbandGroupArgs) Size() (n int) {
-	if !p.IsSetReq() {
-		return 0
-	}
-	return p.Req.Size()
-}
-
-func (p *DisbandGroupArgs) Marshal(out []byte) ([]byte, error) {
-	if !p.IsSetReq() {
-		return out, nil
-	}
-	return proto.Marshal(p.Req)
-}
-
-func (p *DisbandGroupArgs) Unmarshal(in []byte) error {
-	msg := new(imchatevloop.DisbandGroupRequest)
-	if err := proto.Unmarshal(in, msg); err != nil {
-		return err
-	}
-	p.Req = msg
-	return nil
-}
-
-var DisbandGroupArgs_Req_DEFAULT *imchatevloop.DisbandGroupRequest
-
-func (p *DisbandGroupArgs) GetReq() *imchatevloop.DisbandGroupRequest {
-	if !p.IsSetReq() {
-		return DisbandGroupArgs_Req_DEFAULT
-	}
-	return p.Req
-}
-
-func (p *DisbandGroupArgs) IsSetReq() bool {
-	return p.Req != nil
-}
-
-func (p *DisbandGroupArgs) GetFirstArgument() interface{} {
-	return p.Req
-}
-
-type DisbandGroupResult struct {
-	Success *imchatevloop.DisbandGroupResponse
-}
-
-var DisbandGroupResult_Success_DEFAULT *imchatevloop.DisbandGroupResponse
-
-func (p *DisbandGroupResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
-	if !p.IsSetSuccess() {
-		p.Success = new(imchatevloop.DisbandGroupResponse)
-	}
-	return p.Success.FastRead(buf, _type, number)
-}
-
-func (p *DisbandGroupResult) FastWrite(buf []byte) (n int) {
-	if !p.IsSetSuccess() {
-		return 0
-	}
-	return p.Success.FastWrite(buf)
-}
-
-func (p *DisbandGroupResult) Size() (n int) {
-	if !p.IsSetSuccess() {
-		return 0
-	}
-	return p.Success.Size()
-}
-
-func (p *DisbandGroupResult) Marshal(out []byte) ([]byte, error) {
-	if !p.IsSetSuccess() {
-		return out, nil
-	}
-	return proto.Marshal(p.Success)
-}
-
-func (p *DisbandGroupResult) Unmarshal(in []byte) error {
-	msg := new(imchatevloop.DisbandGroupResponse)
-	if err := proto.Unmarshal(in, msg); err != nil {
-		return err
-	}
-	p.Success = msg
-	return nil
-}
-
-func (p *DisbandGroupResult) GetSuccess() *imchatevloop.DisbandGroupResponse {
-	if !p.IsSetSuccess() {
-		return DisbandGroupResult_Success_DEFAULT
-	}
-	return p.Success
-}
-
-func (p *DisbandGroupResult) SetSuccess(x interface{}) {
-	p.Success = x.(*imchatevloop.DisbandGroupResponse)
-}
-
-func (p *DisbandGroupResult) IsSetSuccess() bool {
-	return p.Success != nil
-}
-
-func (p *DisbandGroupResult) GetResult() interface{} {
+func (p *UniversalGroupEvloopRequestResult) GetResult() interface{} {
 	return p.Success
 }
 
@@ -901,41 +421,11 @@ func (p *kClient) CreateGroup(ctx context.Context, Req *imchatevloop.CreateGroup
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) AlterGroupMember(ctx context.Context, Req *imchatevloop.AlterGroupMemberRequest) (r *imchatevloop.AlterGroupMemberResponse, err error) {
-	var _args AlterGroupMemberArgs
+func (p *kClient) UniversalGroupEvloopRequest(ctx context.Context, Req *imchatevloop.UniversalGroupEvloopRequestReq) (r *imchatevloop.UniversalGroupEvloopRequestResp, err error) {
+	var _args UniversalGroupEvloopRequestArgs
 	_args.Req = Req
-	var _result AlterGroupMemberResult
-	if err = p.c.Call(ctx, "AlterGroupMember", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-
-func (p *kClient) SubscribeGroup(ctx context.Context, Req *imchatevloop.SubscribeGroupRequest) (r *imchatevloop.SubscribeGroupResponse, err error) {
-	var _args SubscribeGroupArgs
-	_args.Req = Req
-	var _result SubscribeGroupResult
-	if err = p.c.Call(ctx, "SubscribeGroup", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-
-func (p *kClient) SendMessage(ctx context.Context, Req *imchatevloop.SendMessageRequest) (r *imchatevloop.SendMessageResponse, err error) {
-	var _args SendMessageArgs
-	_args.Req = Req
-	var _result SendMessageResult
-	if err = p.c.Call(ctx, "SendMessage", &_args, &_result); err != nil {
-		return
-	}
-	return _result.GetSuccess(), nil
-}
-
-func (p *kClient) DisbandGroup(ctx context.Context, Req *imchatevloop.DisbandGroupRequest) (r *imchatevloop.DisbandGroupResponse, err error) {
-	var _args DisbandGroupArgs
-	_args.Req = Req
-	var _result DisbandGroupResult
-	if err = p.c.Call(ctx, "DisbandGroup", &_args, &_result); err != nil {
+	var _result UniversalGroupEvloopRequestResult
+	if err = p.c.Call(ctx, "UniversalGroupEvloopRequest", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

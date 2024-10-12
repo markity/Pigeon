@@ -6,6 +6,7 @@ import (
 	fmt "fmt"
 	fastpb "github.com/cloudwego/fastpb"
 	base "pigeon/kitex_gen/service/base"
+	evloopio "pigeon/kitex_gen/service/evloopio"
 )
 
 var (
@@ -177,8 +178,13 @@ func (x *RedirectToChatEventLoopReq) fastReadField1(buf []byte, _type int8) (off
 }
 
 func (x *RedirectToChatEventLoopReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.Input, offset, err = fastpb.ReadBytes(buf, _type)
-	return offset, err
+	var v evloopio.UniversalGroupEvloopInput
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Input = &v
+	return offset, nil
 }
 
 func (x *RedirectToChatEventLoopResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -212,8 +218,13 @@ func (x *RedirectToChatEventLoopResp) fastReadField1(buf []byte, _type int8) (of
 }
 
 func (x *RedirectToChatEventLoopResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.Output, offset, err = fastpb.ReadBytes(buf, _type)
-	return offset, err
+	var v evloopio.UniversalGroupEvloopOutput
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Output = &v
+	return offset, nil
 }
 
 func (x *BizMessageReq) FastWrite(buf []byte) (offset int) {
@@ -325,10 +336,10 @@ func (x *RedirectToChatEventLoopReq) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *RedirectToChatEventLoopReq) fastWriteField2(buf []byte) (offset int) {
-	if len(x.Input) == 0 {
+	if x.Input == nil {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 2, x.GetInput())
+	offset += fastpb.WriteMessage(buf[offset:], 2, x.GetInput())
 	return offset
 }
 
@@ -350,10 +361,10 @@ func (x *RedirectToChatEventLoopResp) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *RedirectToChatEventLoopResp) fastWriteField2(buf []byte) (offset int) {
-	if len(x.Output) == 0 {
+	if x.Output == nil {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 2, x.GetOutput())
+	offset += fastpb.WriteMessage(buf[offset:], 2, x.GetOutput())
 	return offset
 }
 
@@ -466,10 +477,10 @@ func (x *RedirectToChatEventLoopReq) sizeField1() (n int) {
 }
 
 func (x *RedirectToChatEventLoopReq) sizeField2() (n int) {
-	if len(x.Input) == 0 {
+	if x.Input == nil {
 		return n
 	}
-	n += fastpb.SizeBytes(2, x.GetInput())
+	n += fastpb.SizeMessage(2, x.GetInput())
 	return n
 }
 
@@ -491,10 +502,10 @@ func (x *RedirectToChatEventLoopResp) sizeField1() (n int) {
 }
 
 func (x *RedirectToChatEventLoopResp) sizeField2() (n int) {
-	if len(x.Output) == 0 {
+	if x.Output == nil {
 		return n
 	}
-	n += fastpb.SizeBytes(2, x.GetOutput())
+	n += fastpb.SizeMessage(2, x.GetOutput())
 	return n
 }
 
@@ -527,3 +538,4 @@ var fieldIDToName_RedirectToChatEventLoopResp = map[int32]string{
 }
 
 var _ = base.File_base_base_proto
+var _ = evloopio.File_base_evloopio_proto

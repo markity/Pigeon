@@ -15,7 +15,7 @@ type Client interface {
 	GetGroupInfo(ctx context.Context, Req *imrelation.GetGroupInfoReq, callOptions ...callopt.Option) (r *imrelation.GetGroupInfoResp, err error)
 	FetchAllRelations(ctx context.Context, Req *imrelation.FetchAllRelationsReq, callOptions ...callopt.Option) (r *imrelation.FetchAllRelationsResp, err error)
 	FetchAllApplications(ctx context.Context, Req *imrelation.FetchAllApplicationsReq, callOptions ...callopt.Option) (r *imrelation.FetchAllApplicationsResp, err error)
-	ApplyGroup(ctx context.Context, Req *imrelation.ApplyGroupReq, callOptions ...callopt.Option) (r *imrelation.ApplyGroupReqResp, err error)
+	ApplyGroup(ctx context.Context, Req *imrelation.ApplyGroupReq, callOptions ...callopt.Option) (r *imrelation.ApplyGroupResp, err error)
 	HandleApply(ctx context.Context, Req *imrelation.HandleApplyReq, callOptions ...callopt.Option) (r *imrelation.HandleApplyResp, err error)
 	QuitGroup(ctx context.Context, Req *imrelation.QuitGroupReq, callOptions ...callopt.Option) (r *imrelation.QuitGroupResp, err error)
 }
@@ -69,7 +69,7 @@ func (p *kIMRelationClient) FetchAllApplications(ctx context.Context, Req *imrel
 	return p.kClient.FetchAllApplications(ctx, Req)
 }
 
-func (p *kIMRelationClient) ApplyGroup(ctx context.Context, Req *imrelation.ApplyGroupReq, callOptions ...callopt.Option) (r *imrelation.ApplyGroupReqResp, err error) {
+func (p *kIMRelationClient) ApplyGroup(ctx context.Context, Req *imrelation.ApplyGroupReq, callOptions ...callopt.Option) (r *imrelation.ApplyGroupResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.ApplyGroup(ctx, Req)
 }
