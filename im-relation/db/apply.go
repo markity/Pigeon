@@ -28,20 +28,24 @@ func InsertApply(txn *gorm.DB, apply *model.ApplyModel) (inserted bool, err erro
 	return false, err
 }
 
-func SelectForUpdateApplyByUsername(txn *gorm.DB, username string) (*model.ApplyModel, error) {
-	var apply model.ApplyModel
-	err := txn.Clauses(clause.Locking{Strength: "UPDATE"}).
-		Model(&model.ApplyModel{}).Where("owner_id = ?", username).First(&apply).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return &apply, nil
-}
-
 func UpdateApply(txn *gorm.DB, apply *model.ApplyModel) error {
 	return txn.Save(apply).Error
+}
+
+// 利用uniqueIndex, 先尝试插入, 如果插入失败则select for update
+func InsertOrSelectForUpdateApplyByUsernameGroupId(txn *gorm.DB,
+	initRow *model.ApplyModel) (*model.ApplyModel, error) {
+	err := txn.Model(&model.ApplyModel{}).Create(&initRow).Error
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return initRow, nil
+	}
+
+	var out model.ApplyModel
+	err = txn.Model(&model.ApplyModel{}).Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("owner_id = ? and group_id = ?", initRow.OwnerId, initRow.GroupId).
+		First(&out).Error
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }

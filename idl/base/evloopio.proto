@@ -7,7 +7,7 @@ option go_package = "service/evloopio";
 
 // 更改群组成员, 由im-relation调用
 message AlterGroupMemberRequest {
-  int64 group_id = 2;
+  string group_id = 2;
   // true为添加, false为删除
   bool is_add = 3;
   string member_id = 4;

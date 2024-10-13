@@ -139,13 +139,18 @@ func (x *RelationEntry) fastReadField2(buf []byte, _type int8) (offset int, err 
 }
 
 func (x *RelationEntry) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.RelationId, offset, err = fastpb.ReadInt64(buf, _type)
+	x.RelationVersion, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
 
 func (x *RelationEntry) fastReadField4(buf []byte, _type int8) (offset int, err error) {
-	x.InGroup, offset, err = fastpb.ReadBool(buf, _type)
-	return offset, err
+	var v int32
+	v, offset, err = fastpb.ReadInt32(buf, _type)
+	if err != nil {
+		return offset, err
+	}
+	x.Status = RelationEntry_RelationStatus(v)
+	return offset, nil
 }
 
 func (x *RelationEntry) fastReadField5(buf []byte, _type int8) (offset int, err error) {
@@ -475,16 +480,6 @@ func (x *ApplyGroupResp) FastRead(buf []byte, _type int8, number int32) (offset 
 		if err != nil {
 			goto ReadFieldError
 		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 4:
-		offset, err = x.fastReadField4(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -506,16 +501,6 @@ func (x *ApplyGroupResp) fastReadField1(buf []byte, _type int8) (offset int, err
 	}
 	x.Code = ApplyGroupResp_ApplyGroupRespCode(v)
 	return offset, nil
-}
-
-func (x *ApplyGroupResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.ApplyVersion, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *ApplyGroupResp) fastReadField4(buf []byte, _type int8) (offset int, err error) {
-	x.ApplyAt, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
 }
 
 func (x *ApplyEntry) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -690,6 +675,11 @@ func (x *HandleApplyReq) FastRead(buf []byte, _type int8, number int32) (offset 
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 5:
+		offset, err = x.fastReadField5(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -714,16 +704,21 @@ func (x *HandleApplyReq) fastReadField1(buf []byte, _type int8) (offset int, err
 }
 
 func (x *HandleApplyReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.UserId, offset, err = fastpb.ReadString(buf, _type)
+	x.EchoCode, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *HandleApplyReq) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
+	x.UserId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *HandleApplyReq) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *HandleApplyReq) fastReadField5(buf []byte, _type int8) (offset int, err error) {
 	x.Accept, offset, err = fastpb.ReadBool(buf, _type)
 	return offset, err
 }
@@ -752,6 +747,11 @@ func (x *HandleApplyResp) FastRead(buf []byte, _type int8, number int32) (offset
 		}
 	case 5:
 		offset, err = x.fastReadField5(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 6:
+		offset, err = x.fastReadField6(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -784,17 +784,22 @@ func (x *HandleApplyResp) fastReadField2(buf []byte, _type int8) (offset int, er
 }
 
 func (x *HandleApplyResp) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.ApplyId, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *HandleApplyResp) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	x.ApplyMsg, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
-func (x *HandleApplyResp) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+func (x *HandleApplyResp) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	x.ApplyAt, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *HandleApplyResp) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+	x.ApplyVersion, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *HandleApplyResp) fastReadField6(buf []byte, _type int8) (offset int, err error) {
+	x.HandleAt, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
 
@@ -967,18 +972,18 @@ func (x *RelationEntry) fastWriteField2(buf []byte) (offset int) {
 }
 
 func (x *RelationEntry) fastWriteField3(buf []byte) (offset int) {
-	if x.RelationId == 0 {
+	if x.RelationVersion == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetRelationId())
+	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetRelationVersion())
 	return offset
 }
 
 func (x *RelationEntry) fastWriteField4(buf []byte) (offset int) {
-	if !x.InGroup {
+	if x.Status == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBool(buf[offset:], 4, x.GetInGroup())
+	offset += fastpb.WriteInt32(buf[offset:], 4, int32(x.GetStatus()))
 	return offset
 }
 
@@ -1212,8 +1217,6 @@ func (x *ApplyGroupResp) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
-	offset += x.fastWriteField4(buf[offset:])
 	return offset
 }
 
@@ -1222,22 +1225,6 @@ func (x *ApplyGroupResp) fastWriteField1(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteInt32(buf[offset:], 1, int32(x.GetCode()))
-	return offset
-}
-
-func (x *ApplyGroupResp) fastWriteField2(buf []byte) (offset int) {
-	if x.ApplyVersion == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetApplyVersion())
-	return offset
-}
-
-func (x *ApplyGroupResp) fastWriteField4(buf []byte) (offset int) {
-	if x.ApplyAt == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetApplyAt())
 	return offset
 }
 
@@ -1353,6 +1340,7 @@ func (x *HandleApplyReq) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
+	offset += x.fastWriteField5(buf[offset:])
 	return offset
 }
 
@@ -1365,26 +1353,34 @@ func (x *HandleApplyReq) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *HandleApplyReq) fastWriteField2(buf []byte) (offset int) {
-	if x.UserId == "" {
+	if x.EchoCode == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetUserId())
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetEchoCode())
 	return offset
 }
 
 func (x *HandleApplyReq) fastWriteField3(buf []byte) (offset int) {
-	if x.GroupId == "" {
+	if x.UserId == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 3, x.GetGroupId())
+	offset += fastpb.WriteString(buf[offset:], 3, x.GetUserId())
 	return offset
 }
 
 func (x *HandleApplyReq) fastWriteField4(buf []byte) (offset int) {
+	if x.GroupId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 4, x.GetGroupId())
+	return offset
+}
+
+func (x *HandleApplyReq) fastWriteField5(buf []byte) (offset int) {
 	if !x.Accept {
 		return offset
 	}
-	offset += fastpb.WriteBool(buf[offset:], 4, x.GetAccept())
+	offset += fastpb.WriteBool(buf[offset:], 5, x.GetAccept())
 	return offset
 }
 
@@ -1397,6 +1393,7 @@ func (x *HandleApplyResp) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
 	offset += x.fastWriteField5(buf[offset:])
+	offset += x.fastWriteField6(buf[offset:])
 	return offset
 }
 
@@ -1417,26 +1414,34 @@ func (x *HandleApplyResp) fastWriteField2(buf []byte) (offset int) {
 }
 
 func (x *HandleApplyResp) fastWriteField3(buf []byte) (offset int) {
-	if x.ApplyId == 0 {
+	if x.ApplyMsg == "" {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetApplyId())
+	offset += fastpb.WriteString(buf[offset:], 3, x.GetApplyMsg())
 	return offset
 }
 
 func (x *HandleApplyResp) fastWriteField4(buf []byte) (offset int) {
-	if x.ApplyMsg == "" {
+	if x.ApplyAt == 0 {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 4, x.GetApplyMsg())
+	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetApplyAt())
 	return offset
 }
 
 func (x *HandleApplyResp) fastWriteField5(buf []byte) (offset int) {
-	if x.ApplyAt == 0 {
+	if x.ApplyVersion == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 5, x.GetApplyAt())
+	offset += fastpb.WriteInt64(buf[offset:], 5, x.GetApplyVersion())
+	return offset
+}
+
+func (x *HandleApplyResp) fastWriteField6(buf []byte) (offset int) {
+	if x.HandleAt == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 6, x.GetHandleAt())
 	return offset
 }
 
@@ -1578,18 +1583,18 @@ func (x *RelationEntry) sizeField2() (n int) {
 }
 
 func (x *RelationEntry) sizeField3() (n int) {
-	if x.RelationId == 0 {
+	if x.RelationVersion == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(3, x.GetRelationId())
+	n += fastpb.SizeInt64(3, x.GetRelationVersion())
 	return n
 }
 
 func (x *RelationEntry) sizeField4() (n int) {
-	if !x.InGroup {
+	if x.Status == 0 {
 		return n
 	}
-	n += fastpb.SizeBool(4, x.GetInGroup())
+	n += fastpb.SizeInt32(4, int32(x.GetStatus()))
 	return n
 }
 
@@ -1823,8 +1828,6 @@ func (x *ApplyGroupResp) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
-	n += x.sizeField2()
-	n += x.sizeField4()
 	return n
 }
 
@@ -1833,22 +1836,6 @@ func (x *ApplyGroupResp) sizeField1() (n int) {
 		return n
 	}
 	n += fastpb.SizeInt32(1, int32(x.GetCode()))
-	return n
-}
-
-func (x *ApplyGroupResp) sizeField2() (n int) {
-	if x.ApplyVersion == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(2, x.GetApplyVersion())
-	return n
-}
-
-func (x *ApplyGroupResp) sizeField4() (n int) {
-	if x.ApplyAt == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(4, x.GetApplyAt())
 	return n
 }
 
@@ -1964,6 +1951,7 @@ func (x *HandleApplyReq) Size() (n int) {
 	n += x.sizeField2()
 	n += x.sizeField3()
 	n += x.sizeField4()
+	n += x.sizeField5()
 	return n
 }
 
@@ -1976,26 +1964,34 @@ func (x *HandleApplyReq) sizeField1() (n int) {
 }
 
 func (x *HandleApplyReq) sizeField2() (n int) {
-	if x.UserId == "" {
+	if x.EchoCode == "" {
 		return n
 	}
-	n += fastpb.SizeString(2, x.GetUserId())
+	n += fastpb.SizeString(2, x.GetEchoCode())
 	return n
 }
 
 func (x *HandleApplyReq) sizeField3() (n int) {
-	if x.GroupId == "" {
+	if x.UserId == "" {
 		return n
 	}
-	n += fastpb.SizeString(3, x.GetGroupId())
+	n += fastpb.SizeString(3, x.GetUserId())
 	return n
 }
 
 func (x *HandleApplyReq) sizeField4() (n int) {
+	if x.GroupId == "" {
+		return n
+	}
+	n += fastpb.SizeString(4, x.GetGroupId())
+	return n
+}
+
+func (x *HandleApplyReq) sizeField5() (n int) {
 	if !x.Accept {
 		return n
 	}
-	n += fastpb.SizeBool(4, x.GetAccept())
+	n += fastpb.SizeBool(5, x.GetAccept())
 	return n
 }
 
@@ -2008,6 +2004,7 @@ func (x *HandleApplyResp) Size() (n int) {
 	n += x.sizeField3()
 	n += x.sizeField4()
 	n += x.sizeField5()
+	n += x.sizeField6()
 	return n
 }
 
@@ -2028,26 +2025,34 @@ func (x *HandleApplyResp) sizeField2() (n int) {
 }
 
 func (x *HandleApplyResp) sizeField3() (n int) {
-	if x.ApplyId == 0 {
+	if x.ApplyMsg == "" {
 		return n
 	}
-	n += fastpb.SizeInt64(3, x.GetApplyId())
+	n += fastpb.SizeString(3, x.GetApplyMsg())
 	return n
 }
 
 func (x *HandleApplyResp) sizeField4() (n int) {
-	if x.ApplyMsg == "" {
+	if x.ApplyAt == 0 {
 		return n
 	}
-	n += fastpb.SizeString(4, x.GetApplyMsg())
+	n += fastpb.SizeInt64(4, x.GetApplyAt())
 	return n
 }
 
 func (x *HandleApplyResp) sizeField5() (n int) {
-	if x.ApplyAt == 0 {
+	if x.ApplyVersion == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(5, x.GetApplyAt())
+	n += fastpb.SizeInt64(5, x.GetApplyVersion())
+	return n
+}
+
+func (x *HandleApplyResp) sizeField6() (n int) {
+	if x.HandleAt == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(6, x.GetHandleAt())
 	return n
 }
 
@@ -2123,8 +2128,8 @@ var fieldIDToName_CreateGroupResp = map[int32]string{
 var fieldIDToName_RelationEntry = map[int32]string{
 	1: "UserId",
 	2: "GroupId",
-	3: "RelationId",
-	4: "InGroup",
+	3: "RelationVersion",
+	4: "Status",
 	5: "UpdatedAt",
 }
 
@@ -2167,8 +2172,6 @@ var fieldIDToName_ApplyGroupReq = map[int32]string{
 
 var fieldIDToName_ApplyGroupResp = map[int32]string{
 	1: "Code",
-	2: "ApplyVersion",
-	4: "ApplyAt",
 }
 
 var fieldIDToName_ApplyEntry = map[int32]string{
@@ -2191,17 +2194,19 @@ var fieldIDToName_FetchAllApplicationsResp = map[int32]string{
 
 var fieldIDToName_HandleApplyReq = map[int32]string{
 	1: "Session",
-	2: "UserId",
-	3: "GroupId",
-	4: "Accept",
+	2: "EchoCode",
+	3: "UserId",
+	4: "GroupId",
+	5: "Accept",
 }
 
 var fieldIDToName_HandleApplyResp = map[int32]string{
 	1: "Code",
 	2: "RelationVersion",
-	3: "ApplyId",
-	4: "ApplyMsg",
-	5: "ApplyAt",
+	3: "ApplyMsg",
+	4: "ApplyAt",
+	5: "ApplyVersion",
+	6: "HandleAt",
 }
 
 var fieldIDToName_QuitGroupReq = map[int32]string{

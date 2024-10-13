@@ -48,7 +48,7 @@ ReadFieldError:
 }
 
 func (x *AlterGroupMemberRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.GroupId, offset, err = fastpb.ReadInt64(buf, _type)
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -605,10 +605,10 @@ func (x *AlterGroupMemberRequest) FastWrite(buf []byte) (offset int) {
 }
 
 func (x *AlterGroupMemberRequest) fastWriteField2(buf []byte) (offset int) {
-	if x.GroupId == 0 {
+	if x.GroupId == "" {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetGroupId())
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetGroupId())
 	return offset
 }
 
@@ -999,10 +999,10 @@ func (x *AlterGroupMemberRequest) Size() (n int) {
 }
 
 func (x *AlterGroupMemberRequest) sizeField2() (n int) {
-	if x.GroupId == 0 {
+	if x.GroupId == "" {
 		return n
 	}
-	n += fastpb.SizeInt64(2, x.GetGroupId())
+	n += fastpb.SizeString(2, x.GetGroupId())
 	return n
 }
 

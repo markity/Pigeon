@@ -16,10 +16,17 @@ message CreateGroupResp {
 };
 
 message RelationEntry {
+  enum RelationStatus {
+    UNUSED = 0;
+    NOT_IN_GROUP = 1;
+    OWNER = 2;
+    MEMBER = 3;
+  };
   string user_id = 1;
   string group_id = 2;
-  int64 relation_id = 3;
-  bool in_group = 4;
+  int64 relation_version = 3;
+  RelationStatus status = 4;
+  
   int64 updated_at = 5;
 }
 
@@ -72,18 +79,16 @@ message ApplyGroupResp {
   }
 
   ApplyGroupRespCode code = 1;
-
-  // 对于同一个群, 多次申请, apply_version是递增的
-  int64 apply_version = 2;
-  int64 apply_at = 4;
 }
 
 message ApplyEntry {
   enum ApplyStatus {
-    PENDING = 0;
-    ACCEPTED = 1;
-    REJECTED = 2;
-    GROUP_DISBANDED = 3;
+    UNUSED = 0;
+    NONE = 1;
+    PENDING = 2;
+    ACCEPTED = 3;
+    REJECTED = 4;
+    GROUP_DISBANDED = 5;
   };
   string user_id = 1;
   string group_id = 2;
@@ -104,9 +109,10 @@ message FetchAllApplicationsResp {
 
 message HandleApplyReq {
   base.SessionEntry session = 1;
-  string user_id = 2;
-  string group_id = 3;
-  bool accept = 4;
+  string echo_code = 2;
+  string user_id = 3;
+  string group_id = 4;
+  bool accept = 5;
 }
 
 message HandleApplyResp {
@@ -122,10 +128,10 @@ message HandleApplyResp {
   
   // 一个人关于一个群的关系, 是递增的, 每次被踢/加入都会+1
   int64 relation_version = 2;
-  // 最新的申请id和申请信息
-  int64 apply_id = 3;
-  string apply_msg = 4;
-  int64 apply_at = 5;
+  string apply_msg = 3;
+  int64 apply_at = 4;
+  int64 apply_version = 5;
+  int64 handle_at = 6;
 }
 
 message QuitGroupReq {
