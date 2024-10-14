@@ -2,8 +2,10 @@ package chat
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 
+	bizprotocol "pigeon/common/biz_protocol"
 	"pigeon/im-relay/handle"
 	"pigeon/kitex_gen/service/imrelation"
 	"pigeon/kitex_gen/service/imrelay"
@@ -12,8 +14,14 @@ import (
 func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 	switch req.Biz {
 	// 创建群聊
-	case "chat-group-create":
-		_, err := ctx.RelationCli.CreateGroup(context.Background(), &imrelation.CreateGroupReq{
+	case "chat-create-group":
+		var createGroupReq bizprotocol.BizCreateGroup
+		err := json.Unmarshal(req.Data, &createGroupReq)
+		if err != nil {
+			log.Printf("failed to unmarshal create group request, err: %v, data: %v\n", err, string(req.Data))
+		}
+
+		_, err = ctx.RelationCli.CreateGroup(context.Background(), &imrelation.CreateGroupReq{
 			Session: req.Session,
 		})
 		if err != nil {
