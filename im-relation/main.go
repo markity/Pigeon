@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"net"
@@ -15,7 +14,6 @@ import (
 
 	"github.com/cloudwego/kitex/pkg/registry"
 	"github.com/cloudwego/kitex/server"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -32,13 +30,13 @@ func main() {
 	}
 	cfg = config.MustGetConfigFromFile(*cfgFilePath)
 
-	rdsAddrPort := fmt.Sprintf("%v:%v", cfg.RedisConfig.Host, cfg.RedisConfig.Port)
-	rdsCli := redis.NewClient(&redis.Options{
-		Addr: rdsAddrPort,
-	})
-	if err := rdsCli.Ping(context.Background()).Err(); err != nil {
-		panic(err)
-	}
+	// rdsAddrPort := fmt.Sprintf("%v:%v", cfg.RedisConfig.Host, cfg.RedisConfig.Port)
+	// rdsCli := redis.NewClient(&redis.Options{
+	// 	Addr: rdsAddrPort,
+	// })
+	// if err := rdsCli.Ping(context.Background()).Err(); err != nil {
+	// 	panic(err)
+	// }
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.MysqlConfig.User, cfg.MysqlConfig.Pwd, cfg.MysqlConfig.Host, cfg.MysqlConfig.Port, cfg.MysqlConfig.Db)
