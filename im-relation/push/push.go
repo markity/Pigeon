@@ -49,11 +49,11 @@ type FetchAllRelationsRespInput struct {
 }
 
 type relationEntry struct {
-	Username        string                                  `json:"username"`
-	GroupId         string                                  `json:"group_id"`
-	RelationVersion int64                                   `json:"version"`
-	RelationStatus  imrelation.RelationEntry_RelationStatus `json:"relation_status"`
-	UpdatedAt       int64                                   `json:"updated_at"`
+	Username        string                    `json:"username"`
+	GroupId         string                    `json:"group_id"`
+	RelationVersion int64                     `json:"version"`
+	RelationStatus  imrelation.RelationStatus `json:"relation_status"`
+	UpdatedAt       int64                     `json:"updated_at"`
 }
 
 func FetchAllRelationsResp(session *base.SessionEntry, input *FetchAllRelationsRespInput) {
@@ -95,7 +95,7 @@ type applyEntry struct {
 	Username     string `json:"username"`
 	GroupId      string `json:"group_id"`
 	ApplyVersion int64  `json:"version"`
-	ApplyStatus  imrelation.ApplyEntry_ApplyStatus
+	ApplyStatus  imrelation.ApplyStatus
 	UpdatedAt    int64 `json:"updated_at"`
 }
 
@@ -214,7 +214,7 @@ type HandleApplyNotifyInput struct {
 	GroupId      string
 	ApplyVersion int64
 	ApplyMsg     string
-	ApplyStatus  imrelation.ApplyEntry_ApplyStatus
+	ApplyStatus  imrelation.ApplyStatus
 	ApplyAt      int64
 	HandleAt     int64
 }
@@ -263,13 +263,16 @@ func HandleApplyNotify(input *HandleApplyNotifyInput) {
 }
 
 type HandleApplyRespInput struct {
-	EchoCode        string
-	Code            imrelation.HandleApplyResp_HandleApplyRespCode
+	EchoCode     string
+	Code         imrelation.HandleApplyResp_HandleApplyRespCode
+	ApplyMsg     string
+	ApplyAt      int64
+	ApplyVersion int64
+	ApplyStatus  imrelation.ApplyStatus
+	HandleAt     int64
+
+	// 如果是接受请求, 且ApplyStatus变为已接受, relation_version不为0
 	RelationVersion int64
-	ApplyMsg        string
-	ApplyAt         int64
-	ApplyVersion    int64
-	HandleAt        int64
 }
 
 func HandleApplyResp(session *base.SessionEntry, input *HandleApplyRespInput) {
@@ -297,12 +300,85 @@ func HandleApplyResp(session *base.SessionEntry, input *HandleApplyRespInput) {
 	}
 }
 
+// 比如a成功加入了群, 那么a加入群的消息将下发给a的全部设备
 type RelationChangeNotifyInput struct {
-	Username string
+	AuthRoute authroute.Client
+
+	Username   string
+	GroupId    string
+	Version    int64
+	Status     imrelation.RelationStatus
+	ChangeAt   int64
+	ChangeType imrelation.RelationChangeType
 }
 
 func RelationChangeNotify(input *RelationChangeNotifyInput) {
+	var queryResp *imauthroute.QueryUserRouteResp
+	for {
+		var err error
+		queryResp, err = input.AuthRoute.QueryUserRoute(context.Background(),
+			&imauthroute.QueryUserRouteReq{
+				Username: input.Username,
+			})
+		if err != nil {
+			log.Printf("failed to query user route: %v, retrying\n", err)
+			time.Sleep(time.Millisecond * 50)
+			continue
+		}
+		break
+	}
 
+	for _, v := range queryResp.Routes {
+		gwCli := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort)
+		// 此处retry是因为网络原因, 比如网断了, 重试是安全的, 保证客户端至少收到消息一次
+		// 客户端也得做自己的幂等, 防止消息重放导致副作用
+	retry:
+		_, err := gwCli.PushMessage(context.Background(), &imgateway.PushMessageReq{
+			SessionId: v.SessionId,
+			PushType:  "biz-relation-change-notify",
+			EchoCode:  "",
+			Data: mustMarshal(map[string]interface{}{
+				"user_id":          input.Username,
+				"group_id":         input.GroupId,
+				"relation_version": input.Version,
+				"status":           input.Status,
+				"change_type":      input.ChangeType,
+				"change_at":        input.ChangeAt,
+			}),
+		})
+		if err != nil {
+			log.Printf("failed to push message: %v, retrying\n", err)
+			time.Sleep(time.Millisecond * 50)
+			goto retry
+		}
+	}
+}
+
+type QuitGroupRespInput struct {
+	EchoCode        string
+	Code            imrelation.QuitGroupResp_QuitGroupRespCode
+	RelationVersion int64
+}
+
+func QuitGroupResp(session *base.SessionEntry, input *QuitGroupRespInput) {
+	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrPort)
+	for {
+		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
+			SessionId: session.SessionId,
+			EchoCode:  input.EchoCode,
+			PushType:  "push-quit-group-resp",
+			Data: mustMarshal(map[string]interface{}{
+				"code":             input.Code,
+				"relation_version": input.RelationVersion,
+			}),
+		})
+		if err != nil {
+			log.Printf("push QuitGroupResp: %v\n", err)
+			time.Sleep(time.Millisecond * 50)
+			continue
+		}
+		break
+	}
 }
 
 func mustMarshal(obj interface{}) []byte {

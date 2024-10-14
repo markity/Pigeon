@@ -15,19 +15,27 @@ message CreateGroupResp {
   int64 create_at = 2;
 };
 
+enum RelationStatus {
+  RELATION_STATUS_UNUSED = 0;
+  RELATION_STATUS_NOT_IN_GROUP = 1;
+  RELATION_STATUS_OWNER = 2;
+  RELATION_STATUS_MEMBER = 3;
+};
+
+enum RelationChangeType {
+  RELATION_CHANGE_TYPE_UNUSED = 0;
+  RELATION_CHNAGE_TYPE_NONE = 1;
+  RELATION_CHANGE_TYPE_OWNER_ACCEPT = 2;
+  RELATION_CHANGE_TYPE_MEMBER_QUIT = 3;
+}
+
 message RelationEntry {
-  enum RelationStatus {
-    UNUSED = 0;
-    NOT_IN_GROUP = 1;
-    OWNER = 2;
-    MEMBER = 3;
-  };
   string user_id = 1;
   string group_id = 2;
   int64 relation_version = 3;
   RelationStatus status = 4;
-  
-  int64 updated_at = 5;
+  RelationChangeType change_type = 5;
+  int64 updated_at = 6;
 }
 
 message GroupInfo {
@@ -40,10 +48,8 @@ message GroupInfo {
 }
 
 message GetGroupInfoReq {
-  base.SessionEntry session = 1;
-  string echo_code = 2;
-  string group_id = 3;
-  GroupInfo info = 4;
+  string group_id = 1;
+  GroupInfo info = 2;
 }
 
 message GetGroupInfoResp {
@@ -72,24 +78,26 @@ message ApplyGroupReq {
 
 message ApplyGroupResp {
   enum ApplyGroupRespCode {
-    OK = 0;
-    GROUP_DISBANDED = 1;
-    USER_IN_GROUP = 2;
-    NO_GROUP = 3;
+    APPLY_GROUP_RESP_CODE_OK = 0;
+    APPLY_GROUP_RESP_CODE_GROUP_DISBANDED = 1;
+    APPLY_GROUP_RESP_CODE_USER_IN_GROUP = 2;
+    APPLY_GROUP_RESP_CODE_NO_GROUP = 3;
   }
 
   ApplyGroupRespCode code = 1;
 }
 
+enum ApplyStatus {
+  UNUSED = 0;
+  APPLY_STATUS_NONE = 1;
+  APPLY_STATUS_PENDING = 2;
+  APPLY_STATUS_ACCEPTED = 3;
+  APPLY_STATUS_REJECTED = 4;
+  // 如果群已经呗解散, 用户再次操作apply, 状态会变成group disbanded
+  APPLY_STATUS_GROUP_DISBANDED = 5;
+};
+
 message ApplyEntry {
-  enum ApplyStatus {
-    UNUSED = 0;
-    NONE = 1;
-    PENDING = 2;
-    ACCEPTED = 3;
-    REJECTED = 4;
-    GROUP_DISBANDED = 5;
-  };
   string user_id = 1;
   string group_id = 2;
   int64 apply_version = 3;
@@ -117,21 +125,23 @@ message HandleApplyReq {
 
 message HandleApplyResp {
   enum HandleApplyRespCode {
-    OK = 0;
-    NO_PERMISSION = 1;
-    NO_APPLY = 2; // 申请不存在, 或者申请不是pending状态
-    NO_GROUP = 3;
-    GROUP_DISBANDED = 4;
+    // 群不存在也算ok, 客户端通过返回的ApplyStatus判断群是否解散还是ok
+    HANDLE_APPLY_RESP_CODE_OK = 0;
+    // 找不到群, 或者不是群主, 都属于no permission
+    HANDLE_APPLY_RESP_CODE_NO_PERMISSION = 1;
+    HANDLE_APPLY_RESP_CODE_NO_APPLY = 2; // 申请不存在, 或者申请不是pending状态
   }
 
   HandleApplyRespCode code = 1;
   
   // 一个人关于一个群的关系, 是递增的, 每次被踢/加入都会+1
   int64 relation_version = 2;
+
   string apply_msg = 3;
   int64 apply_at = 4;
-  int64 apply_version = 5;
-  int64 handle_at = 6;
+  int64 handle_at = 5;
+  int64 apply_version = 6;
+  ApplyStatus apply_status = 7;
 }
 
 message QuitGroupReq {
@@ -141,11 +151,12 @@ message QuitGroupReq {
 }
 
 message QuitGroupResp {
-  enum HandleApplyRespCode {
-    OK = 0;
-    NO_MEMBER = 1;
+  enum QuitGroupRespCode {
+    QUIT_GROUP_OK = 0;
+    QUIT_GROUP_NOT_MEMBER = 1;
+    QUIT_GROUP_DISBANED = 2;
   }
-  HandleApplyRespCode code = 1;
+  QuitGroupRespCode code = 1;
   int64 relation_version = 2;
 }
 

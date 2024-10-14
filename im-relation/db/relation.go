@@ -38,3 +38,23 @@ func InsertOrSelectForUpdateRelationByUsernameGroupId(txn *gorm.DB,
 	}
 	return &out, nil
 }
+
+func GetRelationByUsernameGroupId(txn *gorm.DB, username string, groupId int64) (*model.RelationModel, error) {
+	var m model.RelationModel
+	err := txn.Model(&model.RelationModel{}).Where("owner_id = ? and group_id = ?", username, groupId).First(&m).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return nil, err
+}
+
+func SelectForUpdateRelationByUsernameGroupId(txn *gorm.DB, username string, groupId int64) (*model.RelationModel, error) {
+	var m model.RelationModel
+	err := txn.Model(&model.RelationModel{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("owner_id = ? and group_id = ?",
+		username, groupId).First(&m).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	return &m, err
+}

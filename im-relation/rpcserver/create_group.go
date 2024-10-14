@@ -23,6 +23,8 @@ commit txn
 return info
 */
 func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroupReq) (res *imrelation.CreateGroupResp, err error) {
+	now := time.Now()
+
 	ownerId := req.Session.Username
 	txn := s.DB.Txn()
 	defer txn.Rollback()
@@ -38,11 +40,19 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 		return nil, err
 	}
 
-	db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
-		OwnerId: req.Session.Username,
-		GroupId: group.Id,
-		Status:  imrelation.RelationEntry_NOT_IN_GROUP,
+	_, err = db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
+		OwnerId:         req.Session.Username,
+		GroupId:         group.Id,
+		Status:          imrelation.RelationStatus_RELATION_STATUS_OWNER,
+		ChangeType:      imrelation.RelationChangeType_RELATION_CHNAGE_TYPE_NONE,
+		RelationCounter: 1,
+		CreatedAt:       now.UnixMilli(),
+		UpdatedAt:       now.UnixMilli(),
 	})
+	if err != nil {
+		log.Printf("failed to insert or select for update relation: %v\n", err)
+		return nil, err
+	}
 	resp, err := s.RelayCli.CreateChatEventLoop(context.Background(), &relay.CreateChatEventLoopReq{
 		GroupId: fmt.Sprint(group.Id),
 		OwnerId: ownerId,

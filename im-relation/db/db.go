@@ -13,3 +13,7 @@ func NewDB(db *gorm.DB) *DB {
 func (db *DB) Txn() *gorm.DB {
 	return db.db.Begin()
 }
+
+func (db *DB) DB() *gorm.DB {
+	return db.db
+}

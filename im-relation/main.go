@@ -10,7 +10,6 @@ import (
 	"pigeon/im-relation/config"
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
-	"pigeon/im-relation/rds"
 	"pigeon/im-relation/rpcserver"
 	"pigeon/kitex_gen/service/imrelation/imrelation"
 
@@ -70,8 +69,7 @@ func main() {
 	}
 	server := imrelation.NewServer(&rpcserver.RPCServer{
 		RPCContext: rpcserver.RPCContext{
-			DB:  db.NewDB(gormDB),
-			Rds: rds.NewRdsAction(rdsCli, cfg.RedisConfig.KeyPrefix, cfg.AppConfig.DeviceNumLimit),
+			DB: db.NewDB(gormDB),
 		},
 	}, server.WithRegistry(reg), server.WithServiceAddr(listenAddr),
 		server.WithRegistryInfo(&registry.Info{
