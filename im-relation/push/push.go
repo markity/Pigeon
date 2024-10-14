@@ -188,7 +188,7 @@ func ApplyGroupNotify(input *ApplyGroupNotifyInput) {
 	retry:
 		_, err := gwCli.PushMessage(context.Background(), &imgateway.PushMessageReq{
 			SessionId: v.SessionId,
-			PushType:  "biz-apply-notify",
+			PushType:  "push-apply-notify",
 			EchoCode:  "",
 			Data: mustMarshal(map[string]interface{}{
 				"user_id":       input.Username,

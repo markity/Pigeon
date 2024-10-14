@@ -22,7 +22,7 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 	// 群聊发消息
 	case "chat-group-send-msg":
 	// 发送加入群聊命令
-	case "chat-group-send-join":
+	case "chat-group-send-apply":
 	// 处理加群请求
 	case "chat-group-handle-join":
 	// 退出群聊
