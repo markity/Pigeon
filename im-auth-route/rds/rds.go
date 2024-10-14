@@ -343,7 +343,7 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 	code := results[0].(int64)
 	var fromSession *base.SessionEntry
 	var toSession *base.SessionEntry
-	if r1 := results[1]; r1 != redis.Nil {
+	if r1 := results[1]; r1 != nil {
 		var s base.SessionEntry
 		err := json.Unmarshal([]byte(r1.(string)), &s)
 		if err != nil {
@@ -351,7 +351,7 @@ func (act *RdsAction) ForceOffline(username string, fromSessionId string, target
 		}
 		fromSession = &s
 	}
-	if r2 := results[2]; r2 != redis.Nil {
+	if r2 := results[2]; r2 != nil {
 		var s base.SessionEntry
 		err := json.Unmarshal([]byte(r2.(string)), &s)
 		if err != nil {

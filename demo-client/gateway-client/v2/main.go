@@ -302,7 +302,7 @@ func main() {
 				win.SendLineBack("help:")
 				win.SendLineBack("    ah <on|off>: auto send heartbeat per second")
 				win.SendLineBack("    hb: send heartbeat immediately")
-				win.SendLineBack("    login <username> <password> [echoCode]: send login packet")
+				win.SendLineBack("    login <username> <password> <device-desc> [echoCode]: send login packet")
 				win.SendLineBack("    logout [echoCode]: send logout packet")
 				win.SendLineBack("    kick <sessionId> [echoCode]: send kick other device packet")
 				win.SendLineBack("    status: check login status")
