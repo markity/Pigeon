@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	chatevloopconfig "pigeon/common/chatevloop-config"
 	regetcd "pigeon/common/kitex-registry/etcd"
 	"pigeon/im-relay/api"
 	"pigeon/im-relay/config"
@@ -55,7 +56,8 @@ func main() {
 	server := imrelay.NewServer(
 		&rpcserver.RPCServer{
 			RPCContext: rpcserver.RPCContext{
-				RelationCli: relationCli,
+				EvCfgWatcher: chatevloopconfig.NewWatcher(etcdEndpoints),
+				RelationCli:  relationCli,
 			},
 		},
 		server.WithRegistry(reg), server.WithServiceAddr(listenAddr),

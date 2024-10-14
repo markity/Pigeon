@@ -96,7 +96,13 @@ type ChatevWatcher struct {
 	waitUpdateChans []*waitUpdateChans
 }
 
-func NewWatcher(cli *clientv3.Client) *ChatevWatcher {
+func NewWatcher(eps []string) *ChatevWatcher {
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints: eps,
+	})
+	if err != nil {
+		panic(err)
+	}
 	InitConfig(cli)
 	resp, err := cli.KV.Get(context.Background(), "/chatevloop_config", clientv3.WithPrefix())
 	if err != nil {
