@@ -6,6 +6,7 @@ import (
 	"net"
 
 	regetcd "pigeon/common/kitex-registry/etcd"
+	"pigeon/im-relation/api"
 	"pigeon/im-relation/config"
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
@@ -57,6 +58,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	res, err := regetcd.NewEtcdResolver(eps)
+	if err != nil {
+		panic(err)
+	}
 	listenAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%v", cfg.RPCServerConfig.Host, cfg.RPCServerConfig.Port))
 	if err != nil {
 		panic(err)
@@ -67,7 +72,9 @@ func main() {
 	}
 	server := imrelation.NewServer(&rpcserver.RPCServer{
 		RPCContext: rpcserver.RPCContext{
-			DB: db.NewDB(gormDB),
+			DB:           db.NewDB(gormDB),
+			RelayCli:     api.MustNewIMRelayClient(res),
+			AuthRouteCli: api.MustNewIMAuthRouteClient(res),
 		},
 	}, server.WithRegistry(reg), server.WithServiceAddr(listenAddr),
 		server.WithRegistryInfo(&registry.Info{

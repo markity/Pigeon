@@ -22,10 +22,11 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 		}
 
 		_, err = ctx.RelationCli.CreateGroup(context.Background(), &imrelation.CreateGroupReq{
-			Session: req.Session,
+			Session:  req.Session,
+			EchoCode: req.EchoCode,
 		})
 		if err != nil {
-			log.Printf("failed to call create group rpc, will retry: %v\n", err)
+			log.Printf("failed to call create group rpc: %v\n", err)
 		}
 	// 群聊发消息
 	case "chat-group-send-msg":
