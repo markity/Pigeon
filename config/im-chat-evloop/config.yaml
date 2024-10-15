@@ -1,0 +1,18 @@
+rpc-server:
+  host: 0.0.0.0
+  port: 8001
+
+etcd:
+  -
+    host: 127.0.0.1
+    port: 2379
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  pwd : mark2004
+  db: im_chatevloop
+
+app:
+  rpc-advertise-addrport: "127.0.0.1:8001"
