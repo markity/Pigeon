@@ -15,26 +15,12 @@ message CreateGroupResp {
   int64 create_at = 2;
 };
 
-enum RelationStatus {
-  RELATION_STATUS_UNUSED = 0;
-  RELATION_STATUS_NOT_IN_GROUP = 1;
-  RELATION_STATUS_OWNER = 2;
-  RELATION_STATUS_MEMBER = 3;
-};
-
-enum RelationChangeType {
-  RELATION_CHANGE_TYPE_UNUSED = 0;
-  RELATION_CHNAGE_TYPE_NONE = 1;
-  RELATION_CHANGE_TYPE_OWNER_ACCEPT = 2;
-  RELATION_CHANGE_TYPE_MEMBER_QUIT = 3;
-}
-
 message RelationEntry {
   string user_id = 1;
   string group_id = 2;
   int64 relation_version = 3;
-  RelationStatus status = 4;
-  RelationChangeType change_type = 5;
+  base.RelationStatus status = 4;
+  base.RelationChangeType change_type = 5;
   int64 updated_at = 6;
 }
 
@@ -87,23 +73,13 @@ message ApplyGroupResp {
   ApplyGroupRespCode code = 1;
 }
 
-enum ApplyStatus {
-  UNUSED = 0;
-  APPLY_STATUS_NONE = 1;
-  APPLY_STATUS_PENDING = 2;
-  APPLY_STATUS_ACCEPTED = 3;
-  APPLY_STATUS_REJECTED = 4;
-  // 如果群已经呗解散, 用户再次操作apply, 状态会变成group disbanded
-  APPLY_STATUS_GROUP_DISBANDED = 5;
-};
-
 message ApplyEntry {
   string user_id = 1;
   string group_id = 2;
   int64 apply_version = 3;
   int64 apply_at = 4;
   string apply_msg = 5;
-  ApplyStatus status = 6;
+  base.ApplyStatus status = 6;
 }
 
 message FetchAllApplicationsReq {
@@ -141,7 +117,7 @@ message HandleApplyResp {
   int64 apply_at = 4;
   int64 handle_at = 5;
   int64 apply_version = 6;
-  ApplyStatus apply_status = 7;
+  base.ApplyStatus apply_status = 7;
 }
 
 message QuitGroupReq {

@@ -13,6 +13,8 @@ import (
 type Client interface {
 	CreateGroup(ctx context.Context, Req *imchatevloop.CreateGroupRequest, callOptions ...callopt.Option) (r *imchatevloop.CreateGroupResponse, err error)
 	UniversalGroupEvloopRequest(ctx context.Context, Req *imchatevloop.UniversalGroupEvloopRequestReq, callOptions ...callopt.Option) (r *imchatevloop.UniversalGroupEvloopRequestResp, err error)
+	DoMigrate(ctx context.Context, Req *imchatevloop.DoMigrateReq, callOptions ...callopt.Option) (r *imchatevloop.DoMigrateResp, err error)
+	MigrateDone(ctx context.Context, Req *imchatevloop.MigrateDoneReq, callOptions ...callopt.Option) (r *imchatevloop.MigrateDoneResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -52,4 +54,14 @@ func (p *kIMChatEvloopClient) CreateGroup(ctx context.Context, Req *imchatevloop
 func (p *kIMChatEvloopClient) UniversalGroupEvloopRequest(ctx context.Context, Req *imchatevloop.UniversalGroupEvloopRequestReq, callOptions ...callopt.Option) (r *imchatevloop.UniversalGroupEvloopRequestResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.UniversalGroupEvloopRequest(ctx, Req)
+}
+
+func (p *kIMChatEvloopClient) DoMigrate(ctx context.Context, Req *imchatevloop.DoMigrateReq, callOptions ...callopt.Option) (r *imchatevloop.DoMigrateResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.DoMigrate(ctx, Req)
+}
+
+func (p *kIMChatEvloopClient) MigrateDone(ctx context.Context, Req *imchatevloop.MigrateDoneReq, callOptions ...callopt.Option) (r *imchatevloop.MigrateDoneResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.MigrateDone(ctx, Req)
 }

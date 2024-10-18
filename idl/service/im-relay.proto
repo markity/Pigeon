@@ -37,6 +37,14 @@ message RedirectToChatEventLoopResp {
   evloopio.UniversalGroupEvloopOutput output = 2;
 };
 
+message GetLastVersionConfigReq {
+  string group_id = 1;
+}
+
+message GetLastVersionConfigResp {
+  string EvloopServerAddrPort = 1;
+}
+
 service IMRelay {
   rpc BizMessage(BizMessageReq) returns (BizMessageResp);
 
@@ -44,4 +52,6 @@ service IMRelay {
   rpc CreateChatEventLoop(CreateChatEventLoopReq) returns(CreateChatEventLoopResp);
   // 将消息重定向到event loop中, 并且获得响应
   rpc RedirectToChatEventLoop(RedirectToChatEventLoopReq) returns (RedirectToChatEventLoopResp);
+  // 获取上一个版本的event loop server的地址, 迁移eventloop使用
+  rpc GetLastVersionConfig(GetLastVersionConfigReq) returns (GetLastVersionConfigResp);
 }

@@ -194,6 +194,291 @@ func (x *UniversalGroupEvloopRequestResp) fastReadField3(buf []byte, _type int8)
 	return offset, nil
 }
 
+func (x *DoMigrateReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_DoMigrateReq[number], err)
+}
+
+func (x *DoMigrateReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 4:
+		offset, err = x.fastReadField4(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 5:
+		offset, err = x.fastReadField5(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_DoMigrateResp[number], err)
+}
+
+func (x *DoMigrateResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.OwnerId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	x.SeqId, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+	var v DoMigrateResp_RelationInfo
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Relations = append(x.Relations, &v)
+	return offset, nil
+}
+
+func (x *DoMigrateResp) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+	if x.Subscribers == nil {
+		x.Subscribers = make(map[string]*DoMigrateResp_SubscribeEntry)
+	}
+	var key string
+	var value *DoMigrateResp_SubscribeEntry
+	offset, err = fastpb.ReadMapEntry(buf, _type,
+		func(buf []byte, _type int8) (offset int, err error) {
+			key, offset, err = fastpb.ReadString(buf, _type)
+			return offset, err
+		},
+		func(buf []byte, _type int8) (offset int, err error) {
+			var v DoMigrateResp_SubscribeEntry
+			offset, err = fastpb.ReadMessage(buf, _type, &v)
+			if err != nil {
+				return offset, err
+			}
+			value = &v
+			return offset, nil
+		})
+	if err != nil {
+		return offset, err
+	}
+	x.Subscribers[key] = value
+	return offset, nil
+}
+
+func (x *MigrateDoneReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_MigrateDoneReq[number], err)
+}
+
+func (x *MigrateDoneReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *MigrateDoneResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+}
+
+func (x *DoMigrateResp_RelationInfo) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 4:
+		offset, err = x.fastReadField4(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_DoMigrateResp_RelationInfo[number], err)
+}
+
+func (x *DoMigrateResp_RelationInfo) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.MemberId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp_RelationInfo) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	var v int32
+	v, offset, err = fastpb.ReadInt32(buf, _type)
+	if err != nil {
+		return offset, err
+	}
+	x.Status = base.RelationStatus(v)
+	return offset, nil
+}
+
+func (x *DoMigrateResp_RelationInfo) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	var v int32
+	v, offset, err = fastpb.ReadInt32(buf, _type)
+	if err != nil {
+		return offset, err
+	}
+	x.ChangeType = base.RelationChangeType(v)
+	return offset, nil
+}
+
+func (x *DoMigrateResp_RelationInfo) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+	x.RelationVersion, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp_SubscribeEntry) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 4:
+		offset, err = x.fastReadField4(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_DoMigrateResp_SubscribeEntry[number], err)
+}
+
+func (x *DoMigrateResp_SubscribeEntry) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.MemberId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp_SubscribeEntry) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.GwAddrport, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp_SubscribeEntry) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	x.SessionId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *DoMigrateResp_SubscribeEntry) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+	x.OnSubRelationVersion, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
 func (x *CreateGroupRequest) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -318,6 +603,202 @@ func (x *UniversalGroupEvloopRequestResp) fastWriteField3(buf []byte) (offset in
 		return offset
 	}
 	offset += fastpb.WriteMessage(buf[offset:], 3, x.GetOutput())
+	return offset
+}
+
+func (x *DoMigrateReq) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	return offset
+}
+
+func (x *DoMigrateReq) fastWriteField1(buf []byte) (offset int) {
+	if x.Version == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetVersion())
+	return offset
+}
+
+func (x *DoMigrateReq) fastWriteField2(buf []byte) (offset int) {
+	if x.GroupId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetGroupId())
+	return offset
+}
+
+func (x *DoMigrateResp) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
+	offset += x.fastWriteField4(buf[offset:])
+	offset += x.fastWriteField5(buf[offset:])
+	return offset
+}
+
+func (x *DoMigrateResp) fastWriteField1(buf []byte) (offset int) {
+	if x.GroupId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
+	return offset
+}
+
+func (x *DoMigrateResp) fastWriteField2(buf []byte) (offset int) {
+	if x.OwnerId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetOwnerId())
+	return offset
+}
+
+func (x *DoMigrateResp) fastWriteField3(buf []byte) (offset int) {
+	if x.SeqId == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetSeqId())
+	return offset
+}
+
+func (x *DoMigrateResp) fastWriteField4(buf []byte) (offset int) {
+	if x.Relations == nil {
+		return offset
+	}
+	for i := range x.GetRelations() {
+		offset += fastpb.WriteMessage(buf[offset:], 4, x.GetRelations()[i])
+	}
+	return offset
+}
+
+func (x *DoMigrateResp) fastWriteField5(buf []byte) (offset int) {
+	if x.Subscribers == nil {
+		return offset
+	}
+	for k, v := range x.GetSubscribers() {
+		offset += fastpb.WriteMapEntry(buf[offset:], 5,
+			func(buf []byte, numTagOrKey, numIdxOrVal int32) int {
+				offset := 0
+				offset += fastpb.WriteString(buf[offset:], numTagOrKey, k)
+				offset += fastpb.WriteMessage(buf[offset:], numIdxOrVal, v)
+				return offset
+			})
+	}
+	return offset
+}
+
+func (x *MigrateDoneReq) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	return offset
+}
+
+func (x *MigrateDoneReq) fastWriteField1(buf []byte) (offset int) {
+	if x.GroupId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
+	return offset
+}
+
+func (x *MigrateDoneResp) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	return offset
+}
+
+func (x *DoMigrateResp_RelationInfo) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
+	offset += x.fastWriteField4(buf[offset:])
+	return offset
+}
+
+func (x *DoMigrateResp_RelationInfo) fastWriteField1(buf []byte) (offset int) {
+	if x.MemberId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetMemberId())
+	return offset
+}
+
+func (x *DoMigrateResp_RelationInfo) fastWriteField2(buf []byte) (offset int) {
+	if x.Status == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt32(buf[offset:], 2, int32(x.GetStatus()))
+	return offset
+}
+
+func (x *DoMigrateResp_RelationInfo) fastWriteField3(buf []byte) (offset int) {
+	if x.ChangeType == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt32(buf[offset:], 3, int32(x.GetChangeType()))
+	return offset
+}
+
+func (x *DoMigrateResp_RelationInfo) fastWriteField4(buf []byte) (offset int) {
+	if x.RelationVersion == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetRelationVersion())
+	return offset
+}
+
+func (x *DoMigrateResp_SubscribeEntry) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
+	offset += x.fastWriteField4(buf[offset:])
+	return offset
+}
+
+func (x *DoMigrateResp_SubscribeEntry) fastWriteField1(buf []byte) (offset int) {
+	if x.MemberId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetMemberId())
+	return offset
+}
+
+func (x *DoMigrateResp_SubscribeEntry) fastWriteField2(buf []byte) (offset int) {
+	if x.GwAddrport == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetGwAddrport())
+	return offset
+}
+
+func (x *DoMigrateResp_SubscribeEntry) fastWriteField3(buf []byte) (offset int) {
+	if x.SessionId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 3, x.GetSessionId())
+	return offset
+}
+
+func (x *DoMigrateResp_SubscribeEntry) fastWriteField4(buf []byte) (offset int) {
+	if x.OnSubRelationVersion == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetOnSubRelationVersion())
 	return offset
 }
 
@@ -448,6 +929,202 @@ func (x *UniversalGroupEvloopRequestResp) sizeField3() (n int) {
 	return n
 }
 
+func (x *DoMigrateReq) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	return n
+}
+
+func (x *DoMigrateReq) sizeField1() (n int) {
+	if x.Version == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(1, x.GetVersion())
+	return n
+}
+
+func (x *DoMigrateReq) sizeField2() (n int) {
+	if x.GroupId == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetGroupId())
+	return n
+}
+
+func (x *DoMigrateResp) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
+	n += x.sizeField4()
+	n += x.sizeField5()
+	return n
+}
+
+func (x *DoMigrateResp) sizeField1() (n int) {
+	if x.GroupId == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetGroupId())
+	return n
+}
+
+func (x *DoMigrateResp) sizeField2() (n int) {
+	if x.OwnerId == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetOwnerId())
+	return n
+}
+
+func (x *DoMigrateResp) sizeField3() (n int) {
+	if x.SeqId == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(3, x.GetSeqId())
+	return n
+}
+
+func (x *DoMigrateResp) sizeField4() (n int) {
+	if x.Relations == nil {
+		return n
+	}
+	for i := range x.GetRelations() {
+		n += fastpb.SizeMessage(4, x.GetRelations()[i])
+	}
+	return n
+}
+
+func (x *DoMigrateResp) sizeField5() (n int) {
+	if x.Subscribers == nil {
+		return n
+	}
+	for k, v := range x.GetSubscribers() {
+		n += fastpb.SizeMapEntry(5,
+			func(numTagOrKey, numIdxOrVal int32) int {
+				n := 0
+				n += fastpb.SizeString(numTagOrKey, k)
+				n += fastpb.SizeMessage(numIdxOrVal, v)
+				return n
+			})
+	}
+	return n
+}
+
+func (x *MigrateDoneReq) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	return n
+}
+
+func (x *MigrateDoneReq) sizeField1() (n int) {
+	if x.GroupId == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetGroupId())
+	return n
+}
+
+func (x *MigrateDoneResp) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	return n
+}
+
+func (x *DoMigrateResp_RelationInfo) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
+	n += x.sizeField4()
+	return n
+}
+
+func (x *DoMigrateResp_RelationInfo) sizeField1() (n int) {
+	if x.MemberId == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetMemberId())
+	return n
+}
+
+func (x *DoMigrateResp_RelationInfo) sizeField2() (n int) {
+	if x.Status == 0 {
+		return n
+	}
+	n += fastpb.SizeInt32(2, int32(x.GetStatus()))
+	return n
+}
+
+func (x *DoMigrateResp_RelationInfo) sizeField3() (n int) {
+	if x.ChangeType == 0 {
+		return n
+	}
+	n += fastpb.SizeInt32(3, int32(x.GetChangeType()))
+	return n
+}
+
+func (x *DoMigrateResp_RelationInfo) sizeField4() (n int) {
+	if x.RelationVersion == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(4, x.GetRelationVersion())
+	return n
+}
+
+func (x *DoMigrateResp_SubscribeEntry) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
+	n += x.sizeField4()
+	return n
+}
+
+func (x *DoMigrateResp_SubscribeEntry) sizeField1() (n int) {
+	if x.MemberId == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetMemberId())
+	return n
+}
+
+func (x *DoMigrateResp_SubscribeEntry) sizeField2() (n int) {
+	if x.GwAddrport == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetGwAddrport())
+	return n
+}
+
+func (x *DoMigrateResp_SubscribeEntry) sizeField3() (n int) {
+	if x.SessionId == "" {
+		return n
+	}
+	n += fastpb.SizeString(3, x.GetSessionId())
+	return n
+}
+
+func (x *DoMigrateResp_SubscribeEntry) sizeField4() (n int) {
+	if x.OnSubRelationVersion == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(4, x.GetOnSubRelationVersion())
+	return n
+}
+
 var fieldIDToName_CreateGroupRequest = map[int32]string{
 	1: "Version",
 	2: "GroupId",
@@ -469,6 +1146,39 @@ var fieldIDToName_UniversalGroupEvloopRequestResp = map[int32]string{
 	1: "Success",
 	2: "Version",
 	3: "Output",
+}
+
+var fieldIDToName_DoMigrateReq = map[int32]string{
+	1: "Version",
+	2: "GroupId",
+}
+
+var fieldIDToName_DoMigrateResp = map[int32]string{
+	1: "GroupId",
+	2: "OwnerId",
+	3: "SeqId",
+	4: "Relations",
+	5: "Subscribers",
+}
+
+var fieldIDToName_MigrateDoneReq = map[int32]string{
+	1: "GroupId",
+}
+
+var fieldIDToName_MigrateDoneResp = map[int32]string{}
+
+var fieldIDToName_DoMigrateResp_RelationInfo = map[int32]string{
+	1: "MemberId",
+	2: "Status",
+	3: "ChangeType",
+	4: "RelationVersion",
+}
+
+var fieldIDToName_DoMigrateResp_SubscribeEntry = map[int32]string{
+	1: "MemberId",
+	2: "GwAddrport",
+	3: "SessionId",
+	4: "OnSubRelationVersion",
 }
 
 var _ = base.File_base_base_proto

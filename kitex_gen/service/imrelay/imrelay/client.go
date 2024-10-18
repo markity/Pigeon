@@ -14,6 +14,7 @@ type Client interface {
 	BizMessage(ctx context.Context, Req *imrelay.BizMessageReq, callOptions ...callopt.Option) (r *imrelay.BizMessageResp, err error)
 	CreateChatEventLoop(ctx context.Context, Req *imrelay.CreateChatEventLoopReq, callOptions ...callopt.Option) (r *imrelay.CreateChatEventLoopResp, err error)
 	RedirectToChatEventLoop(ctx context.Context, Req *imrelay.RedirectToChatEventLoopReq, callOptions ...callopt.Option) (r *imrelay.RedirectToChatEventLoopResp, err error)
+	GetLastVersionConfig(ctx context.Context, Req *imrelay.GetLastVersionConfigReq, callOptions ...callopt.Option) (r *imrelay.GetLastVersionConfigResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -58,4 +59,9 @@ func (p *kIMRelayClient) CreateChatEventLoop(ctx context.Context, Req *imrelay.C
 func (p *kIMRelayClient) RedirectToChatEventLoop(ctx context.Context, Req *imrelay.RedirectToChatEventLoopReq, callOptions ...callopt.Option) (r *imrelay.RedirectToChatEventLoopResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.RedirectToChatEventLoop(ctx, Req)
+}
+
+func (p *kIMRelayClient) GetLastVersionConfig(ctx context.Context, Req *imrelay.GetLastVersionConfigReq, callOptions ...callopt.Option) (r *imrelay.GetLastVersionConfigResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetLastVersionConfig(ctx, Req)
 }

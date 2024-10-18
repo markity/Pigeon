@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	regetcd "pigeon/common/kitex-registry/etcd"
+	"pigeon/im-chat-evloop/api"
 	"pigeon/im-chat-evloop/config"
 	rpcserver "pigeon/im-chat-evloop/rpc-server"
 	"pigeon/kitex_gen/service/imchatevloop/imchatevloop"
@@ -36,6 +37,11 @@ func main() {
 		eps = append(eps, addrPort)
 	}
 
+	res, err := regetcd.NewEtcdResolver(eps)
+	if err != nil {
+		panic(err)
+	}
+
 	// 跑rpc server
 	reg, err := regetcd.NewEtcdRegistry(eps)
 	if err != nil {
@@ -45,7 +51,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	server := imchatevloop.NewServer(&rpcserver.RPCServer{},
+	server := imchatevloop.NewServer(
+		&rpcserver.RPCServer{
+			RelayCli: api.MustNewIMRelayClient(res),
+		},
 		server.WithServiceAddr(rpcserverAddr),
 		server.WithRegistry(reg),
 		server.WithRegistryInfo(&registry.Info{

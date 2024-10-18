@@ -227,6 +227,56 @@ func (x *RedirectToChatEventLoopResp) fastReadField2(buf []byte, _type int8) (of
 	return offset, nil
 }
 
+func (x *GetLastVersionConfigReq) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_GetLastVersionConfigReq[number], err)
+}
+
+func (x *GetLastVersionConfigReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *GetLastVersionConfigResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_GetLastVersionConfigResp[number], err)
+}
+
+func (x *GetLastVersionConfigResp) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.EvloopServerAddrPort, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
 func (x *BizMessageReq) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -365,6 +415,38 @@ func (x *RedirectToChatEventLoopResp) fastWriteField2(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteMessage(buf[offset:], 2, x.GetOutput())
+	return offset
+}
+
+func (x *GetLastVersionConfigReq) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	return offset
+}
+
+func (x *GetLastVersionConfigReq) fastWriteField1(buf []byte) (offset int) {
+	if x.GroupId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
+	return offset
+}
+
+func (x *GetLastVersionConfigResp) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	return offset
+}
+
+func (x *GetLastVersionConfigResp) fastWriteField1(buf []byte) (offset int) {
+	if x.EvloopServerAddrPort == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetEvloopServerAddrPort())
 	return offset
 }
 
@@ -509,6 +591,38 @@ func (x *RedirectToChatEventLoopResp) sizeField2() (n int) {
 	return n
 }
 
+func (x *GetLastVersionConfigReq) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	return n
+}
+
+func (x *GetLastVersionConfigReq) sizeField1() (n int) {
+	if x.GroupId == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetGroupId())
+	return n
+}
+
+func (x *GetLastVersionConfigResp) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	return n
+}
+
+func (x *GetLastVersionConfigResp) sizeField1() (n int) {
+	if x.EvloopServerAddrPort == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetEvloopServerAddrPort())
+	return n
+}
+
 var fieldIDToName_BizMessageReq = map[int32]string{
 	1: "Session",
 	2: "Biz",
@@ -535,6 +649,14 @@ var fieldIDToName_RedirectToChatEventLoopReq = map[int32]string{
 var fieldIDToName_RedirectToChatEventLoopResp = map[int32]string{
 	1: "Success",
 	2: "Output",
+}
+
+var fieldIDToName_GetLastVersionConfigReq = map[int32]string{
+	1: "GroupId",
+}
+
+var fieldIDToName_GetLastVersionConfigResp = map[int32]string{
+	1: "EvloopServerAddrPort",
 }
 
 var _ = base.File_base_base_proto

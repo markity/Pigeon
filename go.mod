@@ -1,8 +1,6 @@
 module pigeon
 
-go 1.22
-
-toolchain go1.22.7
+go 1.19
 
 require (
 	github.com/cloudwego/fastpb v0.0.5

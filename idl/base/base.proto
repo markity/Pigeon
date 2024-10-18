@@ -12,3 +12,27 @@ message SessionEntry {
     string device_desc = 4;
     string gwAdvertiseAddrPort = 5;
 };
+
+enum RelationStatus {
+  RELATION_STATUS_UNUSED = 0;
+  RELATION_STATUS_NOT_IN_GROUP = 1;
+  RELATION_STATUS_OWNER = 2;
+  RELATION_STATUS_MEMBER = 3;
+};
+
+enum RelationChangeType {
+  RELATION_CHANGE_TYPE_UNUSED = 0;
+  RELATION_CHNAGE_TYPE_NONE = 1;
+  RELATION_CHANGE_TYPE_OWNER_ACCEPT = 2;
+  RELATION_CHANGE_TYPE_MEMBER_QUIT = 3;
+}
+
+enum ApplyStatus {
+  APPLY_STATUS_UNUSED = 0;
+  APPLY_STATUS_NONE = 1;
+  APPLY_STATUS_PENDING = 2;
+  APPLY_STATUS_ACCEPTED = 3;
+  APPLY_STATUS_REJECTED = 4;
+  // 如果群已经呗解散, 用户再次操作apply, 状态会变成group disbanded
+  APPLY_STATUS_GROUP_DISBANDED = 5;
+};

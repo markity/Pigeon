@@ -31,8 +31,49 @@ message UniversalGroupEvloopRequestResp {
   evloopio.UniversalGroupEvloopOutput output = 3;
 }
 
+// 迁移相关, 幂等接口可以重复调用
+message DoMigrateReq {
+  int64 version = 1;
+  string group_id = 2;
+}
+
+message DoMigrateResp {
+  message RelationInfo {
+    string member_id = 1;
+    base.RelationStatus status = 2;
+    base.RelationChangeType change_type = 3;
+    int64 relation_version = 4;
+  }
+
+  message SubscribeEntry {
+    string member_id = 1;
+    string gw_addrport = 2;
+    string session_id = 3;
+    int64 on_sub_relation_version = 4;
+  }
+
+  string group_id = 1;
+  string owner_id = 2;
+  int64 seq_id = 3;
+  repeated RelationInfo relations = 4;
+  map<string, SubscribeEntry> subscribers = 5;
+}
+
+message MigrateDoneReq {
+  string group_id = 1;
+}
+
+message MigrateDoneResp {};
 
 service IMChatEvloop {
-    rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
-    rpc UniversalGroupEvloopRequest(UniversalGroupEvloopRequestReq) returns (UniversalGroupEvloopRequestResp);
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc UniversalGroupEvloopRequest(UniversalGroupEvloopRequestReq) returns (UniversalGroupEvloopRequestResp);
+
+  // 迁移相关
+
+  // DoMigrate接口, 幂等接口, 将eventloop的状态变为迁移中
+  rpc DoMigrate(DoMigrateReq) returns (DoMigrateResp);
+
+  // MigrateDone接口, 幂等接口, 将eventloop的状态变为迁移完成, 停止eventloop, 移除map
+  rpc MigrateDone(MigrateDoneReq) returns (MigrateDoneResp);
 }

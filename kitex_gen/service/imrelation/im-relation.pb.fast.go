@@ -154,7 +154,7 @@ func (x *RelationEntry) fastReadField4(buf []byte, _type int8) (offset int, err 
 	if err != nil {
 		return offset, err
 	}
-	x.Status = RelationStatus(v)
+	x.Status = base.RelationStatus(v)
 	return offset, nil
 }
 
@@ -164,7 +164,7 @@ func (x *RelationEntry) fastReadField5(buf []byte, _type int8) (offset int, err 
 	if err != nil {
 		return offset, err
 	}
-	x.ChangeType = RelationChangeType(v)
+	x.ChangeType = base.RelationChangeType(v)
 	return offset, nil
 }
 
@@ -569,7 +569,7 @@ func (x *ApplyEntry) fastReadField6(buf []byte, _type int8) (offset int, err err
 	if err != nil {
 		return offset, err
 	}
-	x.Status = ApplyStatus(v)
+	x.Status = base.ApplyStatus(v)
 	return offset, nil
 }
 
@@ -804,7 +804,7 @@ func (x *HandleApplyResp) fastReadField7(buf []byte, _type int8) (offset int, er
 	if err != nil {
 		return offset, err
 	}
-	x.ApplyStatus = ApplyStatus(v)
+	x.ApplyStatus = base.ApplyStatus(v)
 	return offset, nil
 }
 

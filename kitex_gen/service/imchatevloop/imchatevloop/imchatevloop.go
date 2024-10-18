@@ -29,6 +29,20 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingUnary),
 	),
+	"DoMigrate": kitex.NewMethodInfo(
+		doMigrateHandler,
+		newDoMigrateArgs,
+		newDoMigrateResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingUnary),
+	),
+	"MigrateDone": kitex.NewMethodInfo(
+		migrateDoneHandler,
+		newMigrateDoneArgs,
+		newMigrateDoneResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingUnary),
+	),
 }
 
 var (
@@ -401,6 +415,312 @@ func (p *UniversalGroupEvloopRequestResult) GetResult() interface{} {
 	return p.Success
 }
 
+func doMigrateHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(imchatevloop.DoMigrateReq)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(imchatevloop.IMChatEvloop).DoMigrate(ctx, req)
+		if err != nil {
+			return err
+		}
+		return st.SendMsg(resp)
+	case *DoMigrateArgs:
+		success, err := handler.(imchatevloop.IMChatEvloop).DoMigrate(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*DoMigrateResult)
+		realResult.Success = success
+		return nil
+	default:
+		return errInvalidMessageType
+	}
+}
+func newDoMigrateArgs() interface{} {
+	return &DoMigrateArgs{}
+}
+
+func newDoMigrateResult() interface{} {
+	return &DoMigrateResult{}
+}
+
+type DoMigrateArgs struct {
+	Req *imchatevloop.DoMigrateReq
+}
+
+func (p *DoMigrateArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(imchatevloop.DoMigrateReq)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *DoMigrateArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *DoMigrateArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *DoMigrateArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, nil
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *DoMigrateArgs) Unmarshal(in []byte) error {
+	msg := new(imchatevloop.DoMigrateReq)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var DoMigrateArgs_Req_DEFAULT *imchatevloop.DoMigrateReq
+
+func (p *DoMigrateArgs) GetReq() *imchatevloop.DoMigrateReq {
+	if !p.IsSetReq() {
+		return DoMigrateArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *DoMigrateArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *DoMigrateArgs) GetFirstArgument() interface{} {
+	return p.Req
+}
+
+type DoMigrateResult struct {
+	Success *imchatevloop.DoMigrateResp
+}
+
+var DoMigrateResult_Success_DEFAULT *imchatevloop.DoMigrateResp
+
+func (p *DoMigrateResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(imchatevloop.DoMigrateResp)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *DoMigrateResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *DoMigrateResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *DoMigrateResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, nil
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *DoMigrateResult) Unmarshal(in []byte) error {
+	msg := new(imchatevloop.DoMigrateResp)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *DoMigrateResult) GetSuccess() *imchatevloop.DoMigrateResp {
+	if !p.IsSetSuccess() {
+		return DoMigrateResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *DoMigrateResult) SetSuccess(x interface{}) {
+	p.Success = x.(*imchatevloop.DoMigrateResp)
+}
+
+func (p *DoMigrateResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *DoMigrateResult) GetResult() interface{} {
+	return p.Success
+}
+
+func migrateDoneHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(imchatevloop.MigrateDoneReq)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(imchatevloop.IMChatEvloop).MigrateDone(ctx, req)
+		if err != nil {
+			return err
+		}
+		return st.SendMsg(resp)
+	case *MigrateDoneArgs:
+		success, err := handler.(imchatevloop.IMChatEvloop).MigrateDone(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*MigrateDoneResult)
+		realResult.Success = success
+		return nil
+	default:
+		return errInvalidMessageType
+	}
+}
+func newMigrateDoneArgs() interface{} {
+	return &MigrateDoneArgs{}
+}
+
+func newMigrateDoneResult() interface{} {
+	return &MigrateDoneResult{}
+}
+
+type MigrateDoneArgs struct {
+	Req *imchatevloop.MigrateDoneReq
+}
+
+func (p *MigrateDoneArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(imchatevloop.MigrateDoneReq)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *MigrateDoneArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *MigrateDoneArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *MigrateDoneArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, nil
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *MigrateDoneArgs) Unmarshal(in []byte) error {
+	msg := new(imchatevloop.MigrateDoneReq)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var MigrateDoneArgs_Req_DEFAULT *imchatevloop.MigrateDoneReq
+
+func (p *MigrateDoneArgs) GetReq() *imchatevloop.MigrateDoneReq {
+	if !p.IsSetReq() {
+		return MigrateDoneArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *MigrateDoneArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *MigrateDoneArgs) GetFirstArgument() interface{} {
+	return p.Req
+}
+
+type MigrateDoneResult struct {
+	Success *imchatevloop.MigrateDoneResp
+}
+
+var MigrateDoneResult_Success_DEFAULT *imchatevloop.MigrateDoneResp
+
+func (p *MigrateDoneResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(imchatevloop.MigrateDoneResp)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *MigrateDoneResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *MigrateDoneResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *MigrateDoneResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, nil
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *MigrateDoneResult) Unmarshal(in []byte) error {
+	msg := new(imchatevloop.MigrateDoneResp)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *MigrateDoneResult) GetSuccess() *imchatevloop.MigrateDoneResp {
+	if !p.IsSetSuccess() {
+		return MigrateDoneResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *MigrateDoneResult) SetSuccess(x interface{}) {
+	p.Success = x.(*imchatevloop.MigrateDoneResp)
+}
+
+func (p *MigrateDoneResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *MigrateDoneResult) GetResult() interface{} {
+	return p.Success
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -426,6 +746,26 @@ func (p *kClient) UniversalGroupEvloopRequest(ctx context.Context, Req *imchatev
 	_args.Req = Req
 	var _result UniversalGroupEvloopRequestResult
 	if err = p.c.Call(ctx, "UniversalGroupEvloopRequest", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) DoMigrate(ctx context.Context, Req *imchatevloop.DoMigrateReq) (r *imchatevloop.DoMigrateResp, err error) {
+	var _args DoMigrateArgs
+	_args.Req = Req
+	var _result DoMigrateResult
+	if err = p.c.Call(ctx, "DoMigrate", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) MigrateDone(ctx context.Context, Req *imchatevloop.MigrateDoneReq) (r *imchatevloop.MigrateDoneResp, err error) {
+	var _args MigrateDoneArgs
+	_args.Req = Req
+	var _result MigrateDoneResult
+	if err = p.c.Call(ctx, "MigrateDone", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

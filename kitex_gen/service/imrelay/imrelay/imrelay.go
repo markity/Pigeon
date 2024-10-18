@@ -36,6 +36,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingUnary),
 	),
+	"GetLastVersionConfig": kitex.NewMethodInfo(
+		getLastVersionConfigHandler,
+		newGetLastVersionConfigArgs,
+		newGetLastVersionConfigResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingUnary),
+	),
 }
 
 var (
@@ -561,6 +568,159 @@ func (p *RedirectToChatEventLoopResult) GetResult() interface{} {
 	return p.Success
 }
 
+func getLastVersionConfigHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(imrelay.GetLastVersionConfigReq)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(imrelay.IMRelay).GetLastVersionConfig(ctx, req)
+		if err != nil {
+			return err
+		}
+		return st.SendMsg(resp)
+	case *GetLastVersionConfigArgs:
+		success, err := handler.(imrelay.IMRelay).GetLastVersionConfig(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*GetLastVersionConfigResult)
+		realResult.Success = success
+		return nil
+	default:
+		return errInvalidMessageType
+	}
+}
+func newGetLastVersionConfigArgs() interface{} {
+	return &GetLastVersionConfigArgs{}
+}
+
+func newGetLastVersionConfigResult() interface{} {
+	return &GetLastVersionConfigResult{}
+}
+
+type GetLastVersionConfigArgs struct {
+	Req *imrelay.GetLastVersionConfigReq
+}
+
+func (p *GetLastVersionConfigArgs) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetReq() {
+		p.Req = new(imrelay.GetLastVersionConfigReq)
+	}
+	return p.Req.FastRead(buf, _type, number)
+}
+
+func (p *GetLastVersionConfigArgs) FastWrite(buf []byte) (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.FastWrite(buf)
+}
+
+func (p *GetLastVersionConfigArgs) Size() (n int) {
+	if !p.IsSetReq() {
+		return 0
+	}
+	return p.Req.Size()
+}
+
+func (p *GetLastVersionConfigArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, nil
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *GetLastVersionConfigArgs) Unmarshal(in []byte) error {
+	msg := new(imrelay.GetLastVersionConfigReq)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var GetLastVersionConfigArgs_Req_DEFAULT *imrelay.GetLastVersionConfigReq
+
+func (p *GetLastVersionConfigArgs) GetReq() *imrelay.GetLastVersionConfigReq {
+	if !p.IsSetReq() {
+		return GetLastVersionConfigArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *GetLastVersionConfigArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *GetLastVersionConfigArgs) GetFirstArgument() interface{} {
+	return p.Req
+}
+
+type GetLastVersionConfigResult struct {
+	Success *imrelay.GetLastVersionConfigResp
+}
+
+var GetLastVersionConfigResult_Success_DEFAULT *imrelay.GetLastVersionConfigResp
+
+func (p *GetLastVersionConfigResult) FastRead(buf []byte, _type int8, number int32) (n int, err error) {
+	if !p.IsSetSuccess() {
+		p.Success = new(imrelay.GetLastVersionConfigResp)
+	}
+	return p.Success.FastRead(buf, _type, number)
+}
+
+func (p *GetLastVersionConfigResult) FastWrite(buf []byte) (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.FastWrite(buf)
+}
+
+func (p *GetLastVersionConfigResult) Size() (n int) {
+	if !p.IsSetSuccess() {
+		return 0
+	}
+	return p.Success.Size()
+}
+
+func (p *GetLastVersionConfigResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, nil
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *GetLastVersionConfigResult) Unmarshal(in []byte) error {
+	msg := new(imrelay.GetLastVersionConfigResp)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *GetLastVersionConfigResult) GetSuccess() *imrelay.GetLastVersionConfigResp {
+	if !p.IsSetSuccess() {
+		return GetLastVersionConfigResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *GetLastVersionConfigResult) SetSuccess(x interface{}) {
+	p.Success = x.(*imrelay.GetLastVersionConfigResp)
+}
+
+func (p *GetLastVersionConfigResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *GetLastVersionConfigResult) GetResult() interface{} {
+	return p.Success
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -596,6 +756,16 @@ func (p *kClient) RedirectToChatEventLoop(ctx context.Context, Req *imrelay.Redi
 	_args.Req = Req
 	var _result RedirectToChatEventLoopResult
 	if err = p.c.Call(ctx, "RedirectToChatEventLoop", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetLastVersionConfig(ctx context.Context, Req *imrelay.GetLastVersionConfigReq) (r *imrelay.GetLastVersionConfigResp, err error) {
+	var _args GetLastVersionConfigArgs
+	_args.Req = Req
+	var _result GetLastVersionConfigResult
+	if err = p.c.Call(ctx, "GetLastVersionConfig", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil
