@@ -66,10 +66,28 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 		}
 	// 处理加群请求
 	case "chat-group-handle-apply":
+		var handleApply bizprotocol.BizHandleApply
+		err := json.Unmarshal(req.Data, &handleApply)
+		if err != nil {
+			log.Printf("failed to unmarshal handle apply request, err: %v, data: %v\n", err, string(req.Data))
+			return
+		}
+		_, err = ctx.RelationCli.HandleApply(context.Background(), &imrelation.HandleApplyReq{
+			Session:  req.Session,
+			EchoCode: req.EchoCode,
+			UserId:   handleApply.UserId,
+			GroupId:  handleApply.GroupId,
+			Accept:   handleApply.Accept,
+		})
+		if err != nil {
+			log.Printf("failed to call handle apply group rpc: %v\n", err)
+			return
+		}
 	// 退出群聊
 	case "chat-group-quit":
-	// 解散群聊
-	case "chat-group-disband":
+	// todo支持解散群聊
+	// // 解散群聊
+	// case "chat-group-disband":
 	// 拉全量关系
 	case "chat-pull-relation":
 		var pullRelationsReq bizprotocol.BizPullRelations

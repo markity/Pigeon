@@ -10,5 +10,5 @@ type GroupModel struct {
 }
 
 func (GroupModel) TableName() string {
-	return "group"
+	return "grp"
 }

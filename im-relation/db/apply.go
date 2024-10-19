@@ -4,6 +4,7 @@ import (
 	"errors"
 	"pigeon/im-relation/db/model"
 
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -36,8 +37,12 @@ func UpdateApply(txn *gorm.DB, apply *model.ApplyModel) error {
 func InsertOrSelectForUpdateApplyByUsernameGroupId(txn *gorm.DB,
 	initRow *model.ApplyModel) (*model.ApplyModel, error) {
 	err := txn.Model(&model.ApplyModel{}).Create(&initRow).Error
-	if errors.Is(err, gorm.ErrDuplicatedKey) {
+	if err == nil {
 		return initRow, nil
+
+	}
+	if mysqlErr, ok := err.(*mysql.MySQLError); !ok || mysqlErr.Number != 1062 {
+		return nil, err
 	}
 
 	var out model.ApplyModel

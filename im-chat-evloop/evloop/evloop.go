@@ -300,21 +300,37 @@ func (c *ChatEvLoop) start() {
 				input := request.input
 				switch spec := input.(type) {
 				case *evInputUniversal:
-					switch spec.Input.Input.(type) {
-					case *evloopio.UniversalGroupEvloopInput_AlterGroupMember:
-					case *evloopio.UniversalGroupEvloopInput_DisbandGroup:
-					case *evloopio.UniversalGroupEvloopInput_SendMessage:
-					case *evloopio.UniversalGroupEvloopInput_SubscribeGroup:
-					}
 					var err error
 					if status == statusBeMoving {
 						err = &errMigrating
 					} else if status == statusStop {
 						err = &errStop
 					}
-					request.output <- &evOutputUniversal{
-						Err:    err,
-						Output: nil,
+					if err != nil {
+						request.output <- &evOutputUniversal{
+							Err:    err,
+							Output: nil,
+						}
+						continue
+					}
+
+					switch spec.Input.Input.(type) {
+					case *evloopio.UniversalGroupEvloopInput_AlterGroupMember:
+						request.output <- &evOutputUniversal{
+							Err: nil,
+							Output: &evloopio.UniversalGroupEvloopOutput{
+								Output: &evloopio.UniversalGroupEvloopOutput_AlterGroupMember{
+									AlterGroupMember: &evloopio.AlterGroupMemberResponse{
+										Code:            evloopio.AlterGroupMemberResponse_OK,
+										RelationVersion: spec.Input.GetAlterGroupMember().RelationVersion,
+										CurrentSeqId:    c.seqId,
+									},
+								},
+							},
+						}
+					case *evloopio.UniversalGroupEvloopInput_DisbandGroup:
+					case *evloopio.UniversalGroupEvloopInput_SendMessage:
+					case *evloopio.UniversalGroupEvloopInput_SubscribeGroup:
 					}
 					fmt.Println("universal")
 				case *evInputMove:

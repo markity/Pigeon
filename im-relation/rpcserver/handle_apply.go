@@ -34,9 +34,20 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		log.Printf("failed to get group info: %v\n", err)
 		return nil, err
 	}
+	if groupInfo.OwnerId != req.Session.Username {
+		go func() {
+			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
+				EchoCode: req.EchoCode,
+				Code:     imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_NO_PERMISSION,
+			})
+		}()
+		return &imrelation.HandleApplyResp{
+			Code: imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_NO_PERMISSION,
+		}, nil
+	}
 
 	relation, err := db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
-		OwnerId:         req.Session.Username,
+		OwnerId:         req.UserId,
 		GroupId:         groupIdInt,
 		Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
 		ChangeType:      base.RelationChangeType_RELATION_CHNAGE_TYPE_NONE,
@@ -50,13 +61,14 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	}
 
 	apply, err := db.InsertOrSelectForUpdateApplyByUsernameGroupId(txn, &model.ApplyModel{
-		OwnerId:      req.Session.Username,
+		OwnerId:      req.UserId,
 		GroupId:      groupIdInt,
 		ApplyCounter: 0,
 		ApplyMsg:     "",
 		CreatedAt:    now.UnixMilli(),
 		UpdatedAt:    now.UnixMilli(),
 		Status:       base.ApplyStatus_APPLY_STATUS_NONE,
+		GroupOwnerId: groupInfo.OwnerId,
 	})
 	if err != nil {
 		log.Printf("failed to insert or lock apply entry: %v\n", err)
@@ -64,6 +76,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	}
 	applyAt := apply.UpdatedAt
 
+	fmt.Println(apply.Status.String())
 	if apply.Status != base.ApplyStatus_APPLY_STATUS_PENDING {
 		go func() {
 			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{

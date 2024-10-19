@@ -17,3 +17,9 @@ type BizSendApply struct {
 	GroupId  string `json:"group_id"`
 	ApplyMsg string `json:"apply_msg"`
 }
+
+type BizHandleApply struct {
+	UserId  string `json:"user_id"`
+	GroupId string `json:"group_id"`
+	Accept  bool   `json:"accept"`
+}

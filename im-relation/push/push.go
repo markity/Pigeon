@@ -92,11 +92,12 @@ type FetchAllAppliesRespInput struct {
 }
 
 type applyEntry struct {
-	Username     string `json:"username"`
-	GroupId      string `json:"group_id"`
-	ApplyVersion int64  `json:"version"`
-	ApplyStatus  base.ApplyStatus
-	UpdatedAt    int64 `json:"updated_at"`
+	Username     string           `json:"username"`
+	GroupId      string           `json:"group_id"`
+	ApplyVersion int64            `json:"version"`
+	ApplyStatus  base.ApplyStatus `json:"apply_status"`
+	UpdatedAt    int64            `json:"updated_at"`
+	Msg          string           `json:"msg"`
 }
 
 func FetchAllAppliesResp(session *base.SessionEntry, input *FetchAllAppliesRespInput) {
@@ -109,6 +110,7 @@ func FetchAllAppliesResp(session *base.SessionEntry, input *FetchAllAppliesRespI
 			ApplyVersion: v.ApplyVersion,
 			ApplyStatus:  v.Status,
 			UpdatedAt:    v.ApplyAt,
+			Msg:          v.ApplyMsg,
 		})
 	}
 	for {

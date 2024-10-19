@@ -107,7 +107,18 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 				return nil, err
 			}
 			lp = evloop.NewMigrateEvLoop(migrateResp)
+
+			// todo这里可以幂等重试
+			_, err = evloopCli.MigrateDone(context.Background(), &imchatevloop.MigrateDoneReq{
+				GroupId: req.GroupId,
+			})
+			if err != nil {
+				unlockFunc()
+				return nil, err
+			}
+
 			s.ChatEventloops.Store(req.GroupId, lp)
+			unlockFunc()
 		}
 	}
 
