@@ -26,7 +26,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	if err != nil {
 		go func() {
 			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
-				Code: imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_NO_GROUP,
+				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_NO_GROUP,
+				EchoCode: req.EchoCode,
 			})
 		}()
 		return &imrelation.ApplyGroupResp{
@@ -44,7 +45,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	if group == nil {
 		go func() {
 			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
-				Code: imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_NO_GROUP,
+				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_NO_GROUP,
+				EchoCode: req.EchoCode,
 			})
 		}()
 		return &imrelation.ApplyGroupResp{
@@ -56,7 +58,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	if group.Disbaned {
 		go func() {
 			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
-				Code: imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_GROUP_DISBANDED,
+				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_GROUP_DISBANDED,
+				EchoCode: req.EchoCode,
 			})
 		}()
 		return &imrelation.ApplyGroupResp{
@@ -82,7 +85,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		relation.Status == base.RelationStatus_RELATION_STATUS_OWNER {
 		go func() {
 			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
-				Code: imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_USER_IN_GROUP,
+				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_USER_IN_GROUP,
+				EchoCode: req.EchoCode,
 			})
 		}()
 		return &imrelation.ApplyGroupResp{
@@ -98,6 +102,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		CreatedAt:    now.UnixMilli(),
 		UpdatedAt:    now.UnixMilli(),
 		Status:       base.ApplyStatus_APPLY_STATUS_NONE,
+		GroupOwnerId: group.OwnerId,
 	})
 	if err != nil {
 		log.Printf("failed to insert or lock apply entry: %v\n", err)

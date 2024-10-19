@@ -11,10 +11,11 @@ type ApplyModel struct {
 	// 申请自增id, 一个用户最多一条applyModel记录, 多次申请则递增
 	ApplyCounter int64 `gorm:"column:apply_counter"`
 	// 申请原因, 同qq的入群理由
-	ApplyMsg  string           `gorm:"column:apply_msg"`
-	CreatedAt int64            `gorm:"column:created_at"`
-	UpdatedAt int64            `gorm:"column:updated_at"`
-	Status    base.ApplyStatus `gorm:"column:status"`
+	ApplyMsg     string           `gorm:"column:apply_msg"`
+	CreatedAt    int64            `gorm:"column:created_at"`
+	UpdatedAt    int64            `gorm:"column:updated_at"`
+	GroupOwnerId string           `gorm:"column:group_owner_id;type:varchar(256);index:idx_group_owner_id"`
+	Status       base.ApplyStatus `gorm:"column:status"`
 }
 
 func (ApplyModel) TableName() string {

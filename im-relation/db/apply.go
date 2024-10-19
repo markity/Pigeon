@@ -10,7 +10,7 @@ import (
 
 func GetAllApplicationsByUsername(txn *gorm.DB, username string) ([]*model.ApplyModel, error) {
 	var applications []*model.ApplyModel
-	err := txn.Model(&model.ApplyModel{}).Where("owner_id = ?", username).Find(&applications).Error
+	err := txn.Model(&model.ApplyModel{}).Where("group_owner_id = ?", username).Find(&applications).Error
 	if err != nil {
 		return nil, err
 	}

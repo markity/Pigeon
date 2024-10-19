@@ -47,6 +47,23 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 
 	// 发送加入群聊命令
 	case "chat-group-send-apply":
+		var sendApplyReq bizprotocol.BizSendApply
+		err := json.Unmarshal(req.Data, &sendApplyReq)
+		if err != nil {
+			log.Printf("failed to unmarshal pull relation request, err: %v, data: %v\n", err, string(req.Data))
+			return
+		}
+
+		_, err = ctx.RelationCli.ApplyGroup(context.Background(), &imrelation.ApplyGroupReq{
+			Session:  req.Session,
+			EchoCode: req.EchoCode,
+			GroupId:  sendApplyReq.GroupId,
+			ApplyMsg: sendApplyReq.ApplyMsg,
+		})
+		if err != nil {
+			log.Printf("failed to call apply group rpc: %v\n", err)
+			return
+		}
 	// 处理加群请求
 	case "chat-group-handle-apply":
 	// 退出群聊
