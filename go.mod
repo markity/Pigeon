@@ -10,7 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.3.1
 	github.com/markity/Interactive-Console v0.0.0-20230622112502-6658419229ed
-	github.com/markity/go-reactor v0.0.0-20240526080743-d22d926802d4
+	github.com/markity/go-reactor v0.0.0-20240504063459-b9eb805192f9
 	github.com/redis/go-redis/v9 v9.6.1
 	go.etcd.io/etcd/api/v3 v3.5.16
 	go.etcd.io/etcd/client/v3 v3.5.16
@@ -69,7 +69,7 @@ require (
 	github.com/modern-go/gls v0.0.0-20220109145502-612d0167dce5 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
-	github.com/petermattis/goid v0.0.0-20240716203034-badd1c0974d6 // indirect
+	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect

@@ -239,6 +239,7 @@ func main() {
 			}()
 			win.SetBlockInput(false)
 		case cmd := <-cmdChan:
+			win.SendLineBack(cmd)
 			cmdIface := parseCommand(cmd)
 			switch c := cmdIface.(type) {
 			case *cmdAutoHeartbeat:

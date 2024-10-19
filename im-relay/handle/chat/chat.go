@@ -19,6 +19,7 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 		err := json.Unmarshal(req.Data, &createGroupReq)
 		if err != nil {
 			log.Printf("failed to unmarshal create group request, err: %v, data: %v\n", err, string(req.Data))
+			return
 		}
 
 		_, err = ctx.RelationCli.CreateGroup(context.Background(), &imrelation.CreateGroupReq{
@@ -30,6 +31,20 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 		}
 	// 群聊发消息
 	case "chat-group-send-msg":
+		// var sendMsgReq bizprotocol.BizSendMessage
+		// err := json.Unmarshal(req.Data, &sendMsgReq)
+		// if err != nil {
+		// 	log.Printf("failed to unmarshal send msg request, err: %v, data: %v\n", err, string(req.Data))
+		// 	return
+		// }
+		// resp, err := ctx.RelationCli.GetGroupInfo(context.Background(), &imrelation.GetGroupInfoReq{
+		// 	GroupId: sendMsgReq.GroupId,
+		// })
+		// if err != nil {
+		// 	log.Printf("failed to call get group info rpc: %v\n", err)
+		// 	return
+		// }
+
 	// 发送加入群聊命令
 	case "chat-group-send-apply":
 	// 处理加群请求
@@ -40,7 +55,36 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 	case "chat-group-disband":
 	// 拉全量关系
 	case "chat-pull-relation":
+		var pullRelationsReq bizprotocol.BizPullRelations
+		err := json.Unmarshal(req.Data, &pullRelationsReq)
+		if err != nil {
+			log.Printf("failed to unmarshal pull relation request, err: %v, data: %v\n", err, string(req.Data))
+			return
+		}
+
+		_, err = ctx.RelationCli.FetchAllRelations(context.Background(), &imrelation.FetchAllRelationsReq{
+			Session:  req.Session,
+			EchoCode: req.EchoCode,
+		})
+		if err != nil {
+			log.Printf("failed to call fetch all relations group rpc: %v\n", err)
+		}
+
 	// 拉全量申请
 	case "chat-pull-join":
+		var pullJoinReq bizprotocol.BizPullRelations
+		err := json.Unmarshal(req.Data, &pullJoinReq)
+		if err != nil {
+			log.Printf("failed to unmarshal pull join request, err: %v, data: %v\n", err, string(req.Data))
+			return
+		}
+
+		_, err = ctx.RelationCli.FetchAllApplications(context.Background(), &imrelation.FetchAllApplicationsReq{
+			Session:  req.Session,
+			EchoCode: req.EchoCode,
+		})
+		if err != nil {
+			log.Printf("failed to call fetch all application group rpc: %v\n", err)
+		}
 	}
 }

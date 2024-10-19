@@ -142,6 +142,8 @@ github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69
 github.com/lucasb-eyer/go-colorful v1.2.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/markity/Interactive-Console v0.0.0-20230622112502-6658419229ed h1:ihfUbzbW7u2gsVTrmBi1kSLjN55T0biJC2GmgjIPOSY=
 github.com/markity/Interactive-Console v0.0.0-20230622112502-6658419229ed/go.mod h1:a8hH83DuDxbh2oVyBGHG9IwxOk0j+YkBYnRd1UemXwQ=
+github.com/markity/go-reactor v0.0.0-20240504063459-b9eb805192f9 h1:PwbD3mP8eLeQJNKw2XfRucKojM+2gFlfDj+yJPYUho0=
+github.com/markity/go-reactor v0.0.0-20240504063459-b9eb805192f9/go.mod h1:aI5RscA9vfDvUJmhhqSJPn9jTzI67n+LPBPkKjOSxz8=
 github.com/markity/go-reactor v0.0.0-20240526080743-d22d926802d4 h1:xKKy95T+V/VZeBRJwngHX4uGkOn1JBxsHKQSQ5e7NY4=
 github.com/markity/go-reactor v0.0.0-20240526080743-d22d926802d4/go.mod h1:aI5RscA9vfDvUJmhhqSJPn9jTzI67n+LPBPkKjOSxz8=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
@@ -161,6 +163,8 @@ github.com/pelletier/go-toml/v2 v2.2.2 h1:aYUidT7k73Pcl9nb2gScu7NSrKCSHIDE89b3+6
 github.com/pelletier/go-toml/v2 v2.2.2/go.mod h1:1t835xjRzz80PqgE6HHgN2JOsmgYu/h4qDAS4n929Rs=
 github.com/petermattis/goid v0.0.0-20240716203034-badd1c0974d6 h1:DUDJI8T/9NcGbbL+AWk6vIYlmQ8ZBS8LZqVre6zbkPQ=
 github.com/petermattis/goid v0.0.0-20240716203034-badd1c0974d6/go.mod h1:pxMtw7cyUw6B2bRH0ZBANSPg+AoSud1I1iyJHI69jH4=
+github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 h1:Dx7Ovyv/SFnMFw3fD4oEoeorXc6saIiQ23LrGLth0Gw=
+github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7/go.mod h1:pxMtw7cyUw6B2bRH0ZBANSPg+AoSud1I1iyJHI69jH4=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

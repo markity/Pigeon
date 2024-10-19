@@ -35,7 +35,6 @@ message GroupInfo {
 
 message GetGroupInfoReq {
   string group_id = 1;
-  GroupInfo info = 2;
 }
 
 message GetGroupInfoResp {

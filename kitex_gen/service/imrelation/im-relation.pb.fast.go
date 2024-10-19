@@ -260,11 +260,6 @@ func (x *GetGroupInfoReq) FastRead(buf []byte, _type int8, number int32) (offset
 		if err != nil {
 			goto ReadFieldError
 		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -281,16 +276,6 @@ ReadFieldError:
 func (x *GetGroupInfoReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
 	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
-}
-
-func (x *GetGroupInfoReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	var v GroupInfo
-	offset, err = fastpb.ReadMessage(buf, _type, &v)
-	if err != nil {
-		return offset, err
-	}
-	x.Info = &v
-	return offset, nil
 }
 
 func (x *GetGroupInfoResp) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -1077,7 +1062,6 @@ func (x *GetGroupInfoReq) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
@@ -1086,14 +1070,6 @@ func (x *GetGroupInfoReq) fastWriteField1(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
-	return offset
-}
-
-func (x *GetGroupInfoReq) fastWriteField2(buf []byte) (offset int) {
-	if x.Info == nil {
-		return offset
-	}
-	offset += fastpb.WriteMessage(buf[offset:], 2, x.GetInfo())
 	return offset
 }
 
@@ -1688,7 +1664,6 @@ func (x *GetGroupInfoReq) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
-	n += x.sizeField2()
 	return n
 }
 
@@ -1697,14 +1672,6 @@ func (x *GetGroupInfoReq) sizeField1() (n int) {
 		return n
 	}
 	n += fastpb.SizeString(1, x.GetGroupId())
-	return n
-}
-
-func (x *GetGroupInfoReq) sizeField2() (n int) {
-	if x.Info == nil {
-		return n
-	}
-	n += fastpb.SizeMessage(2, x.GetInfo())
 	return n
 }
 
@@ -2150,7 +2117,6 @@ var fieldIDToName_GroupInfo = map[int32]string{
 
 var fieldIDToName_GetGroupInfoReq = map[int32]string{
 	1: "GroupId",
-	2: "Info",
 }
 
 var fieldIDToName_GetGroupInfoResp = map[int32]string{
