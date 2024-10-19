@@ -79,6 +79,11 @@ func (x *AlterGroupMemberResponse) FastRead(buf []byte, _type int8, number int32
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -104,6 +109,11 @@ func (x *AlterGroupMemberResponse) fastReadField1(buf []byte, _type int8) (offse
 
 func (x *AlterGroupMemberResponse) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	x.RelationVersion, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *AlterGroupMemberResponse) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	x.CurrentSeqId, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
 
@@ -143,22 +153,22 @@ ReadFieldError:
 }
 
 func (x *SubscribeGroupRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	x.UserId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *SubscribeGroupRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.GroupId, offset, err = fastpb.ReadInt64(buf, _type)
+	x.SessionId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *SubscribeGroupRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.GwAdvertiseAddrPort, offset, err = fastpb.ReadString(buf, _type)
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *SubscribeGroupRequest) fastReadField4(buf []byte, _type int8) (offset int, err error) {
-	x.SessionId, offset, err = fastpb.ReadString(buf, _type)
+	x.GwAdvertiseAddrPort, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -176,11 +186,6 @@ func (x *SubscribeGroupResponse) FastRead(buf []byte, _type int8, number int32) 
 		}
 	case 3:
 		offset, err = x.fastReadField3(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 4:
-		offset, err = x.fastReadField4(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -208,16 +213,11 @@ func (x *SubscribeGroupResponse) fastReadField1(buf []byte, _type int8) (offset 
 }
 
 func (x *SubscribeGroupResponse) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *SubscribeGroupResponse) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.RelationId, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
 
-func (x *SubscribeGroupResponse) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+func (x *SubscribeGroupResponse) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.MaxSeqId, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
@@ -244,11 +244,6 @@ func (x *SendMessageRequest) FastRead(buf []byte, _type int8, number int32) (off
 		if err != nil {
 			goto ReadFieldError
 		}
-	case 5:
-		offset, err = x.fastReadField5(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -263,26 +258,21 @@ ReadFieldError:
 }
 
 func (x *SendMessageRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *SendMessageRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.GroupId, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *SendMessageRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.MessageData, offset, err = fastpb.ReadBytes(buf, _type)
 	return offset, err
 }
 
-func (x *SendMessageRequest) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+func (x *SendMessageRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.CheckIdempotent, offset, err = fastpb.ReadBool(buf, _type)
 	return offset, err
 }
 
-func (x *SendMessageRequest) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+func (x *SendMessageRequest) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	x.IdempotentKey, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
@@ -306,11 +296,6 @@ func (x *SendMessageResponse) FastRead(buf []byte, _type int8, number int32) (of
 		}
 	case 4:
 		offset, err = x.fastReadField4(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 5:
-		offset, err = x.fastReadField5(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -338,21 +323,16 @@ func (x *SendMessageResponse) fastReadField1(buf []byte, _type int8) (offset int
 }
 
 func (x *SendMessageResponse) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *SendMessageResponse) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.RelationId, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
 
-func (x *SendMessageResponse) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+func (x *SendMessageResponse) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.MaxSeqId, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
 
-func (x *SendMessageResponse) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+func (x *SendMessageResponse) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	x.MessageSeq, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
@@ -361,11 +341,6 @@ func (x *DisbandGroupRequest) FastRead(buf []byte, _type int8, number int32) (of
 	switch number {
 	case 1:
 		offset, err = x.fastReadField1(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -383,27 +358,12 @@ ReadFieldError:
 }
 
 func (x *DisbandGroupRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *DisbandGroupRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	x.GroupId, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
 
 func (x *DisbandGroupResponse) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
-	case 1:
-		offset, err = x.fastReadField1(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -413,18 +373,6 @@ func (x *DisbandGroupResponse) FastRead(buf []byte, _type int8, number int32) (o
 	return offset, nil
 SkipFieldError:
 	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
-ReadFieldError:
-	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_DisbandGroupResponse[number], err)
-}
-
-func (x *DisbandGroupResponse) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.Success, offset, err = fastpb.ReadBool(buf, _type)
-	return offset, err
-}
-
-func (x *DisbandGroupResponse) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
 }
 
 func (x *UniversalGroupEvloopInput) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -642,6 +590,7 @@ func (x *AlterGroupMemberResponse) FastWrite(buf []byte) (offset int) {
 	}
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
 	return offset
 }
 
@@ -661,6 +610,14 @@ func (x *AlterGroupMemberResponse) fastWriteField2(buf []byte) (offset int) {
 	return offset
 }
 
+func (x *AlterGroupMemberResponse) fastWriteField3(buf []byte) (offset int) {
+	if x.CurrentSeqId == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetCurrentSeqId())
+	return offset
+}
+
 func (x *SubscribeGroupRequest) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -673,34 +630,34 @@ func (x *SubscribeGroupRequest) FastWrite(buf []byte) (offset int) {
 }
 
 func (x *SubscribeGroupRequest) fastWriteField1(buf []byte) (offset int) {
-	if x.Version == 0 {
+	if x.UserId == "" {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetVersion())
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetUserId())
 	return offset
 }
 
 func (x *SubscribeGroupRequest) fastWriteField2(buf []byte) (offset int) {
-	if x.GroupId == 0 {
+	if x.SessionId == "" {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetGroupId())
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetSessionId())
 	return offset
 }
 
 func (x *SubscribeGroupRequest) fastWriteField3(buf []byte) (offset int) {
-	if x.GwAdvertiseAddrPort == "" {
+	if x.GroupId == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 3, x.GetGwAdvertiseAddrPort())
+	offset += fastpb.WriteString(buf[offset:], 3, x.GetGroupId())
 	return offset
 }
 
 func (x *SubscribeGroupRequest) fastWriteField4(buf []byte) (offset int) {
-	if x.SessionId == "" {
+	if x.GwAdvertiseAddrPort == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 4, x.GetSessionId())
+	offset += fastpb.WriteString(buf[offset:], 4, x.GetGwAdvertiseAddrPort())
 	return offset
 }
 
@@ -711,7 +668,6 @@ func (x *SubscribeGroupResponse) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
-	offset += x.fastWriteField4(buf[offset:])
 	return offset
 }
 
@@ -724,26 +680,18 @@ func (x *SubscribeGroupResponse) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *SubscribeGroupResponse) fastWriteField2(buf []byte) (offset int) {
-	if x.Version == 0 {
+	if x.RelationId == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetVersion())
+	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetRelationId())
 	return offset
 }
 
 func (x *SubscribeGroupResponse) fastWriteField3(buf []byte) (offset int) {
-	if x.RelationId == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetRelationId())
-	return offset
-}
-
-func (x *SubscribeGroupResponse) fastWriteField4(buf []byte) (offset int) {
 	if x.MaxSeqId == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetMaxSeqId())
+	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetMaxSeqId())
 	return offset
 }
 
@@ -755,47 +703,38 @@ func (x *SendMessageRequest) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
-	offset += x.fastWriteField5(buf[offset:])
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField1(buf []byte) (offset int) {
-	if x.Version == 0 {
+	if x.GroupId == "" {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetVersion())
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField2(buf []byte) (offset int) {
-	if x.GroupId == 0 {
+	if len(x.MessageData) == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetGroupId())
+	offset += fastpb.WriteBytes(buf[offset:], 2, x.GetMessageData())
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField3(buf []byte) (offset int) {
-	if len(x.MessageData) == 0 {
+	if !x.CheckIdempotent {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 3, x.GetMessageData())
+	offset += fastpb.WriteBool(buf[offset:], 3, x.GetCheckIdempotent())
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField4(buf []byte) (offset int) {
-	if !x.CheckIdempotent {
-		return offset
-	}
-	offset += fastpb.WriteBool(buf[offset:], 4, x.GetCheckIdempotent())
-	return offset
-}
-
-func (x *SendMessageRequest) fastWriteField5(buf []byte) (offset int) {
 	if x.IdempotentKey == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 5, x.GetIdempotentKey())
+	offset += fastpb.WriteString(buf[offset:], 4, x.GetIdempotentKey())
 	return offset
 }
 
@@ -807,7 +746,6 @@ func (x *SendMessageResponse) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
-	offset += x.fastWriteField5(buf[offset:])
 	return offset
 }
 
@@ -820,34 +758,26 @@ func (x *SendMessageResponse) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *SendMessageResponse) fastWriteField2(buf []byte) (offset int) {
-	if x.Version == 0 {
+	if x.RelationId == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetVersion())
+	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetRelationId())
 	return offset
 }
 
 func (x *SendMessageResponse) fastWriteField3(buf []byte) (offset int) {
-	if x.RelationId == 0 {
+	if x.MaxSeqId == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetRelationId())
+	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetMaxSeqId())
 	return offset
 }
 
 func (x *SendMessageResponse) fastWriteField4(buf []byte) (offset int) {
-	if x.MaxSeqId == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetMaxSeqId())
-	return offset
-}
-
-func (x *SendMessageResponse) fastWriteField5(buf []byte) (offset int) {
 	if x.MessageSeq == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 5, x.GetMessageSeq())
+	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetMessageSeq())
 	return offset
 }
 
@@ -856,23 +786,14 @@ func (x *DisbandGroupRequest) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
 func (x *DisbandGroupRequest) fastWriteField1(buf []byte) (offset int) {
-	if x.Version == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetVersion())
-	return offset
-}
-
-func (x *DisbandGroupRequest) fastWriteField2(buf []byte) (offset int) {
 	if x.GroupId == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetGroupId())
+	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetGroupId())
 	return offset
 }
 
@@ -880,24 +801,6 @@ func (x *DisbandGroupResponse) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
-	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
-	return offset
-}
-
-func (x *DisbandGroupResponse) fastWriteField1(buf []byte) (offset int) {
-	if !x.Success {
-		return offset
-	}
-	offset += fastpb.WriteBool(buf[offset:], 1, x.GetSuccess())
-	return offset
-}
-
-func (x *DisbandGroupResponse) fastWriteField2(buf []byte) (offset int) {
-	if x.Version == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetVersion())
 	return offset
 }
 
@@ -1036,6 +939,7 @@ func (x *AlterGroupMemberResponse) Size() (n int) {
 	}
 	n += x.sizeField1()
 	n += x.sizeField2()
+	n += x.sizeField3()
 	return n
 }
 
@@ -1055,6 +959,14 @@ func (x *AlterGroupMemberResponse) sizeField2() (n int) {
 	return n
 }
 
+func (x *AlterGroupMemberResponse) sizeField3() (n int) {
+	if x.CurrentSeqId == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(3, x.GetCurrentSeqId())
+	return n
+}
+
 func (x *SubscribeGroupRequest) Size() (n int) {
 	if x == nil {
 		return n
@@ -1067,34 +979,34 @@ func (x *SubscribeGroupRequest) Size() (n int) {
 }
 
 func (x *SubscribeGroupRequest) sizeField1() (n int) {
-	if x.Version == 0 {
+	if x.UserId == "" {
 		return n
 	}
-	n += fastpb.SizeInt64(1, x.GetVersion())
+	n += fastpb.SizeString(1, x.GetUserId())
 	return n
 }
 
 func (x *SubscribeGroupRequest) sizeField2() (n int) {
-	if x.GroupId == 0 {
+	if x.SessionId == "" {
 		return n
 	}
-	n += fastpb.SizeInt64(2, x.GetGroupId())
+	n += fastpb.SizeString(2, x.GetSessionId())
 	return n
 }
 
 func (x *SubscribeGroupRequest) sizeField3() (n int) {
-	if x.GwAdvertiseAddrPort == "" {
+	if x.GroupId == "" {
 		return n
 	}
-	n += fastpb.SizeString(3, x.GetGwAdvertiseAddrPort())
+	n += fastpb.SizeString(3, x.GetGroupId())
 	return n
 }
 
 func (x *SubscribeGroupRequest) sizeField4() (n int) {
-	if x.SessionId == "" {
+	if x.GwAdvertiseAddrPort == "" {
 		return n
 	}
-	n += fastpb.SizeString(4, x.GetSessionId())
+	n += fastpb.SizeString(4, x.GetGwAdvertiseAddrPort())
 	return n
 }
 
@@ -1105,7 +1017,6 @@ func (x *SubscribeGroupResponse) Size() (n int) {
 	n += x.sizeField1()
 	n += x.sizeField2()
 	n += x.sizeField3()
-	n += x.sizeField4()
 	return n
 }
 
@@ -1118,26 +1029,18 @@ func (x *SubscribeGroupResponse) sizeField1() (n int) {
 }
 
 func (x *SubscribeGroupResponse) sizeField2() (n int) {
-	if x.Version == 0 {
+	if x.RelationId == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(2, x.GetVersion())
+	n += fastpb.SizeInt64(2, x.GetRelationId())
 	return n
 }
 
 func (x *SubscribeGroupResponse) sizeField3() (n int) {
-	if x.RelationId == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(3, x.GetRelationId())
-	return n
-}
-
-func (x *SubscribeGroupResponse) sizeField4() (n int) {
 	if x.MaxSeqId == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(4, x.GetMaxSeqId())
+	n += fastpb.SizeInt64(3, x.GetMaxSeqId())
 	return n
 }
 
@@ -1149,47 +1052,38 @@ func (x *SendMessageRequest) Size() (n int) {
 	n += x.sizeField2()
 	n += x.sizeField3()
 	n += x.sizeField4()
-	n += x.sizeField5()
 	return n
 }
 
 func (x *SendMessageRequest) sizeField1() (n int) {
-	if x.Version == 0 {
+	if x.GroupId == "" {
 		return n
 	}
-	n += fastpb.SizeInt64(1, x.GetVersion())
+	n += fastpb.SizeString(1, x.GetGroupId())
 	return n
 }
 
 func (x *SendMessageRequest) sizeField2() (n int) {
-	if x.GroupId == 0 {
+	if len(x.MessageData) == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(2, x.GetGroupId())
+	n += fastpb.SizeBytes(2, x.GetMessageData())
 	return n
 }
 
 func (x *SendMessageRequest) sizeField3() (n int) {
-	if len(x.MessageData) == 0 {
+	if !x.CheckIdempotent {
 		return n
 	}
-	n += fastpb.SizeBytes(3, x.GetMessageData())
+	n += fastpb.SizeBool(3, x.GetCheckIdempotent())
 	return n
 }
 
 func (x *SendMessageRequest) sizeField4() (n int) {
-	if !x.CheckIdempotent {
-		return n
-	}
-	n += fastpb.SizeBool(4, x.GetCheckIdempotent())
-	return n
-}
-
-func (x *SendMessageRequest) sizeField5() (n int) {
 	if x.IdempotentKey == "" {
 		return n
 	}
-	n += fastpb.SizeString(5, x.GetIdempotentKey())
+	n += fastpb.SizeString(4, x.GetIdempotentKey())
 	return n
 }
 
@@ -1201,7 +1095,6 @@ func (x *SendMessageResponse) Size() (n int) {
 	n += x.sizeField2()
 	n += x.sizeField3()
 	n += x.sizeField4()
-	n += x.sizeField5()
 	return n
 }
 
@@ -1214,34 +1107,26 @@ func (x *SendMessageResponse) sizeField1() (n int) {
 }
 
 func (x *SendMessageResponse) sizeField2() (n int) {
-	if x.Version == 0 {
+	if x.RelationId == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(2, x.GetVersion())
+	n += fastpb.SizeInt64(2, x.GetRelationId())
 	return n
 }
 
 func (x *SendMessageResponse) sizeField3() (n int) {
-	if x.RelationId == 0 {
+	if x.MaxSeqId == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(3, x.GetRelationId())
+	n += fastpb.SizeInt64(3, x.GetMaxSeqId())
 	return n
 }
 
 func (x *SendMessageResponse) sizeField4() (n int) {
-	if x.MaxSeqId == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(4, x.GetMaxSeqId())
-	return n
-}
-
-func (x *SendMessageResponse) sizeField5() (n int) {
 	if x.MessageSeq == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(5, x.GetMessageSeq())
+	n += fastpb.SizeInt64(4, x.GetMessageSeq())
 	return n
 }
 
@@ -1250,23 +1135,14 @@ func (x *DisbandGroupRequest) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
-	n += x.sizeField2()
 	return n
 }
 
 func (x *DisbandGroupRequest) sizeField1() (n int) {
-	if x.Version == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(1, x.GetVersion())
-	return n
-}
-
-func (x *DisbandGroupRequest) sizeField2() (n int) {
 	if x.GroupId == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(2, x.GetGroupId())
+	n += fastpb.SizeInt64(1, x.GetGroupId())
 	return n
 }
 
@@ -1274,24 +1150,6 @@ func (x *DisbandGroupResponse) Size() (n int) {
 	if x == nil {
 		return n
 	}
-	n += x.sizeField1()
-	n += x.sizeField2()
-	return n
-}
-
-func (x *DisbandGroupResponse) sizeField1() (n int) {
-	if !x.Success {
-		return n
-	}
-	n += fastpb.SizeBool(1, x.GetSuccess())
-	return n
-}
-
-func (x *DisbandGroupResponse) sizeField2() (n int) {
-	if x.Version == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(2, x.GetVersion())
 	return n
 }
 
@@ -1391,47 +1249,41 @@ var fieldIDToName_AlterGroupMemberRequest = map[int32]string{
 var fieldIDToName_AlterGroupMemberResponse = map[int32]string{
 	1: "Code",
 	2: "RelationVersion",
+	3: "CurrentSeqId",
 }
 
 var fieldIDToName_SubscribeGroupRequest = map[int32]string{
-	1: "Version",
-	2: "GroupId",
-	3: "GwAdvertiseAddrPort",
-	4: "SessionId",
+	1: "UserId",
+	2: "SessionId",
+	3: "GroupId",
+	4: "GwAdvertiseAddrPort",
 }
 
 var fieldIDToName_SubscribeGroupResponse = map[int32]string{
 	1: "Code",
-	2: "Version",
-	3: "RelationId",
-	4: "MaxSeqId",
+	2: "RelationId",
+	3: "MaxSeqId",
 }
 
 var fieldIDToName_SendMessageRequest = map[int32]string{
-	1: "Version",
-	2: "GroupId",
-	3: "MessageData",
-	4: "CheckIdempotent",
-	5: "IdempotentKey",
+	1: "GroupId",
+	2: "MessageData",
+	3: "CheckIdempotent",
+	4: "IdempotentKey",
 }
 
 var fieldIDToName_SendMessageResponse = map[int32]string{
 	1: "Code",
-	2: "Version",
-	3: "RelationId",
-	4: "MaxSeqId",
-	5: "MessageSeq",
+	2: "RelationId",
+	3: "MaxSeqId",
+	4: "MessageSeq",
 }
 
 var fieldIDToName_DisbandGroupRequest = map[int32]string{
-	1: "Version",
-	2: "GroupId",
+	1: "GroupId",
 }
 
-var fieldIDToName_DisbandGroupResponse = map[int32]string{
-	1: "Success",
-	2: "Version",
-}
+var fieldIDToName_DisbandGroupResponse = map[int32]string{}
 
 var fieldIDToName_UniversalGroupEvloopInput = map[int32]string{
 	3: "AlterGroupMember",

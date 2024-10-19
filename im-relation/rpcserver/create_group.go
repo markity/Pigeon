@@ -10,6 +10,7 @@ import (
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
 	"pigeon/im-relation/push"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imrelation"
 	relay "pigeon/kitex_gen/service/imrelay"
 )
@@ -43,8 +44,8 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 	_, err = db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
 		OwnerId:         req.Session.Username,
 		GroupId:         group.Id,
-		Status:          imrelation.RelationStatus_RELATION_STATUS_OWNER,
-		ChangeType:      imrelation.RelationChangeType_RELATION_CHNAGE_TYPE_NONE,
+		Status:          base.RelationStatus_RELATION_STATUS_OWNER,
+		ChangeType:      base.RelationChangeType_RELATION_CHNAGE_TYPE_NONE,
 		RelationCounter: 1,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),

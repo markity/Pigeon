@@ -10,6 +10,7 @@ import (
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
 	"pigeon/im-relation/push"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imrelation"
 )
 
@@ -66,7 +67,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	relation, err := db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
 		OwnerId:         req.Session.Username,
 		GroupId:         groupIdInt,
-		Status:          imrelation.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
+		Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
 		RelationCounter: 0,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),
@@ -77,8 +78,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	}
 
 	// 如果是member或owner, 则不能apply, user in group错误
-	if relation.Status == imrelation.RelationStatus_RELATION_STATUS_MEMBER ||
-		relation.Status == imrelation.RelationStatus_RELATION_STATUS_OWNER {
+	if relation.Status == base.RelationStatus_RELATION_STATUS_MEMBER ||
+		relation.Status == base.RelationStatus_RELATION_STATUS_OWNER {
 		go func() {
 			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
 				Code: imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_USER_IN_GROUP,
@@ -96,7 +97,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		ApplyMsg:     "",
 		CreatedAt:    now.UnixMilli(),
 		UpdatedAt:    now.UnixMilli(),
-		Status:       imrelation.ApplyStatus_APPLY_STATUS_NONE,
+		Status:       base.ApplyStatus_APPLY_STATUS_NONE,
 	})
 	if err != nil {
 		log.Printf("failed to insert or lock apply entry: %v\n", err)
@@ -106,7 +107,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	// none, pending reject三种状态, 更新为pendding状态
 	apply.ApplyCounter++
 	apply.ApplyMsg = req.ApplyMsg
-	apply.Status = imrelation.ApplyStatus_APPLY_STATUS_PENDING
+	apply.Status = base.ApplyStatus_APPLY_STATUS_PENDING
 	apply.UpdatedAt = now.UnixMilli()
 	err = db.UpdateApply(txn, apply)
 	if err != nil {

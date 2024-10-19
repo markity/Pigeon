@@ -22,14 +22,16 @@ message AlterGroupMemberResponse {
 
   AlterGroupMemberResponseCode code = 1;
   int64 relation_version = 2;
+  int64 current_seq_id = 3;
 }
 
 // 订阅群组, 由im-relay调用, 某个人订阅群组, im-relay先确认是否存在这个群(请求im-relation), 然后一致性hash
 message SubscribeGroupRequest {
-  int64 version = 1;
-  int64 groupId = 2;
-  string gw_advertise_addr_port = 3;
-  string sessionId = 4;
+  string user_id = 1;
+  string session_id = 2;
+
+  string group_id = 3;
+  string gw_advertise_addr_port = 4;
 }
 
 message SubscribeGroupResponse {
@@ -40,18 +42,16 @@ message SubscribeGroupResponse {
     GROUP_DISBANDED = 3;    // 这个错误, 群组解散, relation_id和max_seq_id是有效的
   }
   SubscribeGroupCode code = 1;
-  int64 version = 2;
-  int64 relation_id = 3;
-  int64 max_seq_id = 4;
+  int64 relation_id = 2;
+  int64 max_seq_id = 3;
 }
 
 // 发送消息
 message SendMessageRequest {
-  int64 version = 1;
-  int64 groupId = 2;
-  bytes message_data = 3;
-  bool check_idempotent = 4;   // 是否需要检查幂等
-  string idempotent_key = 5;  // 幂等key
+  string groupId = 1;
+  bytes message_data = 2;
+  bool check_idempotent = 3;   // 是否需要检查幂等
+  string idempotent_key = 4;  // 幂等key
 }
 
 message SendMessageResponse {
@@ -63,21 +63,17 @@ message SendMessageResponse {
   }
   
   SendMessageCode code = 1;
-  int64 version = 2;
-  int64 relation_id = 3;
-  int64 max_seq_id = 4;
-  int64 message_seq = 5;
+  int64 relation_id = 2;
+  int64 max_seq_id = 3;
+  int64 message_seq = 4;
 }
 
 // 解散群
 message DisbandGroupRequest {
-  int64 version = 1;
-  int64 groupId = 2;
+  int64 groupId = 1;
 }
 
 message DisbandGroupResponse {
-  bool success = 1;
-  int64 version = 2;
 }
 
 message UniversalGroupEvloopInput {

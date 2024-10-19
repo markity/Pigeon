@@ -49,11 +49,11 @@ type FetchAllRelationsRespInput struct {
 }
 
 type relationEntry struct {
-	Username        string                    `json:"username"`
-	GroupId         string                    `json:"group_id"`
-	RelationVersion int64                     `json:"version"`
-	RelationStatus  imrelation.RelationStatus `json:"relation_status"`
-	UpdatedAt       int64                     `json:"updated_at"`
+	Username        string              `json:"username"`
+	GroupId         string              `json:"group_id"`
+	RelationVersion int64               `json:"version"`
+	RelationStatus  base.RelationStatus `json:"relation_status"`
+	UpdatedAt       int64               `json:"updated_at"`
 }
 
 func FetchAllRelationsResp(session *base.SessionEntry, input *FetchAllRelationsRespInput) {
@@ -95,7 +95,7 @@ type applyEntry struct {
 	Username     string `json:"username"`
 	GroupId      string `json:"group_id"`
 	ApplyVersion int64  `json:"version"`
-	ApplyStatus  imrelation.ApplyStatus
+	ApplyStatus  base.ApplyStatus
 	UpdatedAt    int64 `json:"updated_at"`
 }
 
@@ -214,7 +214,7 @@ type HandleApplyNotifyInput struct {
 	GroupId      string
 	ApplyVersion int64
 	ApplyMsg     string
-	ApplyStatus  imrelation.ApplyStatus
+	ApplyStatus  base.ApplyStatus
 	ApplyAt      int64
 	HandleAt     int64
 }
@@ -268,7 +268,7 @@ type HandleApplyRespInput struct {
 	ApplyMsg     string
 	ApplyAt      int64
 	ApplyVersion int64
-	ApplyStatus  imrelation.ApplyStatus
+	ApplyStatus  base.ApplyStatus
 	HandleAt     int64
 
 	// 如果是接受请求, 且ApplyStatus变为已接受, relation_version不为0
@@ -307,9 +307,9 @@ type RelationChangeNotifyInput struct {
 	Username   string
 	GroupId    string
 	Version    int64
-	Status     imrelation.RelationStatus
+	Status     base.RelationStatus
 	ChangeAt   int64
-	ChangeType imrelation.RelationChangeType
+	ChangeType base.RelationChangeType
 }
 
 func RelationChangeNotify(input *RelationChangeNotifyInput) {

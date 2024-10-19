@@ -9,6 +9,7 @@ import (
 
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/push"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/evloopio"
 	"pigeon/kitex_gen/service/imrelation"
 	relay "pigeon/kitex_gen/service/imrelay"
@@ -47,7 +48,7 @@ func (s *RPCServer) QuitGroup(ctx context.Context, req *imrelation.QuitGroupReq)
 		return nil, err
 	}
 
-	if relation == nil || relation.Status != imrelation.RelationStatus_RELATION_STATUS_MEMBER {
+	if relation == nil || relation.Status != base.RelationStatus_RELATION_STATUS_MEMBER {
 		return &imrelation.QuitGroupResp{
 			Code: imrelation.QuitGroupResp_QUIT_GROUP_NOT_MEMBER,
 		}, nil
@@ -62,8 +63,8 @@ func (s *RPCServer) QuitGroup(ctx context.Context, req *imrelation.QuitGroupReq)
 	}
 
 	relation.UpdatedAt = now.UnixMilli()
-	relation.Status = imrelation.RelationStatus_RELATION_STATUS_NOT_IN_GROUP
-	relation.ChangeType = imrelation.RelationChangeType_RELATION_CHANGE_TYPE_MEMBER_QUIT
+	relation.Status = base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP
+	relation.ChangeType = base.RelationChangeType_RELATION_CHANGE_TYPE_MEMBER_QUIT
 	relation.RelationCounter++
 
 	// pending状态, 直接打入evloop

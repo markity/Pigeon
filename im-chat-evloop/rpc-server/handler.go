@@ -21,7 +21,7 @@ type RPCServer struct {
 	CurrentVersionMu sync.Mutex
 	CurrentVersion   atomic.Int64
 
-	// key: group id, value: chat eventloo
+	// key: group id, value: chat eventloop
 	CreateChatEventloopMu sync.Mutex
 	ChatEventloops        sync.Map
 
@@ -100,7 +100,6 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 			evloopCli := api.MustNewChatEvLoopCliFromAdAddr(addrPort)
 			// todo: 这个是可以幂等重试的
 			migrateResp, err := evloopCli.DoMigrate(context.Background(), &imchatevloop.DoMigrateReq{
-				Version: currentVersion,
 				GroupId: req.GroupId,
 			})
 			if err != nil {
@@ -114,23 +113,93 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 
 	// 有loop, 开始干活
 	evl := lp.(*evloop.ChatEvLoop)
+	// err != nil, 可能状态是stop或者migrating, 此时发生了迁移
+	// 那么需要拿新version返回过去
+	output, err := evl.QueueMessage(req.Input)
+	if err != nil {
+		newVersion := s.CurrentVersion.Load()
+		return &imchatevloop.UniversalGroupEvloopRequestResp{
+			Success: false,
+			Version: newVersion,
+		}, nil
+	}
 
-	return
+	// 信息发送成功
+	return &imchatevloop.UniversalGroupEvloopRequestResp{
+		Success: true,
+		Version: currentVersion,
+		Output:  output,
+	}, nil
 }
 
 func (s *RPCServer) DoMigrate(ctx context.Context, req *imchatevloop.DoMigrateReq) (res *imchatevloop.DoMigrateResp, err error) {
-	currentVersion := s.CurrentVersion.Load()
-	if req.Version > currentVersion {
-		s.CurrentVersionMu.Lock()
-		currentVersion = s.CurrentVersion.Load()
-		if req.Version > currentVersion {
-			s.CurrentVersion.Store(req.Version)
-		}
-		s.CurrentVersionMu.Unlock()
+	// 找到eventloop
+	evlAny, ok := s.ChatEventloops.Load(req.GroupId)
+	if !ok {
+		return &imchatevloop.DoMigrateResp{
+			Ok: false,
+		}, nil
 	}
+
+	out, err := evlAny.(*evloop.ChatEvLoop).Move()
+	if err != nil {
+		return &imchatevloop.DoMigrateResp{
+			Ok: false,
+		}, nil
+	}
+
+	rlations := make(map[string]*imchatevloop.DoMigrateResp_RelationInfo)
+	for k, v := range out.Relations {
+		rlations[k] = &imchatevloop.DoMigrateResp_RelationInfo{
+			MemberId:        k,
+			Status:          v.Status,
+			ChangeType:      v.ChangeType,
+			RelationVersion: v.RelationVersion,
+		}
+	}
+	subs := make(map[string]*imchatevloop.DoMigrateResp_SessionEntries)
+	for k, v := range out.Subs {
+		subs[k] = &imchatevloop.DoMigrateResp_SessionEntries{
+			SessionEntries: make([]*imchatevloop.DoMigrateResp_SubscribeEntry, 0),
+		}
+		for _, s := range v {
+			subs[k].SessionEntries = append(subs[k].SessionEntries, &imchatevloop.DoMigrateResp_SubscribeEntry{
+				MemberId:             k,
+				GwAddrport:           s.GwAddrPort,
+				SessionId:            s.SessionId,
+				OnSubRelationVersion: s.SubscribeRelationVersion,
+			})
+		}
+
+	}
+	return &imchatevloop.DoMigrateResp{
+		Ok:          true,
+		GroupId:     req.GroupId,
+		OwnerId:     out.OwnerId,
+		SeqId:       out.SeqId,
+		Relations:   rlations,
+		Subscribers: subs,
+	}, nil
 
 }
 
-func (s *RPCServer) MigrateDone(ctx context.Context, req *imchatevloop.MigrateDoneReq) (res *imchatevloop.MigrateDoneResp, err error) {
+func (s *RPCServer) MigrateDone(ctx context.Context, req *imchatevloop.MigrateDoneReq) (
+	*imchatevloop.MigrateDoneResp, error) {
 
+	// 找到eventloop
+	evlAny, ok := s.ChatEventloops.Load(req.GroupId)
+	// 如果没找到, 返回true
+	if !ok {
+		return &imchatevloop.MigrateDoneResp{
+			Ok: true,
+		}, nil
+	}
+
+	ev := evlAny.(*evloop.ChatEvLoop)
+	err := ev.Stop()
+	s.ChatEventloops.Delete(req.GroupId)
+
+	return &imchatevloop.MigrateDoneResp{
+		Ok: err != nil,
+	}, nil
 }

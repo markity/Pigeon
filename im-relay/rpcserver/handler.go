@@ -26,7 +26,7 @@ type RPCServer struct {
 }
 
 func (s *RPCServer) BizMessage(ctx context.Context,
-	req *imrelay.BizMessageReq) (res *imrelay.BizMessageResp, err error) {
+	req *imrelay.BizMessageReq) (*imrelay.BizMessageResp, error) {
 	// 请求直接异步出去
 	go func() {
 		s.handleBizMessage(req)
@@ -49,7 +49,8 @@ func (s *RPCServer) handleBizMessage(req *imrelay.BizMessageReq) {
 }
 
 // 由im-relation调用, 创造群聊event loop
-func (s *RPCServer) CreateChatEventLoop(ctx context.Context, req *imrelay.CreateChatEventLoopReq) (res *imrelay.CreateChatEventLoopResp, err error) {
+func (s *RPCServer) CreateChatEventLoop(ctx context.Context,
+	req *imrelay.CreateChatEventLoopReq) (*imrelay.CreateChatEventLoopResp, error) {
 	for {
 		nodeEntry, version := s.EvCfgWatcher.GetNode(req.GroupId)
 		if nodeEntry == nil {
@@ -77,6 +78,35 @@ func (s *RPCServer) CreateChatEventLoop(ctx context.Context, req *imrelay.Create
 		}, nil
 	}
 }
-func (s *RPCServer) RedirectToChatEventLoop(ctx context.Context, req *imrelay.RedirectToChatEventLoopReq) (res *imrelay.RedirectToChatEventLoopResp, err error) {
-	return
+func (s *RPCServer) RedirectToChatEventLoop(ctx context.Context,
+	req *imrelay.RedirectToChatEventLoopReq) (*imrelay.RedirectToChatEventLoopResp, error) {
+
+	for {
+		evloopSpec, version := s.EvCfgWatcher.GetNode(req.GroupId)
+		cli := api.MustNewChatEvLoopCliFromAdAddr(evloopSpec.IPPort)
+		resp, err := cli.UniversalGroupEvloopRequest(context.Background(), &imchatevloop.UniversalGroupEvloopRequestReq{
+			Version: version,
+			GroupId: req.GroupId,
+			Input:   req.Input,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if !resp.Success {
+			s.EvCfgWatcher.ForceUpdate(resp.Version)
+			continue
+		}
+		return &imrelay.RedirectToChatEventLoopResp{
+			Success: true,
+			Output:  resp.Output,
+		}, nil
+	}
+}
+
+func (s *RPCServer) GetLastVersionConfig(ctx context.Context,
+	req *imrelay.GetLastVersionConfigReq) (res *imrelay.GetLastVersionConfigResp, err error) {
+	n, _ := s.EvCfgWatcher.GetLastVersionNode(req.GroupId)
+	return &imrelay.GetLastVersionConfigResp{
+		EvloopServerAddrPort: n.IPPort,
+	}, nil
 }

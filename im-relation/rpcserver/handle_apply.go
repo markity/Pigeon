@@ -10,6 +10,7 @@ import (
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
 	"pigeon/im-relation/push"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/evloopio"
 	"pigeon/kitex_gen/service/imrelation"
 	relay "pigeon/kitex_gen/service/imrelay"
@@ -37,8 +38,8 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	relation, err := db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
 		OwnerId:         req.Session.Username,
 		GroupId:         groupIdInt,
-		Status:          imrelation.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
-		ChangeType:      imrelation.RelationChangeType_RELATION_CHNAGE_TYPE_NONE,
+		Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
+		ChangeType:      base.RelationChangeType_RELATION_CHNAGE_TYPE_NONE,
 		RelationCounter: 0,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),
@@ -55,7 +56,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		ApplyMsg:     "",
 		CreatedAt:    now.UnixMilli(),
 		UpdatedAt:    now.UnixMilli(),
-		Status:       imrelation.ApplyStatus_APPLY_STATUS_NONE,
+		Status:       base.ApplyStatus_APPLY_STATUS_NONE,
 	})
 	if err != nil {
 		log.Printf("failed to insert or lock apply entry: %v\n", err)
@@ -63,7 +64,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	}
 	applyAt := apply.UpdatedAt
 
-	if apply.Status != imrelation.ApplyStatus_APPLY_STATUS_PENDING {
+	if apply.Status != base.ApplyStatus_APPLY_STATUS_PENDING {
 		go func() {
 			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
 				EchoCode: req.EchoCode,
@@ -77,7 +78,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 	// 如果已经disbaned, 无论接受还是拒绝, 都返回ok, 但是不更新关系
 	if groupInfo.Disbaned {
-		apply.Status = imrelation.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
+		apply.Status = base.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
 		apply.ApplyCounter++
 		apply.UpdatedAt = now.UnixMilli()
 
@@ -121,7 +122,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	// 群没有disbanded
 
 	if !req.Accept {
-		apply.Status = imrelation.ApplyStatus_APPLY_STATUS_REJECTED
+		apply.Status = base.ApplyStatus_APPLY_STATUS_REJECTED
 		apply.ApplyCounter++
 		apply.UpdatedAt = now.UnixMilli()
 		err := db.UpdateApply(txn, apply)
@@ -202,7 +203,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	out := resp.Output.Output.(*evloopio.UniversalGroupEvloopOutput_AlterGroupMember)
 	switch out.AlterGroupMember.Code {
 	case evloopio.AlterGroupMemberResponse_GROUP_DISBANDED:
-		apply.Status = imrelation.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
+		apply.Status = base.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
 		apply.ApplyCounter++
 		apply.UpdatedAt = now.UnixMilli()
 		err := db.UpdateApply(txn, apply)
@@ -248,8 +249,8 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 			return nil, err
 		}
 
-		relation.Status = imrelation.RelationStatus_RELATION_STATUS_NOT_IN_GROUP
-		relation.ChangeType = imrelation.RelationChangeType_RELATION_CHANGE_TYPE_OWNER_ACCEPT
+		relation.Status = base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP
+		relation.ChangeType = base.RelationChangeType_RELATION_CHANGE_TYPE_OWNER_ACCEPT
 		relation.RelationCounter++
 		relation.UpdatedAt = now.UnixMilli()
 		err = db.UpdateRelation(txn, relation)
@@ -272,7 +273,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 				Username:   relation.OwnerId,
 				GroupId:    fmt.Sprint(relation.GroupId),
 				Version:    relation.RelationCounter,
-				Status:     imrelation.RelationStatus_RELATION_STATUS_MEMBER,
+				Status:     base.RelationStatus_RELATION_STATUS_MEMBER,
 				ChangeType: relation.ChangeType, // relation变更场景, 是因为群主接受申请
 				ChangeAt:   now.UnixMilli(),
 			})

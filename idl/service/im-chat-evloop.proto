@@ -33,8 +33,7 @@ message UniversalGroupEvloopRequestResp {
 
 // 迁移相关, 幂等接口可以重复调用
 message DoMigrateReq {
-  int64 version = 1;
-  string group_id = 2;
+  string group_id = 1;
 }
 
 message DoMigrateResp {
@@ -52,18 +51,24 @@ message DoMigrateResp {
     int64 on_sub_relation_version = 4;
   }
 
-  string group_id = 1;
-  string owner_id = 2;
-  int64 seq_id = 3;
-  repeated RelationInfo relations = 4;
-  map<string, SubscribeEntry> subscribers = 5;
+  bool ok = 1;
+  string group_id = 2;
+  string owner_id = 3;
+  int64 seq_id = 4;
+  map<string, RelationInfo> relations = 5;
+  message SessionEntries {
+    repeated SubscribeEntry session_entries = 1;
+  }
+  map<string, SessionEntries> subscribers = 6;
 }
 
 message MigrateDoneReq {
   string group_id = 1;
 }
 
-message MigrateDoneResp {};
+message MigrateDoneResp {
+  bool ok = 1;
+};
 
 service IMChatEvloop {
   rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
