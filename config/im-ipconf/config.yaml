@@ -1,7 +1,7 @@
 # grpc为内部集群提供接口, 如向某个session发送消息
 http-server:
   host: 0.0.0.0
-  port: 4001
+  port: 2001
 
 # 做服务发现的, 可以用来服务发现im-auth-route的ipport以及im-relay的ipport
 # 也可以上报自己的metrics, 让ipconf感知到gateway的性能指标变化
@@ -14,4 +14,4 @@ etcd:
 app:
   # 这个变量暂时没什么用, 后续ipconf其实也可以开多个, 应该可以做服务发现, 让别人发现
   # im-ipconf实例, 目前没用上这个变量
-  advertise-addrport: "127.0.0.1:4001"
+  advertise-addrport: "127.0.0.1:2001"
