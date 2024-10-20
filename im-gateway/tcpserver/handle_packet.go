@@ -122,11 +122,6 @@ func handleC2SPacket(conn goreactor.TCPConnection, packet interface{}) {
 				selfSession = v
 			}
 		}
-		if selfSession == nil {
-			log.Printf("unexpected: self session is not found in login resp\n")
-			conn.ForceClose()
-			return
-		}
 		send.Version = loginResp.Version
 		send.Sessions = sessions
 		switch loginResp.Code {

@@ -5,12 +5,14 @@ syntax = "proto3";
 package evloopio;
 option go_package = "service/evloopio";
 
+import "base/base.proto";
+
 // 更改群组成员, 由im-relation调用
 message AlterGroupMemberRequest {
-  string group_id = 2;
-  // true为添加, false为删除
-  bool is_add = 3;
-  string member_id = 4;
+  string group_id = 1;
+  string member_id = 2;
+  base.RelationStatus status = 3;
+  base.RelationChangeType change_type = 4;
   int64 relation_version = 5; 
 }
 
@@ -78,18 +80,18 @@ message DisbandGroupResponse {
 
 message UniversalGroupEvloopInput {
   oneof input {
-    AlterGroupMemberRequest alter_group_member = 3;
-    SubscribeGroupRequest subscribe_group = 4;
-    SendMessageRequest send_message = 5;
-    DisbandGroupRequest disband_group = 6;
+    AlterGroupMemberRequest alter_group_member = 1;
+    SubscribeGroupRequest subscribe_group = 2;
+    SendMessageRequest send_message = 3;
+    DisbandGroupRequest disband_group = 4;
   }
 }
 
 message UniversalGroupEvloopOutput {
   oneof output {
-    AlterGroupMemberResponse alter_group_member = 3;
-    SubscribeGroupResponse subscribe_group = 4;
-    SendMessageResponse send_message = 5;
-    DisbandGroupResponse disband_group = 6;
+    AlterGroupMemberResponse alter_group_member = 1;
+    SubscribeGroupResponse subscribe_group = 2;
+    SendMessageResponse send_message = 3;
+    DisbandGroupResponse disband_group = 4;
   }
 }

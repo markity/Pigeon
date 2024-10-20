@@ -41,9 +41,9 @@ func (s *RPCServer) handleBizMessage(req *imrelay.BizMessageReq) {
 	}
 	switch splits[0] {
 	case "echo":
-		echo.HandleEcho(&handle.HandleContext{RelationCli: s.RelationCli}, req)
+		echo.HandleEcho(&handle.HandleContext{RelationCli: s.RelationCli, EvCfgWatcher: s.EvCfgWatcher}, req)
 	case "chat":
-		chat.HandleChat(&handle.HandleContext{RelationCli: s.RelationCli}, req)
+		chat.HandleChat(&handle.HandleContext{RelationCli: s.RelationCli, EvCfgWatcher: s.EvCfgWatcher}, req)
 	default:
 	}
 }

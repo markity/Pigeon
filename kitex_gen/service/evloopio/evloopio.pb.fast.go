@@ -5,6 +5,7 @@ package evloopio
 import (
 	fmt "fmt"
 	fastpb "github.com/cloudwego/fastpb"
+	base "pigeon/kitex_gen/service/base"
 )
 
 var (
@@ -14,6 +15,11 @@ var (
 
 func (x *AlterGroupMemberRequest) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	case 2:
 		offset, err = x.fastReadField2(buf, _type)
 		if err != nil {
@@ -47,19 +53,34 @@ ReadFieldError:
 	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_AlterGroupMemberRequest[number], err)
 }
 
-func (x *AlterGroupMemberRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+func (x *AlterGroupMemberRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
 	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
-func (x *AlterGroupMemberRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.IsAdd, offset, err = fastpb.ReadBool(buf, _type)
+func (x *AlterGroupMemberRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.MemberId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
+func (x *AlterGroupMemberRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	var v int32
+	v, offset, err = fastpb.ReadInt32(buf, _type)
+	if err != nil {
+		return offset, err
+	}
+	x.Status = base.RelationStatus(v)
+	return offset, nil
+}
+
 func (x *AlterGroupMemberRequest) fastReadField4(buf []byte, _type int8) (offset int, err error) {
-	x.MemberId, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
+	var v int32
+	v, offset, err = fastpb.ReadInt32(buf, _type)
+	if err != nil {
+		return offset, err
+	}
+	x.ChangeType = base.RelationChangeType(v)
+	return offset, nil
 }
 
 func (x *AlterGroupMemberRequest) fastReadField5(buf []byte, _type int8) (offset int, err error) {
@@ -377,6 +398,16 @@ SkipFieldError:
 
 func (x *UniversalGroupEvloopInput) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	case 3:
 		offset, err = x.fastReadField3(buf, _type)
 		if err != nil {
@@ -384,16 +415,6 @@ func (x *UniversalGroupEvloopInput) FastRead(buf []byte, _type int8, number int3
 		}
 	case 4:
 		offset, err = x.fastReadField4(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 5:
-		offset, err = x.fastReadField5(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 6:
-		offset, err = x.fastReadField6(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -410,7 +431,7 @@ ReadFieldError:
 	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_UniversalGroupEvloopInput[number], err)
 }
 
-func (x *UniversalGroupEvloopInput) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+func (x *UniversalGroupEvloopInput) fastReadField1(buf []byte, _type int8) (offset int, err error) {
 	var ov UniversalGroupEvloopInput_AlterGroupMember
 	x.Input = &ov
 	var v AlterGroupMemberRequest
@@ -422,7 +443,7 @@ func (x *UniversalGroupEvloopInput) fastReadField3(buf []byte, _type int8) (offs
 	return offset, nil
 }
 
-func (x *UniversalGroupEvloopInput) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+func (x *UniversalGroupEvloopInput) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	var ov UniversalGroupEvloopInput_SubscribeGroup
 	x.Input = &ov
 	var v SubscribeGroupRequest
@@ -434,7 +455,7 @@ func (x *UniversalGroupEvloopInput) fastReadField4(buf []byte, _type int8) (offs
 	return offset, nil
 }
 
-func (x *UniversalGroupEvloopInput) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+func (x *UniversalGroupEvloopInput) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	var ov UniversalGroupEvloopInput_SendMessage
 	x.Input = &ov
 	var v SendMessageRequest
@@ -446,7 +467,7 @@ func (x *UniversalGroupEvloopInput) fastReadField5(buf []byte, _type int8) (offs
 	return offset, nil
 }
 
-func (x *UniversalGroupEvloopInput) fastReadField6(buf []byte, _type int8) (offset int, err error) {
+func (x *UniversalGroupEvloopInput) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	var ov UniversalGroupEvloopInput_DisbandGroup
 	x.Input = &ov
 	var v DisbandGroupRequest
@@ -460,6 +481,16 @@ func (x *UniversalGroupEvloopInput) fastReadField6(buf []byte, _type int8) (offs
 
 func (x *UniversalGroupEvloopOutput) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	case 3:
 		offset, err = x.fastReadField3(buf, _type)
 		if err != nil {
@@ -467,16 +498,6 @@ func (x *UniversalGroupEvloopOutput) FastRead(buf []byte, _type int8, number int
 		}
 	case 4:
 		offset, err = x.fastReadField4(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 5:
-		offset, err = x.fastReadField5(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 6:
-		offset, err = x.fastReadField6(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -493,7 +514,7 @@ ReadFieldError:
 	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_UniversalGroupEvloopOutput[number], err)
 }
 
-func (x *UniversalGroupEvloopOutput) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+func (x *UniversalGroupEvloopOutput) fastReadField1(buf []byte, _type int8) (offset int, err error) {
 	var ov UniversalGroupEvloopOutput_AlterGroupMember
 	x.Output = &ov
 	var v AlterGroupMemberResponse
@@ -505,7 +526,7 @@ func (x *UniversalGroupEvloopOutput) fastReadField3(buf []byte, _type int8) (off
 	return offset, nil
 }
 
-func (x *UniversalGroupEvloopOutput) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+func (x *UniversalGroupEvloopOutput) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	var ov UniversalGroupEvloopOutput_SubscribeGroup
 	x.Output = &ov
 	var v SubscribeGroupResponse
@@ -517,7 +538,7 @@ func (x *UniversalGroupEvloopOutput) fastReadField4(buf []byte, _type int8) (off
 	return offset, nil
 }
 
-func (x *UniversalGroupEvloopOutput) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+func (x *UniversalGroupEvloopOutput) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	var ov UniversalGroupEvloopOutput_SendMessage
 	x.Output = &ov
 	var v SendMessageResponse
@@ -529,7 +550,7 @@ func (x *UniversalGroupEvloopOutput) fastReadField5(buf []byte, _type int8) (off
 	return offset, nil
 }
 
-func (x *UniversalGroupEvloopOutput) fastReadField6(buf []byte, _type int8) (offset int, err error) {
+func (x *UniversalGroupEvloopOutput) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	var ov UniversalGroupEvloopOutput_DisbandGroup
 	x.Output = &ov
 	var v DisbandGroupResponse
@@ -545,6 +566,7 @@ func (x *AlterGroupMemberRequest) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
+	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
@@ -552,27 +574,35 @@ func (x *AlterGroupMemberRequest) FastWrite(buf []byte) (offset int) {
 	return offset
 }
 
-func (x *AlterGroupMemberRequest) fastWriteField2(buf []byte) (offset int) {
+func (x *AlterGroupMemberRequest) fastWriteField1(buf []byte) (offset int) {
 	if x.GroupId == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetGroupId())
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
+	return offset
+}
+
+func (x *AlterGroupMemberRequest) fastWriteField2(buf []byte) (offset int) {
+	if x.MemberId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetMemberId())
 	return offset
 }
 
 func (x *AlterGroupMemberRequest) fastWriteField3(buf []byte) (offset int) {
-	if !x.IsAdd {
+	if x.Status == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBool(buf[offset:], 3, x.GetIsAdd())
+	offset += fastpb.WriteInt32(buf[offset:], 3, int32(x.GetStatus()))
 	return offset
 }
 
 func (x *AlterGroupMemberRequest) fastWriteField4(buf []byte) (offset int) {
-	if x.MemberId == "" {
+	if x.ChangeType == 0 {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 4, x.GetMemberId())
+	offset += fastpb.WriteInt32(buf[offset:], 4, int32(x.GetChangeType()))
 	return offset
 }
 
@@ -808,42 +838,42 @@ func (x *UniversalGroupEvloopInput) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
-	offset += x.fastWriteField5(buf[offset:])
-	offset += x.fastWriteField6(buf[offset:])
+	return offset
+}
+
+func (x *UniversalGroupEvloopInput) fastWriteField1(buf []byte) (offset int) {
+	if x.GetAlterGroupMember() == nil {
+		return offset
+	}
+	offset += fastpb.WriteMessage(buf[offset:], 1, x.GetAlterGroupMember())
+	return offset
+}
+
+func (x *UniversalGroupEvloopInput) fastWriteField2(buf []byte) (offset int) {
+	if x.GetSubscribeGroup() == nil {
+		return offset
+	}
+	offset += fastpb.WriteMessage(buf[offset:], 2, x.GetSubscribeGroup())
 	return offset
 }
 
 func (x *UniversalGroupEvloopInput) fastWriteField3(buf []byte) (offset int) {
-	if x.GetAlterGroupMember() == nil {
+	if x.GetSendMessage() == nil {
 		return offset
 	}
-	offset += fastpb.WriteMessage(buf[offset:], 3, x.GetAlterGroupMember())
+	offset += fastpb.WriteMessage(buf[offset:], 3, x.GetSendMessage())
 	return offset
 }
 
 func (x *UniversalGroupEvloopInput) fastWriteField4(buf []byte) (offset int) {
-	if x.GetSubscribeGroup() == nil {
-		return offset
-	}
-	offset += fastpb.WriteMessage(buf[offset:], 4, x.GetSubscribeGroup())
-	return offset
-}
-
-func (x *UniversalGroupEvloopInput) fastWriteField5(buf []byte) (offset int) {
-	if x.GetSendMessage() == nil {
-		return offset
-	}
-	offset += fastpb.WriteMessage(buf[offset:], 5, x.GetSendMessage())
-	return offset
-}
-
-func (x *UniversalGroupEvloopInput) fastWriteField6(buf []byte) (offset int) {
 	if x.GetDisbandGroup() == nil {
 		return offset
 	}
-	offset += fastpb.WriteMessage(buf[offset:], 6, x.GetDisbandGroup())
+	offset += fastpb.WriteMessage(buf[offset:], 4, x.GetDisbandGroup())
 	return offset
 }
 
@@ -851,42 +881,42 @@ func (x *UniversalGroupEvloopOutput) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
-	offset += x.fastWriteField5(buf[offset:])
-	offset += x.fastWriteField6(buf[offset:])
+	return offset
+}
+
+func (x *UniversalGroupEvloopOutput) fastWriteField1(buf []byte) (offset int) {
+	if x.GetAlterGroupMember() == nil {
+		return offset
+	}
+	offset += fastpb.WriteMessage(buf[offset:], 1, x.GetAlterGroupMember())
+	return offset
+}
+
+func (x *UniversalGroupEvloopOutput) fastWriteField2(buf []byte) (offset int) {
+	if x.GetSubscribeGroup() == nil {
+		return offset
+	}
+	offset += fastpb.WriteMessage(buf[offset:], 2, x.GetSubscribeGroup())
 	return offset
 }
 
 func (x *UniversalGroupEvloopOutput) fastWriteField3(buf []byte) (offset int) {
-	if x.GetAlterGroupMember() == nil {
+	if x.GetSendMessage() == nil {
 		return offset
 	}
-	offset += fastpb.WriteMessage(buf[offset:], 3, x.GetAlterGroupMember())
+	offset += fastpb.WriteMessage(buf[offset:], 3, x.GetSendMessage())
 	return offset
 }
 
 func (x *UniversalGroupEvloopOutput) fastWriteField4(buf []byte) (offset int) {
-	if x.GetSubscribeGroup() == nil {
-		return offset
-	}
-	offset += fastpb.WriteMessage(buf[offset:], 4, x.GetSubscribeGroup())
-	return offset
-}
-
-func (x *UniversalGroupEvloopOutput) fastWriteField5(buf []byte) (offset int) {
-	if x.GetSendMessage() == nil {
-		return offset
-	}
-	offset += fastpb.WriteMessage(buf[offset:], 5, x.GetSendMessage())
-	return offset
-}
-
-func (x *UniversalGroupEvloopOutput) fastWriteField6(buf []byte) (offset int) {
 	if x.GetDisbandGroup() == nil {
 		return offset
 	}
-	offset += fastpb.WriteMessage(buf[offset:], 6, x.GetDisbandGroup())
+	offset += fastpb.WriteMessage(buf[offset:], 4, x.GetDisbandGroup())
 	return offset
 }
 
@@ -894,6 +924,7 @@ func (x *AlterGroupMemberRequest) Size() (n int) {
 	if x == nil {
 		return n
 	}
+	n += x.sizeField1()
 	n += x.sizeField2()
 	n += x.sizeField3()
 	n += x.sizeField4()
@@ -901,27 +932,35 @@ func (x *AlterGroupMemberRequest) Size() (n int) {
 	return n
 }
 
-func (x *AlterGroupMemberRequest) sizeField2() (n int) {
+func (x *AlterGroupMemberRequest) sizeField1() (n int) {
 	if x.GroupId == "" {
 		return n
 	}
-	n += fastpb.SizeString(2, x.GetGroupId())
+	n += fastpb.SizeString(1, x.GetGroupId())
+	return n
+}
+
+func (x *AlterGroupMemberRequest) sizeField2() (n int) {
+	if x.MemberId == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetMemberId())
 	return n
 }
 
 func (x *AlterGroupMemberRequest) sizeField3() (n int) {
-	if !x.IsAdd {
+	if x.Status == 0 {
 		return n
 	}
-	n += fastpb.SizeBool(3, x.GetIsAdd())
+	n += fastpb.SizeInt32(3, int32(x.GetStatus()))
 	return n
 }
 
 func (x *AlterGroupMemberRequest) sizeField4() (n int) {
-	if x.MemberId == "" {
+	if x.ChangeType == 0 {
 		return n
 	}
-	n += fastpb.SizeString(4, x.GetMemberId())
+	n += fastpb.SizeInt32(4, int32(x.GetChangeType()))
 	return n
 }
 
@@ -1157,42 +1196,42 @@ func (x *UniversalGroupEvloopInput) Size() (n int) {
 	if x == nil {
 		return n
 	}
+	n += x.sizeField1()
+	n += x.sizeField2()
 	n += x.sizeField3()
 	n += x.sizeField4()
-	n += x.sizeField5()
-	n += x.sizeField6()
+	return n
+}
+
+func (x *UniversalGroupEvloopInput) sizeField1() (n int) {
+	if x.GetAlterGroupMember() == nil {
+		return n
+	}
+	n += fastpb.SizeMessage(1, x.GetAlterGroupMember())
+	return n
+}
+
+func (x *UniversalGroupEvloopInput) sizeField2() (n int) {
+	if x.GetSubscribeGroup() == nil {
+		return n
+	}
+	n += fastpb.SizeMessage(2, x.GetSubscribeGroup())
 	return n
 }
 
 func (x *UniversalGroupEvloopInput) sizeField3() (n int) {
-	if x.GetAlterGroupMember() == nil {
+	if x.GetSendMessage() == nil {
 		return n
 	}
-	n += fastpb.SizeMessage(3, x.GetAlterGroupMember())
+	n += fastpb.SizeMessage(3, x.GetSendMessage())
 	return n
 }
 
 func (x *UniversalGroupEvloopInput) sizeField4() (n int) {
-	if x.GetSubscribeGroup() == nil {
-		return n
-	}
-	n += fastpb.SizeMessage(4, x.GetSubscribeGroup())
-	return n
-}
-
-func (x *UniversalGroupEvloopInput) sizeField5() (n int) {
-	if x.GetSendMessage() == nil {
-		return n
-	}
-	n += fastpb.SizeMessage(5, x.GetSendMessage())
-	return n
-}
-
-func (x *UniversalGroupEvloopInput) sizeField6() (n int) {
 	if x.GetDisbandGroup() == nil {
 		return n
 	}
-	n += fastpb.SizeMessage(6, x.GetDisbandGroup())
+	n += fastpb.SizeMessage(4, x.GetDisbandGroup())
 	return n
 }
 
@@ -1200,49 +1239,50 @@ func (x *UniversalGroupEvloopOutput) Size() (n int) {
 	if x == nil {
 		return n
 	}
+	n += x.sizeField1()
+	n += x.sizeField2()
 	n += x.sizeField3()
 	n += x.sizeField4()
-	n += x.sizeField5()
-	n += x.sizeField6()
+	return n
+}
+
+func (x *UniversalGroupEvloopOutput) sizeField1() (n int) {
+	if x.GetAlterGroupMember() == nil {
+		return n
+	}
+	n += fastpb.SizeMessage(1, x.GetAlterGroupMember())
+	return n
+}
+
+func (x *UniversalGroupEvloopOutput) sizeField2() (n int) {
+	if x.GetSubscribeGroup() == nil {
+		return n
+	}
+	n += fastpb.SizeMessage(2, x.GetSubscribeGroup())
 	return n
 }
 
 func (x *UniversalGroupEvloopOutput) sizeField3() (n int) {
-	if x.GetAlterGroupMember() == nil {
+	if x.GetSendMessage() == nil {
 		return n
 	}
-	n += fastpb.SizeMessage(3, x.GetAlterGroupMember())
+	n += fastpb.SizeMessage(3, x.GetSendMessage())
 	return n
 }
 
 func (x *UniversalGroupEvloopOutput) sizeField4() (n int) {
-	if x.GetSubscribeGroup() == nil {
-		return n
-	}
-	n += fastpb.SizeMessage(4, x.GetSubscribeGroup())
-	return n
-}
-
-func (x *UniversalGroupEvloopOutput) sizeField5() (n int) {
-	if x.GetSendMessage() == nil {
-		return n
-	}
-	n += fastpb.SizeMessage(5, x.GetSendMessage())
-	return n
-}
-
-func (x *UniversalGroupEvloopOutput) sizeField6() (n int) {
 	if x.GetDisbandGroup() == nil {
 		return n
 	}
-	n += fastpb.SizeMessage(6, x.GetDisbandGroup())
+	n += fastpb.SizeMessage(4, x.GetDisbandGroup())
 	return n
 }
 
 var fieldIDToName_AlterGroupMemberRequest = map[int32]string{
-	2: "GroupId",
-	3: "IsAdd",
-	4: "MemberId",
+	1: "GroupId",
+	2: "MemberId",
+	3: "Status",
+	4: "ChangeType",
 	5: "RelationVersion",
 }
 
@@ -1286,15 +1326,17 @@ var fieldIDToName_DisbandGroupRequest = map[int32]string{
 var fieldIDToName_DisbandGroupResponse = map[int32]string{}
 
 var fieldIDToName_UniversalGroupEvloopInput = map[int32]string{
-	3: "AlterGroupMember",
-	4: "SubscribeGroup",
-	5: "SendMessage",
-	6: "DisbandGroup",
+	1: "AlterGroupMember",
+	2: "SubscribeGroup",
+	3: "SendMessage",
+	4: "DisbandGroup",
 }
 
 var fieldIDToName_UniversalGroupEvloopOutput = map[int32]string{
-	3: "AlterGroupMember",
-	4: "SubscribeGroup",
-	5: "SendMessage",
-	6: "DisbandGroup",
+	1: "AlterGroupMember",
+	2: "SubscribeGroup",
+	3: "SendMessage",
+	4: "DisbandGroup",
 }
+
+var _ = base.File_base_base_proto

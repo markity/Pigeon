@@ -23,3 +23,7 @@ type BizHandleApply struct {
 	GroupId string `json:"group_id"`
 	Accept  bool   `json:"accept"`
 }
+
+type BizSub struct {
+	GroupId string `json:"group_id"`
+}

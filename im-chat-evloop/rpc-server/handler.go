@@ -2,6 +2,7 @@ package rpcserver
 
 import (
 	"context"
+	"fmt"
 	"pigeon/common/keylock"
 	"pigeon/im-chat-evloop/api"
 	"pigeon/im-chat-evloop/evloop"
@@ -79,6 +80,8 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 		s.CurrentVersionMu.Unlock()
 	}
 
+	fmt.Println("universal group request in")
+
 	lp, ok := s.ChatEventloops.Load(req.GroupId)
 	if !ok {
 		// 群不存在, 此时发生迁移, 加迁移锁
@@ -134,6 +137,8 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 			Version: newVersion,
 		}, nil
 	}
+
+	fmt.Println("universal group request out")
 
 	// 信息发送成功
 	return &imchatevloop.UniversalGroupEvloopRequestResp{

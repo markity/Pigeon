@@ -6,7 +6,10 @@ import (
 	"log"
 
 	bizprotocol "pigeon/common/biz_protocol"
+	"pigeon/im-relay/api"
 	"pigeon/im-relay/handle"
+	"pigeon/kitex_gen/service/evloopio"
+	"pigeon/kitex_gen/service/imchatevloop"
 	"pigeon/kitex_gen/service/imrelation"
 	"pigeon/kitex_gen/service/imrelay"
 )
@@ -29,6 +32,55 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 		if err != nil {
 			log.Printf("failed to call create group rpc: %v\n", err)
 		}
+	case "chat-group-sub":
+		var createGroupReq bizprotocol.BizSub
+		err := json.Unmarshal(req.Data, &createGroupReq)
+		if err != nil {
+			log.Printf("failed to unmarshal sub group request, err: %v, data: %v\n", err, string(req.Data))
+			return
+		}
+
+		// TODO 这里可以无限重试
+		resp, err := ctx.RelationCli.GetGroupInfo(context.Background(), &imrelation.GetGroupInfoReq{
+			GroupId: createGroupReq.GroupId,
+		})
+		if err != nil {
+			log.Printf("failed to call GetGroupInfo rpc, err: %v\n", err)
+
+			return
+		}
+		if !resp.Exists {
+			return
+		}
+
+		for {
+			evloopSpec, version := ctx.EvCfgWatcher.GetNode(createGroupReq.GroupId)
+			cli := api.MustNewChatEvLoopCliFromAdAddr(evloopSpec.IPPort)
+			resp, err := cli.UniversalGroupEvloopRequest(context.Background(), &imchatevloop.UniversalGroupEvloopRequestReq{
+				Version: version,
+				GroupId: createGroupReq.GroupId,
+				Input: &evloopio.UniversalGroupEvloopInput{
+					Input: &evloopio.UniversalGroupEvloopInput_SubscribeGroup{
+						SubscribeGroup: &evloopio.SubscribeGroupRequest{
+							UserId:              req.Session.Username,
+							SessionId:           req.Session.SessionId,
+							GroupId:             createGroupReq.GroupId,
+							GwAdvertiseAddrPort: req.Session.GwAdvertiseAddrPort,
+						},
+					},
+				},
+			})
+			if err != nil {
+				log.Printf("failed to call UniversalGroupEvloopRequest rpc, err: %v\n", err)
+				break
+			}
+			if !resp.Success {
+				ctx.EvCfgWatcher.ForceUpdate(resp.Version)
+				continue
+			}
+			break
+		}
+
 	// 群聊发消息
 	case "chat-group-send-msg":
 		// var sendMsgReq bizprotocol.BizSendMessage

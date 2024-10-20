@@ -75,7 +75,8 @@ func (s *RPCServer) QuitGroup(ctx context.Context, req *imrelation.QuitGroupReq)
 				Input: &evloopio.UniversalGroupEvloopInput_AlterGroupMember{
 					AlterGroupMember: &evloopio.AlterGroupMemberRequest{
 						GroupId:         req.GroupId,
-						IsAdd:           false,
+						Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
+						ChangeType:      base.RelationChangeType_RELATION_CHANGE_TYPE_MEMBER_QUIT,
 						MemberId:        relation.OwnerId,
 						RelationVersion: relation.RelationCounter,
 					},
