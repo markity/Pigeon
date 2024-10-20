@@ -11,7 +11,7 @@ import (
 
 func HandleEcho(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 	if req.Biz == "echo" {
-		cli := api.MustNewIMGatewayClientFromAdAddr(req.Session.GwAdvertiseAddrPort)
+		cli := api.MustNewIMGatewayClientFromAdAddr(req.Session.GwAdvertiseAddrport)
 		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
 			SessionId: req.Session.SessionId,
 			PushType:  "push-echo",

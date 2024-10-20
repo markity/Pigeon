@@ -22,7 +22,7 @@ type CreateGroupRespInput struct {
 }
 
 func CreateGroupResp(session *base.SessionEntry, input *CreateGroupRespInput) {
-	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrPort)
+	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrport)
 	for {
 		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
 			SessionId: session.SessionId,
@@ -57,7 +57,7 @@ type relationEntry struct {
 }
 
 func FetchAllRelationsResp(session *base.SessionEntry, input *FetchAllRelationsRespInput) {
-	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrPort)
+	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrport)
 	myRelations := make([]*relationEntry, 0, len(input.Relations))
 	for _, v := range input.Relations {
 		myRelations = append(myRelations, &relationEntry{
@@ -101,7 +101,7 @@ type applyEntry struct {
 }
 
 func FetchAllAppliesResp(session *base.SessionEntry, input *FetchAllAppliesRespInput) {
-	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrPort)
+	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrport)
 	myRelations := make([]*applyEntry, 0, len(input.Applies))
 	for _, v := range input.Applies {
 		myRelations = append(myRelations, &applyEntry{
@@ -137,7 +137,7 @@ type ApplyGroupRespInput struct {
 }
 
 func ApplyGroupResp(session *base.SessionEntry, input *ApplyGroupRespInput) {
-	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrPort)
+	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrport)
 	for {
 		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
 			SessionId: session.SessionId,
@@ -184,7 +184,7 @@ func ApplyGroupNotify(input *ApplyGroupNotifyInput) {
 	}
 
 	for _, v := range queryResp.Routes {
-		gwCli := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort)
+		gwCli := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrport)
 		// 此处retry是因为网络原因, 比如网断了, 重试是安全的, 保证客户端至少收到消息一次
 		// 客户端也得做自己的幂等, 防止消息重放导致副作用
 	retry:
@@ -238,7 +238,7 @@ func HandleApplyNotify(input *HandleApplyNotifyInput) {
 	}
 
 	for _, v := range queryResp.Routes {
-		gwCli := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort)
+		gwCli := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrport)
 		// 此处retry是因为网络原因, 比如网断了, 重试是安全的, 保证客户端至少收到消息一次
 		// 客户端也得做自己的幂等, 防止消息重放导致副作用
 	retry:
@@ -278,7 +278,7 @@ type HandleApplyRespInput struct {
 }
 
 func HandleApplyResp(session *base.SessionEntry, input *HandleApplyRespInput) {
-	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrPort)
+	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrport)
 	for {
 		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
 			SessionId: session.SessionId,
@@ -331,7 +331,7 @@ func RelationChangeNotify(input *RelationChangeNotifyInput) {
 	}
 
 	for _, v := range queryResp.Routes {
-		gwCli := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort)
+		gwCli := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrport)
 		// 此处retry是因为网络原因, 比如网断了, 重试是安全的, 保证客户端至少收到消息一次
 		// 客户端也得做自己的幂等, 防止消息重放导致副作用
 	retry:
@@ -363,7 +363,7 @@ type QuitGroupRespInput struct {
 }
 
 func QuitGroupResp(session *base.SessionEntry, input *QuitGroupRespInput) {
-	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrPort)
+	cli := api.NewGatewayClientFromAdAddr(session.GwAdvertiseAddrport)
 	for {
 		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
 			SessionId: session.SessionId,

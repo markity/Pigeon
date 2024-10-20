@@ -5,34 +5,36 @@ option go_package = "service/base";
 
 message Empty {};
 
+// session信息, 一个session代表一个已经登录的长链接
 message SessionEntry {
     int64 login_at = 1;
     string username = 2;
     string session_id = 3;
     string device_desc = 4;
-    string gwAdvertiseAddrPort = 5;
+    string gw_advertise_addrport = 5;
 };
 
+// 关系状态, 一个人关于一个群的状态, 目前有非群成员/群主/群员三种关系
 enum RelationStatus {
   RELATION_STATUS_UNUSED = 0;
-  RELATION_STATUS_NOT_IN_GROUP = 1;
-  RELATION_STATUS_OWNER = 2;
-  RELATION_STATUS_MEMBER = 3;
+  RELATION_STATUS_NOT_IN_GROUP = 1; // 非成员
+  RELATION_STATUS_OWNER = 2;        // 群主
+  RELATION_STATUS_MEMBER = 3;       // 群员
 };
 
+// 关系改变原因, 表示上次关系修改的原因
 enum RelationChangeType {
   RELATION_CHANGE_TYPE_UNUSED = 0;
-  RELATION_CHNAGE_TYPE_NONE = 1;
-  RELATION_CHANGE_TYPE_OWNER_ACCEPT = 2;
-  RELATION_CHANGE_TYPE_MEMBER_QUIT = 3;
+  RELATION_CHANGE_TYPE_CREATE_GROUP = 1; // 因为创建群聊, 群主关于这个群的change type只能是这个, 且关系version为1
+  RELATION_CHANGE_TYPE_OWNER_ACCEPT = 2; // 因为群聊owner接受申请, 成为群员
+  RELATION_CHANGE_TYPE_MEMBER_QUIT = 3;  // 因为群员主动退出, 成为非群员
 }
 
 enum ApplyStatus {
   APPLY_STATUS_UNUSED = 0;
-  APPLY_STATUS_NONE = 1;
-  APPLY_STATUS_PENDING = 2;
-  APPLY_STATUS_ACCEPTED = 3;
-  APPLY_STATUS_REJECTED = 4;
+  APPLY_STATUS_PENDING = 1;
+  APPLY_STATUS_ACCEPTED = 2;
+  APPLY_STATUS_REJECTED = 3;
   // 如果群已经呗解散, 用户再次操作apply, 状态会变成group disbanded
-  APPLY_STATUS_GROUP_DISBANDED = 5;
+  APPLY_STATUS_GROUP_DISBANDED = 4;
 };

@@ -59,7 +59,7 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 		Username:            req.Username,
 		SessionId:           sessionId,
 		DeviceDesc:          req.DeviceDesc,
-		GwAdvertiseAddrPort: req.GwAdvertiseAddrPort,
+		GwAdvertiseAddrport: req.GwAdvertiseAddrPort,
 	})
 	if err != nil {
 		log.Printf("redis login error: %v\n", err)
@@ -78,7 +78,7 @@ func (server *RPCServer) Login(ctx context.Context, req *imauthroute.LoginReq) (
 		if v.SessionId != sessionId {
 			go func() {
 				for {
-					_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
+					_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrport).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
 						SessionId: v.SessionId,
 						Version:   result.Version,
 						Sessions:  result.AllSessions,
@@ -112,7 +112,7 @@ func (server *RPCServer) Logout(ctx context.Context, req *imauthroute.LogoutReq)
 	for _, v := range result.AllSessions {
 		go func() {
 			for {
-				_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
+				_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrport).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
 					SessionId: v.SessionId,
 					Version:   result.Version,
 					Sessions:  result.AllSessions,
@@ -153,7 +153,7 @@ func (server *RPCServer) ForceOffline(ctx context.Context, req *imauthroute.Forc
 		for _, v := range result.AllSessions {
 			go func() {
 				for {
-					_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrPort).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
+					_, err := api.NewGatewayClientFromAdAddr(v.GwAdvertiseAddrport).BroadcastDeviceInfo(context.Background(), &imgateway.BroadcastDeviceInfoReq{
 						SessionId: v.SessionId,
 						Version:   result.Version,
 						Sessions:  result.AllSessions,
@@ -170,7 +170,7 @@ func (server *RPCServer) ForceOffline(ctx context.Context, req *imauthroute.Forc
 		// 对targetSession发退出消息
 		go func() {
 			for {
-				_, err = api.NewGatewayClientFromAdAddr(result.ToSession.GwAdvertiseAddrPort).OtherDeviceKick(context.Background(), &imgateway.OtherDeviceKickReq{
+				_, err = api.NewGatewayClientFromAdAddr(result.ToSession.GwAdvertiseAddrport).OtherDeviceKick(context.Background(), &imgateway.OtherDeviceKickReq{
 					FromSession:     req.SelfSessionId,
 					FromSessionDesc: result.FromSession.DeviceDesc,
 					ToSession:       req.RemoteSessionId,
@@ -205,7 +205,7 @@ func (server *RPCServer) QuerySessionRoute(ctx context.Context, req *imauthroute
 			Username:            result.Username,
 			SessionId:           result.SessionId,
 			DeviceDesc:          result.DeviceDesc,
-			GwAdvertiseAddrPort: result.GwAdvertiseAddrPort,
+			GwAdvertiseAddrport: result.GwAdvertiseAddrport,
 		},
 	}, nil
 }

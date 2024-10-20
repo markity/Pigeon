@@ -65,7 +65,7 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 							UserId:              req.Session.Username,
 							SessionId:           req.Session.SessionId,
 							GroupId:             createGroupReq.GroupId,
-							GwAdvertiseAddrPort: req.Session.GwAdvertiseAddrPort,
+							GwAdvertiseAddrPort: req.Session.GwAdvertiseAddrport,
 						},
 					},
 				},

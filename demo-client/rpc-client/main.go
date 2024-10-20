@@ -141,7 +141,7 @@ func main() {
 						win.SendLineBack("    username: " + resp.Route.Username)
 						win.SendLineBack("    sessionId: " + resp.Route.SessionId)
 						win.SendLineBack("    deviceDesc: " + resp.Route.DeviceDesc)
-						win.SendLineBack("    gwAdAddrPort: " + resp.Route.GwAdvertiseAddrPort)
+						win.SendLineBack("    gwAdAddrPort: " + resp.Route.GwAdvertiseAddrport)
 					} else {
 						win.SendLineBack("    no route found")
 					}
@@ -160,7 +160,7 @@ func main() {
 						win.SendLineBack("        username: " + v.Username)
 						win.SendLineBack("        sessionId: " + v.SessionId)
 						win.SendLineBack("        deviceDesc: " + v.DeviceDesc)
-						win.SendLineBack("        gwAdAddrPort: " + v.GwAdvertiseAddrPort)
+						win.SendLineBack("        gwAdAddrPort: " + v.GwAdvertiseAddrport)
 					}
 				}
 			case *pushCmd:

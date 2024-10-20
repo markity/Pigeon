@@ -101,7 +101,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		ApplyMsg:     "",
 		CreatedAt:    now.UnixMilli(),
 		UpdatedAt:    now.UnixMilli(),
-		Status:       base.ApplyStatus_APPLY_STATUS_NONE,
+		Status:       0,
 		GroupOwnerId: group.OwnerId,
 	})
 	if err != nil {

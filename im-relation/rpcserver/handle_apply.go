@@ -50,7 +50,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		OwnerId:         req.UserId,
 		GroupId:         groupIdInt,
 		Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
-		ChangeType:      base.RelationChangeType_RELATION_CHNAGE_TYPE_NONE,
+		ChangeType:      0,
 		RelationCounter: 0,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),
@@ -67,7 +67,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		ApplyMsg:     "",
 		CreatedAt:    now.UnixMilli(),
 		UpdatedAt:    now.UnixMilli(),
-		Status:       base.ApplyStatus_APPLY_STATUS_NONE,
+		Status:       0,
 		GroupOwnerId: groupInfo.OwnerId,
 	})
 	if err != nil {

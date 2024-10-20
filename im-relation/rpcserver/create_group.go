@@ -45,7 +45,7 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 		OwnerId:         req.Session.Username,
 		GroupId:         group.Id,
 		Status:          base.RelationStatus_RELATION_STATUS_OWNER,
-		ChangeType:      base.RelationChangeType_RELATION_CHNAGE_TYPE_NONE,
+		ChangeType:      0,
 		RelationCounter: 1,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),

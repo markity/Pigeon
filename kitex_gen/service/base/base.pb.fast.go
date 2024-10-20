@@ -86,7 +86,7 @@ func (x *SessionEntry) fastReadField4(buf []byte, _type int8) (offset int, err e
 }
 
 func (x *SessionEntry) fastReadField5(buf []byte, _type int8) (offset int, err error) {
-	x.GwAdvertiseAddrPort, offset, err = fastpb.ReadString(buf, _type)
+	x.GwAdvertiseAddrport, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
@@ -142,10 +142,10 @@ func (x *SessionEntry) fastWriteField4(buf []byte) (offset int) {
 }
 
 func (x *SessionEntry) fastWriteField5(buf []byte) (offset int) {
-	if x.GwAdvertiseAddrPort == "" {
+	if x.GwAdvertiseAddrport == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 5, x.GetGwAdvertiseAddrPort())
+	offset += fastpb.WriteString(buf[offset:], 5, x.GetGwAdvertiseAddrport())
 	return offset
 }
 
@@ -201,10 +201,10 @@ func (x *SessionEntry) sizeField4() (n int) {
 }
 
 func (x *SessionEntry) sizeField5() (n int) {
-	if x.GwAdvertiseAddrPort == "" {
+	if x.GwAdvertiseAddrport == "" {
 		return n
 	}
-	n += fastpb.SizeString(5, x.GetGwAdvertiseAddrPort())
+	n += fastpb.SizeString(5, x.GetGwAdvertiseAddrport())
 	return n
 }
 
@@ -215,5 +215,5 @@ var fieldIDToName_SessionEntry = map[int32]string{
 	2: "Username",
 	3: "SessionId",
 	4: "DeviceDesc",
-	5: "GwAdvertiseAddrPort",
+	5: "GwAdvertiseAddrport",
 }
