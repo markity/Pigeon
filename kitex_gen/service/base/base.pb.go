@@ -131,9 +131,9 @@ type ApplyStatus int32
 
 const (
 	ApplyStatus_APPLY_STATUS_UNUSED   ApplyStatus = 0
-	ApplyStatus_APPLY_STATUS_PENDING  ApplyStatus = 1
-	ApplyStatus_APPLY_STATUS_ACCEPTED ApplyStatus = 2
-	ApplyStatus_APPLY_STATUS_REJECTED ApplyStatus = 3
+	ApplyStatus_APPLY_STATUS_PENDING  ApplyStatus = 1 // 等待处理
+	ApplyStatus_APPLY_STATUS_ACCEPTED ApplyStatus = 2 // 已被处理, 被accept
+	ApplyStatus_APPLY_STATUS_REJECTED ApplyStatus = 3 // 已被处理, 被reject
 	// 如果群已经呗解散, 用户再次操作apply, 状态会变成group disbanded
 	ApplyStatus_APPLY_STATUS_GROUP_DISBANDED ApplyStatus = 4
 )
