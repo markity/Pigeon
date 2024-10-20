@@ -9,8 +9,10 @@ type BizPullRelations struct {
 }
 
 type BizSendMessage struct {
-	GroupId string `json:"group_id"`
-	Msg     string `json:"msg"`
+	GroupId         string `json:"group_id"`
+	Msg             string `json:"msg"`
+	CheckIdempotent bool   `json:"check_idempotent"`
+	IdempotentKey   string `json:"idempotent_key"`
 }
 
 type BizSendApply struct {

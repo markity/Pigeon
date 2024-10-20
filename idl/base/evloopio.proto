@@ -9,11 +9,10 @@ import "base/base.proto";
 
 // 更改群组成员, 由im-relation调用
 message AlterGroupMemberRequest {
-  string group_id = 1;
-  string member_id = 2;
-  base.RelationStatus status = 3;
-  base.RelationChangeType change_type = 4;
-  int64 relation_version = 5; 
+  string member_id = 1;
+  base.RelationStatus status = 2;
+  base.RelationChangeType change_type = 3;
+  int64 relation_version = 4; 
 }
 
 message AlterGroupMemberResponse {
@@ -50,10 +49,9 @@ message SubscribeGroupResponse {
 
 // 发送消息
 message SendMessageRequest {
-  string groupId = 1;
-  bytes message_data = 2;
-  bool check_idempotent = 3;   // 是否需要检查幂等
-  string idempotent_key = 4;  // 幂等key
+  bytes message_data = 1;
+  bool check_idempotent = 2;   // 是否需要检查幂等
+  string idempotent_key = 3;  // 幂等key
 }
 
 message SendMessageResponse {

@@ -322,7 +322,7 @@ func (c *ChatEvLoop) start() {
 
 					switch inputSpec := spec.Input.Input.(type) {
 					case *evloopio.UniversalGroupEvloopInput_AlterGroupMember:
-						c.relations[inputSpec.AlterGroupMember.GroupId] = &MemberInfo{
+						c.relations[inputSpec.AlterGroupMember.MemberId] = &MemberInfo{
 							UserId:          inputSpec.AlterGroupMember.MemberId,
 							RelationVersion: inputSpec.AlterGroupMember.RelationVersion,
 							Status:          inputSpec.AlterGroupMember.Status,
@@ -355,7 +355,7 @@ func (c *ChatEvLoop) start() {
 						// store(inputSpec, msgSeq)
 						// 广播seq id
 						now := time.Now()
-						startBroadcastSeqId(c.subscribers, inputSpec.SendMessage.GroupId, msgSeq, now)
+						startBroadcastSeqId(c.subscribers, c.chatId, msgSeq, now)
 					case *evloopio.UniversalGroupEvloopInput_SubscribeGroup:
 						// 判断relation是否ok
 						relation := c.relations[inputSpec.SubscribeGroup.UserId]

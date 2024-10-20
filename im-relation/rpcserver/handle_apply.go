@@ -201,7 +201,6 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 			Input: &evloopio.UniversalGroupEvloopInput{
 				Input: &evloopio.UniversalGroupEvloopInput_AlterGroupMember{
 					AlterGroupMember: &evloopio.AlterGroupMemberRequest{
-						GroupId:         req.GroupId,
 						Status:          base.RelationStatus_RELATION_STATUS_MEMBER,
 						MemberId:        apply.OwnerId,
 						RelationVersion: apply.ApplyCounter,
