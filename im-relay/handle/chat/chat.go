@@ -62,10 +62,7 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 				Input: &evloopio.UniversalGroupEvloopInput{
 					Input: &evloopio.UniversalGroupEvloopInput_SubscribeGroup{
 						SubscribeGroup: &evloopio.SubscribeGroupRequest{
-							UserId:              req.Session.Username,
-							SessionId:           req.Session.SessionId,
-							GroupId:             createGroupReq.GroupId,
-							GwAdvertiseAddrPort: req.Session.GwAdvertiseAddrport,
+							Session: req.Session,
 						},
 					},
 				},

@@ -2,6 +2,9 @@ package evloop
 
 import (
 	"fmt"
+	"log"
+	relationmanager "pigeon/im-chat-evloop/evloop/relation_manager"
+	subscribemanager "pigeon/im-chat-evloop/evloop/subscribe_manager"
 	"pigeon/im-chat-evloop/push"
 	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/evloopio"
@@ -21,30 +24,19 @@ const (
 	statusStop
 )
 
-type SubscriberInfo struct {
-	GwAddrPort               string
-	SessionId                string
-	SubscribeRelationVersion int64
-}
-
-type MemberInfo struct {
-	UserId          string
-	RelationVersion int64
-	Status          base.RelationStatus
-	ChangeType      base.RelationChangeType
-}
-
 type ChatEvLoop struct {
 	chatId  string
 	ownerId string
 
+	createdAt int64
+
 	seqId int64
 
 	// 全量群员信息, key是userId
-	relations map[string]*MemberInfo
+	relationManager *relationmanager.RelationManager
 
 	// 订阅者信息, key是userId
-	subscribers map[string][]*SubscriberInfo
+	subscribeManager *subscribemanager.SubscribeManager
 
 	// 作用1: 保护queue
 	// 作用2: 变更status
@@ -67,20 +59,23 @@ type evInputUniversal struct {
 	Input *evloopio.UniversalGroupEvloopInput
 }
 
-type evOutputMove struct {
-	Err       error // queueMessageError, 可能是stop
+// 拿到evloop的全部状态, 用于迁移
+type EvOutputMove struct {
+	err       error // queueMessageError, 可能是stop
+	ChatId    string
 	OwnerId   string
+	CreatedAt int64
 	SeqId     int64
-	Subs      map[string][]*SubscriberInfo
-	Relations map[string]*MemberInfo
+	Relations map[string]*base.RelationEntry
+	Subs      map[string](map[string]*subscribemanager.Sub)
 }
 
-type evOutputStop struct {
-	Err error // queueMessageError, 可能是running
+type EvOutputStop struct {
+	err error // queueMessageError, 可能是running
 }
 
-type evOutputUniversal struct {
-	Err    error // queueMessageError, 可能是stop或moving
+type EvOutputUniversal struct {
+	err    error // queueMessageError, 可能是stop或moving
 	Output *evloopio.UniversalGroupEvloopOutput
 }
 
@@ -90,56 +85,45 @@ type NewChatEvLoopInput struct {
 	OwnerId string
 }
 
-func NewChatEvLoopAndStart(in *NewChatEvLoopInput) *ChatEvLoop {
-	mems := make(map[string]*MemberInfo)
-	mems[in.OwnerId] = &MemberInfo{
-		UserId:          in.OwnerId,
-		RelationVersion: 1,
-		Status:          base.RelationStatus_RELATION_STATUS_OWNER,
-	}
+// 群聊创建时间由chat-evloop server生成
+func NewChatEvLoopAndStart(in *NewChatEvLoopInput) (loop *ChatEvLoop, createdAt int64) {
+	now := time.Now()
 	lp := &ChatEvLoop{
-		chatId:      in.ChatId,
-		ownerId:     in.OwnerId,
-		relations:   mems,
-		subscribers: make(map[string][]*SubscriberInfo),
-		status:      statusRunning,
-		queue:       make([]*evInput, 0, 1024),
+		chatId:  in.ChatId,
+		ownerId: in.OwnerId,
+		relationManager: relationmanager.NewRelationManager(&base.RelationEntry{
+			GroupId:         in.ChatId,
+			UserId:          in.OwnerId,
+			Status:          base.RelationStatus_RELATION_STATUS_OWNER,
+			ChangeType:      base.RelationChangeType_RELATION_CHANGE_TYPE_CREATE_GROUP,
+			RelationVersion: 1,
+			ChangeAt:        now.UnixMilli(),
+		}),
+		subscribeManager: subscribemanager.NewSubscribeManager(),
+		status:           statusRunning,
+		queue:            make([]*evInput, 0, 1024),
 	}
 	lp.cond = sync.NewCond(&lp.queueMu)
 	lp.start()
-	return lp
+	return lp, now.UnixMilli()
 }
 
 func NewMigrateEvLoop(resp *imchatevloop.DoMigrateResp) *ChatEvLoop {
-	members := make(map[string]*MemberInfo)
-	for _, v := range resp.Relations {
-		members[v.MemberId] = &MemberInfo{
-			UserId:          v.MemberId,
-			RelationVersion: v.RelationVersion,
-			Status:          v.Status,
-			ChangeType:      v.ChangeType,
-		}
-	}
-
-	subscriberInfos := make(map[string][]*SubscriberInfo)
-	for k, v := range resp.Subscribers {
-		subscriberInfos[k] = make([]*SubscriberInfo, 0)
-		for _, ent := range v.SessionEntries {
-			subscriberInfos[k] = append(subscriberInfos[k], &SubscriberInfo{
-				GwAddrPort:               ent.GwAddrport,
-				SessionId:                ent.SessionId,
-				SubscribeRelationVersion: ent.OnSubRelationVersion,
-			})
-		}
-	}
+	relationMan := relationmanager.NewRelationManagerFromMigrage(resp)
+	subscrberMan := subscribemanager.NewSubscrbieManagerFromMigrage(resp)
 
 	lp := &ChatEvLoop{
-		chatId:      resp.GroupId,
-		ownerId:     resp.OwnerId,
-		relations:   members,
-		subscribers: subscriberInfos,
-		status:      statusRunning,
+		chatId:           resp.GroupId,
+		ownerId:          resp.OwnerId,
+		createdAt:        resp.CreatedAt,
+		relationManager:  relationMan,
+		subscribeManager: subscrberMan,
+		queueMu:          sync.Mutex{},
+		cond:             nil,
+		status:           statusRunning,
+		queue:            make([]*evInput, 0, 1024),
 	}
+	lp.cond = sync.NewCond(&lp.queueMu)
 	lp.start()
 	return lp
 }
@@ -193,7 +177,7 @@ func IsErrRunning(e error) bool {
 }
 
 func (c *ChatEvLoop) QueueMessage(msg *evloopio.UniversalGroupEvloopInput) (
-	*evloopio.UniversalGroupEvloopOutput, error) {
+	*EvOutputUniversal, error) {
 	fmt.Println("queue message in")
 	outChan := make(chan interface{}, 1)
 	c.queueMu.Lock()
@@ -220,19 +204,12 @@ func (c *ChatEvLoop) QueueMessage(msg *evloopio.UniversalGroupEvloopInput) (
 	fmt.Println("waiting")
 
 	output := <-outChan
-	out := output.(*evOutputUniversal)
+	out := output.(*EvOutputUniversal)
 	fmt.Println("queue message out")
-	return out.Output, out.Err
+	return out, nil
 }
 
-type MoveOutput struct {
-	OwnerId   string
-	SeqId     int64
-	Subs      map[string][]*SubscriberInfo
-	Relations map[string]*MemberInfo
-}
-
-func (c *ChatEvLoop) Move() (*MoveOutput, error) {
+func (c *ChatEvLoop) Move() (*EvOutputMove, error) {
 	fmt.Println("lock")
 	c.queueMu.Lock()
 	status := c.status
@@ -248,17 +225,11 @@ func (c *ChatEvLoop) Move() (*MoveOutput, error) {
 	c.queueMu.Unlock()
 
 	output := <-outChan
-	out := output.(*evOutputMove)
-	mo := &MoveOutput{
-		OwnerId:   out.OwnerId,
-		SeqId:     out.SeqId,
-		Subs:      out.Subs,
-		Relations: out.Relations,
+	out := output.(*EvOutputMove)
+	if out.err != nil {
+		return nil, out.err
 	}
-	if out.Err != nil {
-		return nil, out.Err
-	}
-	return mo, nil
+	return out, nil
 }
 
 func (c *ChatEvLoop) Stop() error {
@@ -279,8 +250,8 @@ func (c *ChatEvLoop) Stop() error {
 	c.queueMu.Unlock()
 
 	output := <-outChan
-	out := output.(*evOutputStop)
-	return out.Err
+	out := output.(*EvOutputStop)
+	return out.err
 }
 
 func (c *ChatEvLoop) start() {
@@ -313,8 +284,8 @@ func (c *ChatEvLoop) start() {
 						err = &errStop
 					}
 					if err != nil {
-						request.output <- &evOutputUniversal{
-							Err:    err,
+						request.output <- &EvOutputUniversal{
+							err:    err,
 							Output: nil,
 						}
 						continue
@@ -322,25 +293,21 @@ func (c *ChatEvLoop) start() {
 
 					switch inputSpec := spec.Input.Input.(type) {
 					case *evloopio.UniversalGroupEvloopInput_AlterGroupMember:
-						c.relations[inputSpec.AlterGroupMember.MemberId] = &MemberInfo{
-							UserId:          inputSpec.AlterGroupMember.MemberId,
-							RelationVersion: inputSpec.AlterGroupMember.RelationVersion,
-							Status:          inputSpec.AlterGroupMember.Status,
-							ChangeType:      inputSpec.AlterGroupMember.ChangeType,
+						err := c.relationManager.UpdateRelation(inputSpec.AlterGroupMember.Relation)
+						if err != nil {
+							log.Printf("update relation err: %v\n", err)
 						}
 						// 然后需要将以前的订阅者全部删除
-						subs := c.subscribers[inputSpec.AlterGroupMember.MemberId]
-						if len(subs) != 0 && subs[0].SubscribeRelationVersion < inputSpec.AlterGroupMember.RelationVersion {
-							c.subscribers[inputSpec.AlterGroupMember.MemberId] = make([]*SubscriberInfo, 0)
-						}
-						request.output <- &evOutputUniversal{
-							Err: nil,
+						c.subscribeManager.RemoveOldSubs(inputSpec.AlterGroupMember.Relation.UserId, inputSpec.AlterGroupMember.Relation.RelationVersion)
+						request.output <- &EvOutputUniversal{
+							err: nil,
 							Output: &evloopio.UniversalGroupEvloopOutput{
 								Output: &evloopio.UniversalGroupEvloopOutput_AlterGroupMember{
 									AlterGroupMember: &evloopio.AlterGroupMemberResponse{
 										Code:            evloopio.AlterGroupMemberResponse_OK,
-										RelationVersion: spec.Input.GetAlterGroupMember().RelationVersion,
+										RelationVersion: spec.Input.GetAlterGroupMember().Relation.RelationVersion,
 										CurrentSeqId:    c.seqId,
+										ChangeAt:        inputSpec.AlterGroupMember.Relation.ChangeAt,
 									},
 								},
 							},
@@ -355,14 +322,13 @@ func (c *ChatEvLoop) start() {
 						// store(inputSpec, msgSeq)
 						// 广播seq id
 						now := time.Now()
-						startBroadcastSeqId(c.subscribers, c.chatId, msgSeq, now)
+						startBroadcastSeqId(c.subscribeManager.SnapshotAllSubs(), c.chatId, msgSeq, now)
 					case *evloopio.UniversalGroupEvloopInput_SubscribeGroup:
 						// 判断relation是否ok
-						relation := c.relations[inputSpec.SubscribeGroup.UserId]
-						if relation == nil || relation.Status ==
-							base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP {
-							request.output <- &evOutputUniversal{
-								Err: nil,
+						relationVersion, ok := c.relationManager.CanSubscribe(inputSpec.SubscribeGroup.Session.Username)
+						if !ok {
+							request.output <- &EvOutputUniversal{
+								err: nil,
 								Output: &evloopio.UniversalGroupEvloopOutput{
 									Output: &evloopio.UniversalGroupEvloopOutput_SubscribeGroup{
 										SubscribeGroup: &evloopio.SubscribeGroupResponse{
@@ -373,9 +339,9 @@ func (c *ChatEvLoop) start() {
 							}
 							go func() {
 								push.SeqResp(&push.SubRespInput{
-									GwAddrPort:      inputSpec.SubscribeGroup.GwAdvertiseAddrPort,
-									SessionId:       inputSpec.SubscribeGroup.SessionId,
-									GroupId:         inputSpec.SubscribeGroup.GroupId,
+									GwAddrPort:      inputSpec.SubscribeGroup.Session.GwAdvertiseAddrport,
+									SessionId:       inputSpec.SubscribeGroup.Session.SessionId,
+									GroupId:         c.chatId,
 									SubOk:           false,
 									RelationVersion: 0,
 									SeqId:           -1,
@@ -385,20 +351,15 @@ func (c *ChatEvLoop) start() {
 						}
 
 						// relation ok, 注册进去
-						c.subscribers[inputSpec.SubscribeGroup.UserId] = append(
-							c.subscribers[inputSpec.SubscribeGroup.UserId],
-							&SubscriberInfo{
-								GwAddrPort:               inputSpec.SubscribeGroup.GwAdvertiseAddrPort,
-								SessionId:                inputSpec.SubscribeGroup.SessionId,
-								SubscribeRelationVersion: relation.RelationVersion,
-							})
-						request.output <- &evOutputUniversal{
-							Err: nil,
+						c.subscribeManager.SessionSub(inputSpec.SubscribeGroup.Session.Username, inputSpec.SubscribeGroup.Session.SessionId,
+							relationVersion, inputSpec.SubscribeGroup.GetSession())
+						request.output <- &EvOutputUniversal{
+							err: nil,
 							Output: &evloopio.UniversalGroupEvloopOutput{
 								Output: &evloopio.UniversalGroupEvloopOutput_SubscribeGroup{
 									SubscribeGroup: &evloopio.SubscribeGroupResponse{
 										Code:       evloopio.SubscribeGroupResponse_OK,
-										RelationId: relation.RelationVersion,
+										RelationId: relationVersion,
 										MaxSeqId:   c.seqId,
 									},
 								},
@@ -406,11 +367,11 @@ func (c *ChatEvLoop) start() {
 						}
 						go func() {
 							push.SeqResp(&push.SubRespInput{
-								GwAddrPort:      inputSpec.SubscribeGroup.GwAdvertiseAddrPort,
-								SessionId:       inputSpec.SubscribeGroup.SessionId,
-								GroupId:         inputSpec.SubscribeGroup.GroupId,
+								GwAddrPort:      inputSpec.SubscribeGroup.Session.GwAdvertiseAddrport,
+								SessionId:       inputSpec.SubscribeGroup.Session.SessionId,
+								GroupId:         c.chatId,
 								SubOk:           true,
-								RelationVersion: relation.RelationVersion,
+								RelationVersion: relationVersion,
 								SeqId:           c.seqId,
 							})
 						}()
@@ -422,19 +383,19 @@ func (c *ChatEvLoop) start() {
 						c.status = statusBeMoving
 						c.queueMu.Unlock()
 						status = statusBeMoving
-						request.output <- &evOutputMove{
-							Err:       nil,
+						request.output <- &EvOutputMove{
+							err:       nil,
 							OwnerId:   c.ownerId,
 							SeqId:     c.seqId,
-							Subs:      c.subscribers,
-							Relations: c.relations,
+							Subs:      c.subscribeManager.GetSubscibers(),
+							Relations: c.relationManager.GetRelations(),
 						}
 						fmt.Println("move")
 					}
 				case *evInputStop:
 					if status != statusBeMoving {
-						request.output <- &evOutputStop{
-							Err: &errRunning,
+						request.output <- &EvOutputStop{
+							err: &errRunning,
 						}
 					}
 					status = statusStop
@@ -443,8 +404,8 @@ func (c *ChatEvLoop) start() {
 					requests2 = c.queue
 					c.queue = nil
 					c.queueMu.Unlock()
-					request.output <- &evOutputStop{
-						Err: nil,
+					request.output <- &EvOutputStop{
+						err: nil,
 					}
 					fmt.Println("stop")
 				}
@@ -456,8 +417,8 @@ func (c *ChatEvLoop) start() {
 					input := request.input
 					switch input.(type) {
 					case *evInputUniversal:
-						request.output <- &evOutputUniversal{
-							Err:    &errStop,
+						request.output <- &EvOutputUniversal{
+							err:    &errStop,
 							Output: nil,
 						}
 						fmt.Println("universal")
@@ -466,13 +427,13 @@ func (c *ChatEvLoop) start() {
 						c.status = statusBeMoving
 						c.queueMu.Unlock()
 						status = statusBeMoving
-						request.output <- &evOutputMove{
-							Err: &errStop,
+						request.output <- &EvOutputMove{
+							err: &errStop,
 						}
 						fmt.Println("move")
 					case *evInputStop:
-						request.output <- &evOutputStop{
-							Err: nil,
+						request.output <- &EvOutputStop{
+							err: nil,
 						}
 						fmt.Println("stop")
 					}
@@ -484,20 +445,13 @@ func (c *ChatEvLoop) start() {
 	}()
 }
 
-func startBroadcastSeqId(subs map[string][]*SubscriberInfo, groupId string, seqId int64, sendAt time.Time) {
+func startBroadcastSeqId(subs []*base.SessionEntry, groupId string, seqId int64, sendAt time.Time) {
 	// 先拷贝subs, 再异步下行seqid
-	newSubs := make([]*SubscriberInfo, 0)
-	for _, v := range subs {
-		for _, ent := range v {
-			s := *ent
-			newSubs = append(newSubs, &s)
-		}
-	}
 
 	go func() {
-		for _, sub := range newSubs {
+		for _, sub := range subs {
 			push.SeqNotify(&push.SeqNotifyInput{
-				GwAddrPort: sub.GwAddrPort,
+				GwAddrPort: sub.GwAdvertiseAddrport,
 				SessionId:  sub.SessionId,
 				SeqId:      seqId,
 				GroupId:    groupId,

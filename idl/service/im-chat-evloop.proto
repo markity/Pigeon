@@ -17,6 +17,7 @@ message CreateGroupRequest {
 message CreateGroupResponse {
   bool success = 1;
   int64 version = 2;
+  int64 created_at = 3;
 }
 
 message UniversalGroupEvloopRequestReq {
@@ -38,28 +39,24 @@ message DoMigrateReq {
 
 message DoMigrateResp {
   message RelationInfo {
-    string member_id = 1;
-    base.RelationStatus status = 2;
-    base.RelationChangeType change_type = 3;
-    int64 relation_version = 4;
+    base.RelationEntry relation = 1;
   }
 
-  message SubscribeEntry {
-    string member_id = 1;
-    string gw_addrport = 2;
-    string session_id = 3;
-    int64 on_sub_relation_version = 4;
+  message UserSubscribeEntry {
+    message SubscribeEntry {
+      int64 on_sub_relation_version = 1;
+      base.SessionEntry session = 2;
+    }
+    repeated SubscribeEntry entries = 1;
   }
 
   bool ok = 1;
   string group_id = 2;
   string owner_id = 3;
-  int64 seq_id = 4;
-  map<string, RelationInfo> relations = 5;
-  message SessionEntries {
-    repeated SubscribeEntry session_entries = 1;
-  }
-  map<string, SessionEntries> subscribers = 6;
+  int64 created_at = 4;
+  int64 seq_id = 5;
+  map<string, RelationInfo> relations = 6;
+  map<string, UserSubscribeEntry> subscribers = 7;
 }
 
 message MigrateDoneReq {

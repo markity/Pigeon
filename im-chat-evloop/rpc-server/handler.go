@@ -61,12 +61,16 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imchatevloop.CreateGro
 			Version: currentVersion,
 		}, nil
 	}
-	lp := evloop.NewChatEvLoopAndStart(&evloop.NewChatEvLoopInput{
+	lp, createdAt := evloop.NewChatEvLoopAndStart(&evloop.NewChatEvLoopInput{
 		ChatId:  req.GroupId,
 		OwnerId: req.GroupOwnerId,
 	})
 	s.ChatEventloops.Store(req.GroupId, lp)
-	return
+	return &imchatevloop.CreateGroupResponse{
+		Success:   true,
+		Version:   currentVersion,
+		CreatedAt: createdAt,
+	}, nil
 }
 func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 	req *imchatevloop.UniversalGroupEvloopRequestReq) (res *imchatevloop.UniversalGroupEvloopRequestResp, err error) {
@@ -144,7 +148,7 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 	return &imchatevloop.UniversalGroupEvloopRequestResp{
 		Success: true,
 		Version: currentVersion,
-		Output:  output,
+		Output:  output.Output,
 	}, nil
 }
 
@@ -167,23 +171,18 @@ func (s *RPCServer) DoMigrate(ctx context.Context, req *imchatevloop.DoMigrateRe
 	rlations := make(map[string]*imchatevloop.DoMigrateResp_RelationInfo)
 	for k, v := range out.Relations {
 		rlations[k] = &imchatevloop.DoMigrateResp_RelationInfo{
-			MemberId:        k,
-			Status:          v.Status,
-			ChangeType:      v.ChangeType,
-			RelationVersion: v.RelationVersion,
+			Relation: v,
 		}
 	}
-	subs := make(map[string]*imchatevloop.DoMigrateResp_SessionEntries)
+	subs := make(map[string]*imchatevloop.DoMigrateResp_UserSubscribeEntry)
 	for k, v := range out.Subs {
-		subs[k] = &imchatevloop.DoMigrateResp_SessionEntries{
-			SessionEntries: make([]*imchatevloop.DoMigrateResp_SubscribeEntry, 0),
+		subs[k] = &imchatevloop.DoMigrateResp_UserSubscribeEntry{
+			Entries: make([]*imchatevloop.DoMigrateResp_UserSubscribeEntry_SubscribeEntry, 0),
 		}
 		for _, s := range v {
-			subs[k].SessionEntries = append(subs[k].SessionEntries, &imchatevloop.DoMigrateResp_SubscribeEntry{
-				MemberId:             k,
-				GwAddrport:           s.GwAddrPort,
-				SessionId:            s.SessionId,
-				OnSubRelationVersion: s.SubscribeRelationVersion,
+			subs[k].Entries = append(subs[k].Entries, &imchatevloop.DoMigrateResp_UserSubscribeEntry_SubscribeEntry{
+				OnSubRelationVersion: s.SubRelationVersion,
+				Session:              s.Entry,
 			})
 		}
 

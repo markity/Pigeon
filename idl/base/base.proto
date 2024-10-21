@@ -7,12 +7,22 @@ message Empty {};
 
 // session信息, 一个session代表一个已经登录的长链接
 message SessionEntry {
-    int64 login_at = 1;
-    string username = 2;
-    string session_id = 3;
-    string device_desc = 4;
-    string gw_advertise_addrport = 5;
+  int64 login_at = 1;
+  string username = 2;
+  string session_id = 3;
+  string device_desc = 4;
+  string gw_advertise_addrport = 5;
 };
+
+// 某个人关于某个群的关系
+message RelationEntry {
+  string group_id = 1;
+  string user_id = 2;
+  RelationStatus status = 3;
+  RelationChangeType change_type = 4;
+  int64 relation_version = 5;
+  int64 change_at = 6;
+}
 
 // 关系状态, 一个人关于一个群的状态, 目前有非群成员/群主/群员三种关系
 enum RelationStatus {

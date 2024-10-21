@@ -20,21 +20,6 @@ func (x *AlterGroupMemberRequest) FastRead(buf []byte, _type int8, number int32)
 		if err != nil {
 			goto ReadFieldError
 		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 3:
-		offset, err = x.fastReadField3(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 4:
-		offset, err = x.fastReadField4(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -49,33 +34,13 @@ ReadFieldError:
 }
 
 func (x *AlterGroupMemberRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.MemberId, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
-
-func (x *AlterGroupMemberRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	var v int32
-	v, offset, err = fastpb.ReadInt32(buf, _type)
+	var v base.RelationEntry
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
 	if err != nil {
 		return offset, err
 	}
-	x.Status = base.RelationStatus(v)
+	x.Relation = &v
 	return offset, nil
-}
-
-func (x *AlterGroupMemberRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	var v int32
-	v, offset, err = fastpb.ReadInt32(buf, _type)
-	if err != nil {
-		return offset, err
-	}
-	x.ChangeType = base.RelationChangeType(v)
-	return offset, nil
-}
-
-func (x *AlterGroupMemberRequest) fastReadField4(buf []byte, _type int8) (offset int, err error) {
-	x.RelationVersion, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
 }
 
 func (x *AlterGroupMemberResponse) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -92,6 +57,11 @@ func (x *AlterGroupMemberResponse) FastRead(buf []byte, _type int8, number int32
 		}
 	case 3:
 		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 4:
+		offset, err = x.fastReadField4(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -128,25 +98,15 @@ func (x *AlterGroupMemberResponse) fastReadField3(buf []byte, _type int8) (offse
 	return offset, err
 }
 
+func (x *AlterGroupMemberResponse) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+	x.ChangeAt, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
 func (x *SubscribeGroupRequest) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
 	switch number {
 	case 1:
 		offset, err = x.fastReadField1(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 2:
-		offset, err = x.fastReadField2(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 3:
-		offset, err = x.fastReadField3(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
-	case 4:
-		offset, err = x.fastReadField4(buf, _type)
 		if err != nil {
 			goto ReadFieldError
 		}
@@ -164,23 +124,13 @@ ReadFieldError:
 }
 
 func (x *SubscribeGroupRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
-	x.UserId, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
-
-func (x *SubscribeGroupRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.SessionId, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
-
-func (x *SubscribeGroupRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
-}
-
-func (x *SubscribeGroupRequest) fastReadField4(buf []byte, _type int8) (offset int, err error) {
-	x.GwAdvertiseAddrPort, offset, err = fastpb.ReadString(buf, _type)
-	return offset, err
+	var v base.SessionEntry
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Session = &v
+	return offset, nil
 }
 
 func (x *SubscribeGroupResponse) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -547,41 +497,14 @@ func (x *AlterGroupMemberRequest) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
-	offset += x.fastWriteField3(buf[offset:])
-	offset += x.fastWriteField4(buf[offset:])
 	return offset
 }
 
 func (x *AlterGroupMemberRequest) fastWriteField1(buf []byte) (offset int) {
-	if x.MemberId == "" {
+	if x.Relation == nil {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 1, x.GetMemberId())
-	return offset
-}
-
-func (x *AlterGroupMemberRequest) fastWriteField2(buf []byte) (offset int) {
-	if x.Status == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt32(buf[offset:], 2, int32(x.GetStatus()))
-	return offset
-}
-
-func (x *AlterGroupMemberRequest) fastWriteField3(buf []byte) (offset int) {
-	if x.ChangeType == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt32(buf[offset:], 3, int32(x.GetChangeType()))
-	return offset
-}
-
-func (x *AlterGroupMemberRequest) fastWriteField4(buf []byte) (offset int) {
-	if x.RelationVersion == 0 {
-		return offset
-	}
-	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetRelationVersion())
+	offset += fastpb.WriteMessage(buf[offset:], 1, x.GetRelation())
 	return offset
 }
 
@@ -592,6 +515,7 @@ func (x *AlterGroupMemberResponse) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
+	offset += x.fastWriteField4(buf[offset:])
 	return offset
 }
 
@@ -619,46 +543,27 @@ func (x *AlterGroupMemberResponse) fastWriteField3(buf []byte) (offset int) {
 	return offset
 }
 
+func (x *AlterGroupMemberResponse) fastWriteField4(buf []byte) (offset int) {
+	if x.ChangeAt == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetChangeAt())
+	return offset
+}
+
 func (x *SubscribeGroupRequest) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
-	offset += x.fastWriteField2(buf[offset:])
-	offset += x.fastWriteField3(buf[offset:])
-	offset += x.fastWriteField4(buf[offset:])
 	return offset
 }
 
 func (x *SubscribeGroupRequest) fastWriteField1(buf []byte) (offset int) {
-	if x.UserId == "" {
+	if x.Session == nil {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 1, x.GetUserId())
-	return offset
-}
-
-func (x *SubscribeGroupRequest) fastWriteField2(buf []byte) (offset int) {
-	if x.SessionId == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 2, x.GetSessionId())
-	return offset
-}
-
-func (x *SubscribeGroupRequest) fastWriteField3(buf []byte) (offset int) {
-	if x.GroupId == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 3, x.GetGroupId())
-	return offset
-}
-
-func (x *SubscribeGroupRequest) fastWriteField4(buf []byte) (offset int) {
-	if x.GwAdvertiseAddrPort == "" {
-		return offset
-	}
-	offset += fastpb.WriteString(buf[offset:], 4, x.GetGwAdvertiseAddrPort())
+	offset += fastpb.WriteMessage(buf[offset:], 1, x.GetSession())
 	return offset
 }
 
@@ -887,41 +792,14 @@ func (x *AlterGroupMemberRequest) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
-	n += x.sizeField2()
-	n += x.sizeField3()
-	n += x.sizeField4()
 	return n
 }
 
 func (x *AlterGroupMemberRequest) sizeField1() (n int) {
-	if x.MemberId == "" {
+	if x.Relation == nil {
 		return n
 	}
-	n += fastpb.SizeString(1, x.GetMemberId())
-	return n
-}
-
-func (x *AlterGroupMemberRequest) sizeField2() (n int) {
-	if x.Status == 0 {
-		return n
-	}
-	n += fastpb.SizeInt32(2, int32(x.GetStatus()))
-	return n
-}
-
-func (x *AlterGroupMemberRequest) sizeField3() (n int) {
-	if x.ChangeType == 0 {
-		return n
-	}
-	n += fastpb.SizeInt32(3, int32(x.GetChangeType()))
-	return n
-}
-
-func (x *AlterGroupMemberRequest) sizeField4() (n int) {
-	if x.RelationVersion == 0 {
-		return n
-	}
-	n += fastpb.SizeInt64(4, x.GetRelationVersion())
+	n += fastpb.SizeMessage(1, x.GetRelation())
 	return n
 }
 
@@ -932,6 +810,7 @@ func (x *AlterGroupMemberResponse) Size() (n int) {
 	n += x.sizeField1()
 	n += x.sizeField2()
 	n += x.sizeField3()
+	n += x.sizeField4()
 	return n
 }
 
@@ -959,46 +838,27 @@ func (x *AlterGroupMemberResponse) sizeField3() (n int) {
 	return n
 }
 
+func (x *AlterGroupMemberResponse) sizeField4() (n int) {
+	if x.ChangeAt == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(4, x.GetChangeAt())
+	return n
+}
+
 func (x *SubscribeGroupRequest) Size() (n int) {
 	if x == nil {
 		return n
 	}
 	n += x.sizeField1()
-	n += x.sizeField2()
-	n += x.sizeField3()
-	n += x.sizeField4()
 	return n
 }
 
 func (x *SubscribeGroupRequest) sizeField1() (n int) {
-	if x.UserId == "" {
+	if x.Session == nil {
 		return n
 	}
-	n += fastpb.SizeString(1, x.GetUserId())
-	return n
-}
-
-func (x *SubscribeGroupRequest) sizeField2() (n int) {
-	if x.SessionId == "" {
-		return n
-	}
-	n += fastpb.SizeString(2, x.GetSessionId())
-	return n
-}
-
-func (x *SubscribeGroupRequest) sizeField3() (n int) {
-	if x.GroupId == "" {
-		return n
-	}
-	n += fastpb.SizeString(3, x.GetGroupId())
-	return n
-}
-
-func (x *SubscribeGroupRequest) sizeField4() (n int) {
-	if x.GwAdvertiseAddrPort == "" {
-		return n
-	}
-	n += fastpb.SizeString(4, x.GetGwAdvertiseAddrPort())
+	n += fastpb.SizeMessage(1, x.GetSession())
 	return n
 }
 
@@ -1223,23 +1083,18 @@ func (x *UniversalGroupEvloopOutput) sizeField4() (n int) {
 }
 
 var fieldIDToName_AlterGroupMemberRequest = map[int32]string{
-	1: "MemberId",
-	2: "Status",
-	3: "ChangeType",
-	4: "RelationVersion",
+	1: "Relation",
 }
 
 var fieldIDToName_AlterGroupMemberResponse = map[int32]string{
 	1: "Code",
 	2: "RelationVersion",
 	3: "CurrentSeqId",
+	4: "ChangeAt",
 }
 
 var fieldIDToName_SubscribeGroupRequest = map[int32]string{
-	1: "UserId",
-	2: "SessionId",
-	3: "GroupId",
-	4: "GwAdvertiseAddrPort",
+	1: "Session",
 }
 
 var fieldIDToName_SubscribeGroupResponse = map[int32]string{

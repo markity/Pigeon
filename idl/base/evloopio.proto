@@ -9,10 +9,7 @@ import "base/base.proto";
 
 // 更改群组成员, 由im-relation调用
 message AlterGroupMemberRequest {
-  string member_id = 1;
-  base.RelationStatus status = 2;
-  base.RelationChangeType change_type = 3;
-  int64 relation_version = 4; 
+  base.RelationEntry relation = 1;
 }
 
 message AlterGroupMemberResponse {
@@ -24,15 +21,12 @@ message AlterGroupMemberResponse {
   AlterGroupMemberResponseCode code = 1;
   int64 relation_version = 2;
   int64 current_seq_id = 3;
+  int64 changeAt = 4;
 }
 
 // 订阅群组, 由im-relay调用, 某个人订阅群组, im-relay先确认是否存在这个群(请求im-relation), 然后一致性hash
 message SubscribeGroupRequest {
-  string user_id = 1;
-  string session_id = 2;
-
-  string group_id = 3;
-  string gw_advertise_addr_port = 4;
+  base.SessionEntry session = 1;
 }
 
 message SubscribeGroupResponse {
