@@ -2,8 +2,6 @@ module pigeon
 
 go 1.22
 
-toolchain go1.22.7
-
 require (
 	github.com/cloudwego/fastpb v0.0.5
 	github.com/cloudwego/kitex v0.11.3
