@@ -16,7 +16,7 @@ import (
 	"github.com/cloudwego/kitex/server"
 )
 
-var cfgFilePath = flag.String("cfg", "", "config file path")
+var cfgFilePath = flag.String("cfg", "../config/im-relay/config.yaml", "config file path")
 
 func main() {
 	// 加载配置文件

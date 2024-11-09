@@ -17,7 +17,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-var cfgFilePath = flag.String("cfg", "", "config file path")
+var cfgFilePath = flag.String("cfg", "../config/im-ipconf/config.yaml", "config file path")
 
 type MetricsEtcdData struct {
 	Name                 string

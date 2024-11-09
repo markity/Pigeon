@@ -22,7 +22,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-var cfgFilePath = flag.String("cfg", "", "config file path")
+var cfgFilePath = flag.String("cfg", "../config/im-gateway/config.yaml", "config file path")
 
 func main() {
 	// 加载配置文件

@@ -21,7 +21,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var cfgFilePath = flag.String("cfg", "", "config file path")
+var cfgFilePath = flag.String("cfg", "../config/im-auth-route/config.yaml", "config file path")
 
 func main() {
 	// 加载配置文件
