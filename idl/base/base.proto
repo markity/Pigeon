@@ -45,6 +45,7 @@ enum ApplyStatus {
   APPLY_STATUS_PENDING = 1;     // 等待处理
   APPLY_STATUS_ACCEPTED = 2;    // 已被处理, 被accept
   APPLY_STATUS_REJECTED = 3;    // 已被处理, 被reject
-  // 如果群已经被解散, 用户再次操作apply, 状态会变成group disbanded
-  APPLY_STATUS_GROUP_DISBANDED = 4;
+  // TODO: 先不考虑disband逻辑
+  // // 如果群已经被解散, 用户再次操作apply, 状态会变成group disbanded
+  // APPLY_STATUS_GROUP_DISBANDED = 4;
 };

@@ -2,10 +2,14 @@ module pigeon
 
 go 1.22
 
+toolchain go1.22.7
+
 require (
 	github.com/cloudwego/fastpb v0.0.5
 	github.com/cloudwego/kitex v0.11.3
 	github.com/gin-gonic/gin v1.10.0
+	github.com/go-sql-driver/mysql v1.7.0
+	github.com/golang/protobuf v1.5.4
 	github.com/google/uuid v1.3.1
 	github.com/markity/Interactive-Console v0.0.0-20230622112502-6658419229ed
 	github.com/markity/go-reactor v0.0.0-20240504063459-b9eb805192f9
@@ -47,10 +51,8 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
-	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/pprof v0.0.0-20240727154555-813a5fbdbec8 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect

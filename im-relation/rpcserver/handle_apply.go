@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"pigeon/im-relation/db"
@@ -20,16 +19,8 @@ import (
 func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApplyReq) (
 	res *imrelation.HandleApplyResp, err error) {
 	now := time.Now()
-	groupIdInt, err := strconv.ParseInt(req.GroupId, 10, 64)
-	if err != nil {
-		log.Printf("failed to parse group id: %v\n", err)
-		return nil, err
-	}
 
-	txn := s.DB.Txn()
-	defer txn.Rollback()
-
-	groupInfo, err := db.GetGroupInfo(txn, groupIdInt)
+	groupInfo, err := db.GetGroupInfo(s.DB.DB(), req.GroupId)
 	if err != nil {
 		log.Printf("failed to get group info: %v\n", err)
 		return nil, err
@@ -46,38 +37,29 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		}, nil
 	}
 
-	relation, err := db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
-		OwnerId:         req.UserId,
-		GroupId:         groupIdInt,
-		Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
-		ChangeType:      0,
-		RelationVersion: 0,
-		CreatedAt:       now.UnixMilli(),
-		UpdatedAt:       now.UnixMilli(),
-	})
+	// 锁group
+	le, err := s.RdsAct.LockGroup(req.GroupId, time.Second*1)
 	if err != nil {
-		log.Printf("failed to insert or lock relation entry: %v\n", err)
+		return nil, err
+	}
+	defer le.UnLock()
+
+	txn := s.DB.Txn()
+	defer txn.Rollback()
+
+	relation, err := db.GetRelationByUsernameAndGroupId(txn, req.UserId, req.GroupId)
+	if err != nil {
+		log.Printf("failed to get relation entry: %v\n", err)
 		return nil, err
 	}
 
-	apply, err := db.InsertOrSelectForUpdateApplyByUsernameGroupId(txn, &model.ApplyModel{
-		OwnerId:      req.UserId,
-		GroupId:      groupIdInt,
-		ApplyVersion: 0,
-		ApplyMsg:     "",
-		CreatedAt:    now.UnixMilli(),
-		UpdatedAt:    now.UnixMilli(),
-		Status:       0,
-		GroupOwnerId: groupInfo.OwnerId,
-	})
+	apply, err := db.GetApplyByUsernameAndGroupId(txn, req.UserId, req.GroupId)
 	if err != nil {
-		log.Printf("failed to insert or lock apply entry: %v\n", err)
+		log.Printf("failed to get apply entry: %v\n", err)
 		return nil, err
 	}
-	applyAt := apply.UpdatedAt
 
-	fmt.Println(apply.Status.String())
-	if apply.Status != base.ApplyStatus_APPLY_STATUS_PENDING {
+	if apply == nil || apply.Status != base.ApplyStatus_APPLY_STATUS_PENDING {
 		go func() {
 			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
 				EchoCode: req.EchoCode,
@@ -89,50 +71,53 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		}, nil
 	}
 
-	// 如果已经disbaned, 无论接受还是拒绝, 都返回ok, 但是不更新关系
-	if groupInfo.Disbaned {
-		apply.Status = base.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
-		apply.ApplyVersion++
-		apply.UpdatedAt = now.UnixMilli()
+	applyAt := apply.UpdatedAt
 
-		err := db.UpdateApply(txn, apply)
-		if err != nil {
-			log.Printf("failed to update apply: %v\n", err)
-			return nil, err
-		}
+	// TODO: 先简化逻辑, 目前没有disband状态
+	// // 如果已经disbaned, 无论接受还是拒绝, 都返回ok, 但是不更新关系
+	// if groupInfo.Disbaned {
+	// 	apply.Status = base.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
+	// 	apply.ApplyVersion++
+	// 	apply.UpdatedAt = now.UnixMilli()
 
-		err = txn.Commit().Error
-		if err != nil {
-			log.Printf("failed to commit apply: %v\n", err)
-			return nil, err
-		}
+	// 	err := db.UpdateApply(txn, apply)
+	// 	if err != nil {
+	// 		log.Printf("failed to update apply: %v\n", err)
+	// 		return nil, err
+	// 	}
 
-		go func() {
-			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
-				EchoCode:     req.EchoCode,
-				Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
-				ApplyMsg:     apply.ApplyMsg,
-				ApplyAt:      applyAt,
-				ApplyVersion: apply.ApplyVersion,
-				ApplyStatus:  apply.Status,
-				HandleAt:     now.UnixMilli(),
+	// 	err = txn.Commit().Error
+	// 	if err != nil {
+	// 		log.Printf("failed to commit apply: %v\n", err)
+	// 		return nil, err
+	// 	}
 
-				RelationVersion: 0,
-			})
-		}()
+	// 	go func() {
+	// 		push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
+	// 			EchoCode:     req.EchoCode,
+	// 			Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
+	// 			ApplyMsg:     apply.ApplyMsg,
+	// 			ApplyAt:      applyAt,
+	// 			ApplyVersion: apply.ApplyVersion,
+	// 			ApplyStatus:  apply.Status,
+	// 			HandleAt:     now.UnixMilli(),
 
-		return &imrelation.HandleApplyResp{
-			Code:            imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
-			RelationVersion: 0,
-			ApplyMsg:        apply.ApplyMsg,
-			ApplyAt:         applyAt,
-			HandleAt:        now.UnixMilli(),
-			ApplyVersion:    apply.ApplyVersion,
-			ApplyStatus:     apply.Status,
-		}, nil
-	}
+	// 			RelationVersion: 0,
+	// 		})
+	// 	}()
 
-	// 群没有disbanded
+	// 	return &imrelation.HandleApplyResp{
+	// 		Code:            imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
+	// 		RelationVersion: 0,
+	// 		ApplyMsg:        apply.ApplyMsg,
+	// 		ApplyAt:         applyAt,
+	// 		HandleAt:        now.UnixMilli(),
+	// 		ApplyVersion:    apply.ApplyVersion,
+	// 		ApplyStatus:     apply.Status,
+	// 	}, nil
+	// }
+
+	// // 群没有disbanded
 
 	if !req.Accept {
 		apply.Status = base.ApplyStatus_APPLY_STATUS_REJECTED
@@ -219,8 +204,48 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	}
 	out := resp.Output.Output.(*evloopio.UniversalGroupEvloopOutput_AlterGroupMember)
 	switch out.AlterGroupMember.Code {
-	case evloopio.AlterGroupMemberResponse_GROUP_DISBANDED:
-		apply.Status = base.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
+	// // TODO: 这里先不考虑disband流程, 先简化
+	// case evloopio.AlterGroupMemberResponse_GROUP_DISBANDED:
+	// 	apply.Status = base.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
+	// 	apply.ApplyVersion++
+	// 	apply.UpdatedAt = now.UnixMilli()
+	// 	err := db.UpdateApply(txn, apply)
+	// 	if err != nil {
+	// 		log.Printf("failed to update apply: %v\n", err)
+	// 		return nil, err
+	// 	}
+
+	// 	err = txn.Commit().Error
+	// 	if err != nil {
+	// 		log.Printf("failed to commit apply: %v\n", err)
+	// 		return nil, err
+	// 	}
+
+	// 	go func() {
+	// 		push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
+	// 			EchoCode:     req.EchoCode,
+	// 			Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
+	// 			ApplyMsg:     apply.ApplyMsg,
+	// 			ApplyAt:      applyAt,
+	// 			ApplyVersion: apply.ApplyVersion,
+	// 			ApplyStatus:  apply.Status,
+	// 			HandleAt:     now.UnixMilli(),
+
+	// 			RelationVersion: 0,
+	// 		})
+	// 	}()
+	// 	return &imrelation.HandleApplyResp{
+	// 		Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
+	// 		ApplyMsg:     apply.ApplyMsg,
+	// 		ApplyAt:      applyAt,
+	// 		ApplyVersion: apply.ApplyVersion,
+	// 		ApplyStatus:  apply.Status,
+	// 		HandleAt:     now.UnixMilli(),
+
+	// 		RelationVersion: 0,
+	// 	}, nil
+	case evloopio.AlterGroupMemberResponse_OK:
+		apply.Status = base.ApplyStatus_APPLY_STATUS_ACCEPTED
 		apply.ApplyVersion++
 		apply.UpdatedAt = now.UnixMilli()
 		err := db.UpdateApply(txn, apply)
@@ -229,44 +254,24 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 			return nil, err
 		}
 
-		err = txn.Commit().Error
-		if err != nil {
-			log.Printf("failed to commit apply: %v\n", err)
-			return nil, err
-		}
-
-		go func() {
-			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
-				EchoCode:     req.EchoCode,
-				Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
-				ApplyMsg:     apply.ApplyMsg,
-				ApplyAt:      applyAt,
-				ApplyVersion: apply.ApplyVersion,
-				ApplyStatus:  apply.Status,
-				HandleAt:     now.UnixMilli(),
-
+		if relation == nil {
+			relation = &model.RelationModel{
+				OwnerId:         apply.OwnerId,
+				GroupId:         apply.GroupId,
+				Status:          base.RelationStatus_RELATION_STATUS_UNUSED,
+				ChangeType:      base.RelationChangeType_RELATION_CHANGE_TYPE_UNUSED,
 				RelationVersion: 0,
-			})
-		}()
-		return &imrelation.HandleApplyResp{
-			Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
-			ApplyMsg:     apply.ApplyMsg,
-			ApplyAt:      applyAt,
-			ApplyVersion: apply.ApplyVersion,
-			ApplyStatus:  apply.Status,
-			HandleAt:     now.UnixMilli(),
-
-			RelationVersion: 0,
-		}, nil
-	case evloopio.AlterGroupMemberResponse_OK:
-		// accept, 申请成功
-		err := db.UpdateApply(txn, apply)
-		if err != nil {
-			log.Printf("failed to update apply: %v\n", err)
-			return nil, err
+				CreatedAt:       now.UnixMilli(),
+				UpdatedAt:       now.UnixMilli(),
+			}
+			err := db.InsertRelation(txn, relation)
+			if err != nil {
+				log.Printf("failed to insert relation: %v\n", err)
+				return nil, err
+			}
 		}
 
-		relation.Status = base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP
+		relation.Status = base.RelationStatus_RELATION_STATUS_MEMBER
 		relation.ChangeType = base.RelationChangeType_RELATION_CHANGE_TYPE_OWNER_ACCEPT
 		relation.RelationVersion++
 		relation.UpdatedAt = now.UnixMilli()

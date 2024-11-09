@@ -25,15 +25,27 @@ return info
 */
 func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroupReq) (res *imrelation.CreateGroupResp, err error) {
 	now := time.Now()
+	// TODO: 此处应该有重试/降级策略, 当redis出故障的时候生成group id怎么办
+	groupId, err := s.RdsAct.GenerateGroupId()
+	if err != nil {
+		log.Printf("failed to generate group id: %v\n", err)
+		return nil, err
+	}
+
+	// // 锁group
+	// le, err := s.RdsAct.LockGroup(groupId, time.Second*1)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer le.UnLock()
 
 	ownerId := req.Session.Username
 	txn := s.DB.Txn()
 	defer txn.Rollback()
 	var group = model.GroupModel{
-		OwnerId:    ownerId,
-		CreatedAt:  time.Now().UnixMilli(),
-		Disbaned:   false,
-		DisbanedAt: 0,
+		GroupId:   groupId,
+		OwnerId:   ownerId,
+		CreatedAt: time.Now().UnixMilli(),
 	}
 	err = db.CreateGroup(txn, &group)
 	if err != nil {
@@ -41,11 +53,11 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 		return nil, err
 	}
 
-	_, err = db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
+	err = db.InsertRelation(txn, &model.RelationModel{
 		OwnerId:         req.Session.Username,
-		GroupId:         group.Id,
+		GroupId:         groupId,
 		Status:          base.RelationStatus_RELATION_STATUS_OWNER,
-		ChangeType:      0,
+		ChangeType:      base.RelationChangeType_RELATION_CHANGE_TYPE_CREATE_GROUP,
 		RelationVersion: 1,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),
@@ -54,6 +66,7 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 		log.Printf("failed to insert or select for update relation: %v\n", err)
 		return nil, err
 	}
+
 	resp, err := s.RelayCli.CreateChatEventLoop(context.Background(), &relay.CreateChatEventLoopReq{
 		GroupId: fmt.Sprint(group.Id),
 		OwnerId: ownerId,

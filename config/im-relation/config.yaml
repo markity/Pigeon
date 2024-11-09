@@ -6,7 +6,7 @@ rpc-server:
 redis:
   host: 127.0.0.1
   port: 6379
-  keyprefix: im_auth_route/
+  keyprefix: im_relation/
 
 etcd:
   -

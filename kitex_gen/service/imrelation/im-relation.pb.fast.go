@@ -190,11 +190,6 @@ func (x *GroupInfo) FastRead(buf []byte, _type int8, number int32) (offset int, 
 		if err != nil {
 			goto ReadFieldError
 		}
-	case 5:
-		offset, err = x.fastReadField5(buf, _type)
-		if err != nil {
-			goto ReadFieldError
-		}
 	case 6:
 		offset, err = x.fastReadField6(buf, _type)
 		if err != nil {
@@ -230,11 +225,6 @@ func (x *GroupInfo) fastReadField3(buf []byte, _type int8) (offset int, err erro
 
 func (x *GroupInfo) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	x.CreateAt, offset, err = fastpb.ReadInt64(buf, _type)
-	return offset, err
-}
-
-func (x *GroupInfo) fastReadField5(buf []byte, _type int8) (offset int, err error) {
-	x.Disbanded, offset, err = fastpb.ReadBool(buf, _type)
 	return offset, err
 }
 
@@ -1001,7 +991,6 @@ func (x *GroupInfo) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
-	offset += x.fastWriteField5(buf[offset:])
 	offset += x.fastWriteField6(buf[offset:])
 	offset += x.fastWriteField7(buf[offset:])
 	return offset
@@ -1028,14 +1017,6 @@ func (x *GroupInfo) fastWriteField4(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetCreateAt())
-	return offset
-}
-
-func (x *GroupInfo) fastWriteField5(buf []byte) (offset int) {
-	if !x.Disbanded {
-		return offset
-	}
-	offset += fastpb.WriteBool(buf[offset:], 5, x.GetDisbanded())
 	return offset
 }
 
@@ -1603,7 +1584,6 @@ func (x *GroupInfo) Size() (n int) {
 	n += x.sizeField2()
 	n += x.sizeField3()
 	n += x.sizeField4()
-	n += x.sizeField5()
 	n += x.sizeField6()
 	n += x.sizeField7()
 	return n
@@ -1630,14 +1610,6 @@ func (x *GroupInfo) sizeField4() (n int) {
 		return n
 	}
 	n += fastpb.SizeInt64(4, x.GetCreateAt())
-	return n
-}
-
-func (x *GroupInfo) sizeField5() (n int) {
-	if !x.Disbanded {
-		return n
-	}
-	n += fastpb.SizeBool(5, x.GetDisbanded())
 	return n
 }
 
@@ -2110,7 +2082,6 @@ var fieldIDToName_GroupInfo = map[int32]string{
 	2: "GroupId",
 	3: "OwnerId",
 	4: "CreateAt",
-	5: "Disbanded",
 	6: "DisbanedAt",
 	7: "Relations",
 }

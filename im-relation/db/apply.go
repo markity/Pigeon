@@ -19,6 +19,15 @@ func GetAllApplicationsByUsername(txn *gorm.DB, username string) ([]*model.Apply
 	return applications, nil
 }
 
+func GetApplyByUsernameAndGroupId(txn *gorm.DB, username string, groupId string) (*model.ApplyModel, error) {
+	var m model.ApplyModel
+	err := txn.Model(m).Where("owner_id = ? and group_id = ?", username, groupId).First(&m).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return nil, err
+}
+
 // InsertApply 插入申请
 func InsertApply(txn *gorm.DB, apply *model.ApplyModel) (inserted bool, err error) {
 	err = txn.Create(apply).Error

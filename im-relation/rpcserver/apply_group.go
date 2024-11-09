@@ -2,9 +2,9 @@ package rpcserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"pigeon/im-relation/db"
@@ -18,30 +18,12 @@ import (
 func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupReq) (res *imrelation.ApplyGroupResp, err error) {
 	now := time.Now()
 
-	// 一个用户关于一个群只有一条ApplyModel, 这里有个并发问题, 这里使用mysql 1062错误码解决这个问题
-	txn := s.DB.Txn()
-	defer txn.Rollback()
-
-	groupIdInt, err := strconv.ParseInt(req.GroupId, 10, 64)
-	if err != nil {
-		go func() {
-			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
-				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_NO_GROUP,
-				EchoCode: req.EchoCode,
-			})
-		}()
-		return &imrelation.ApplyGroupResp{
-			Code: imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_NO_GROUP,
-		}, nil
-	}
-
-	// 查询group信息
-	group, err := db.GetGroupInfo(txn, groupIdInt)
+	// 先检查群信息, 如果群不存在直接返回
+	group, err := db.GetGroupInfo(s.DB.DB(), req.GroupId)
 	if err != nil {
 		log.Printf("failed to get group info: %v\n", err)
 		return nil, err
 	}
-
 	if group == nil {
 		go func() {
 			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
@@ -54,35 +36,40 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		}, nil
 	}
 
-	// 如果群已解散, 不能申请
-	if group.Disbaned {
-		go func() {
-			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
-				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_GROUP_DISBANDED,
-				EchoCode: req.EchoCode,
-			})
-		}()
-		return &imrelation.ApplyGroupResp{
-			Code: imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_GROUP_DISBANDED,
-		}, nil
-	}
-
-	relation, err := db.InsertOrSelectForUpdateRelationByUsernameGroupId(txn, &model.RelationModel{
-		OwnerId:         req.Session.Username,
-		GroupId:         groupIdInt,
-		Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
-		RelationVersion: 0,
-		CreatedAt:       now.UnixMilli(),
-		UpdatedAt:       now.UnixMilli(),
-	})
+	// 一个用户关于一个群只有一条ApplyModel, 这里有个并发问题, 这里选择直接群维度加锁
+	// 锁group
+	le, err := s.RdsAct.LockGroup(req.GroupId, time.Second*1)
 	if err != nil {
-		log.Printf("failed to insert or lock relation entry: %v\n", err)
+		return nil, err
+	}
+	defer le.UnLock()
+
+	txn := s.DB.Txn()
+	defer txn.Rollback()
+
+	// TODO: 目前先忽略群解散的逻辑, 先跑起来大流程再加退群的细节, 现在不支持退群
+	// // 如果群已解散, 不能申请
+	// if group.Disbaned {
+	// 	go func() {
+	// 		push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
+	// 			Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_GROUP_DISBANDED,
+	// 			EchoCode: req.EchoCode,
+	// 		})
+	// 	}()
+	// 	return &imrelation.ApplyGroupResp{
+	// 		Code: imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_GROUP_DISBANDED,
+	// 	}, nil
+	// }
+
+	relation, err := db.GetRelationByUsernameGroupId(txn, req.Session.Username, group.GroupId)
+	if err != nil {
+		log.Printf("failed to GetRelationByUsernameGroupId: %v\n", err)
 		return nil, err
 	}
 
 	// 如果是member或owner, 则不能apply, user in group错误
-	if relation.Status == base.RelationStatus_RELATION_STATUS_MEMBER ||
-		relation.Status == base.RelationStatus_RELATION_STATUS_OWNER {
+	if relation != nil && (relation.Status == base.RelationStatus_RELATION_STATUS_MEMBER ||
+		relation.Status == base.RelationStatus_RELATION_STATUS_OWNER) {
 		go func() {
 			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
 				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_USER_IN_GROUP,
@@ -94,16 +81,31 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		}, nil
 	}
 
-	apply, err := db.InsertOrSelectForUpdateApplyByUsernameGroupId(txn, &model.ApplyModel{
-		OwnerId:      req.Session.Username,
-		GroupId:      groupIdInt,
-		ApplyVersion: 0,
-		ApplyMsg:     "",
-		CreatedAt:    now.UnixMilli(),
-		UpdatedAt:    now.UnixMilli(),
-		Status:       0,
-		GroupOwnerId: group.OwnerId,
-	})
+	apply, err := db.GetApplyByUsernameAndGroupId(txn, req.Session.Username, group.GroupId)
+	if err != nil {
+		log.Printf("failed to GetApplyByUsernameAndGroupId: %v\n", err)
+		return nil, err
+	}
+
+	if apply == nil {
+		inserted, err := db.InsertApply(txn, &model.ApplyModel{
+			OwnerId:      req.Session.Username,
+			GroupId:      group.GroupId,
+			ApplyVersion: 0,
+			ApplyMsg:     "",
+			CreatedAt:    now.UnixMilli(),
+			UpdatedAt:    now.UnixMilli(),
+			Status:       0,
+			GroupOwnerId: group.OwnerId,
+		})
+		if err != nil || !inserted {
+			if err == nil {
+				err = errors.New("dupkey")
+			}
+			log.Printf("failed to insert apply: %v\n", err)
+			return nil, err
+		}
+	}
 	if err != nil {
 		log.Printf("failed to insert or lock apply entry: %v\n", err)
 		return nil, err

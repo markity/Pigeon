@@ -12,6 +12,7 @@ import (
 
 /*
 用户登录后, 会查询自己所有申请, 这个接口由im-relay调用
+比如此用户是 a b c三个群的群主, 则申请a b c三群的所有请求都会被拉到
 */
 func (s *RPCServer) FetchAllApplications(ctx context.Context, req *imrelation.FetchAllApplicationsReq) (res *imrelation.FetchAllApplicationsResp, err error) {
 	txn := s.DB.Txn()

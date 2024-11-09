@@ -28,7 +28,7 @@ message GroupInfo {
   string group_id = 2;
   string owner_id = 3;
   int64 create_at = 4;
-  bool disbanded = 5;
+  // bool disbanded = 5;
   int64 disbaned_at = 6;
   repeated RelationEntry relations = 7;
 }
@@ -64,7 +64,7 @@ message ApplyGroupReq {
 message ApplyGroupResp {
   enum ApplyGroupRespCode {
     APPLY_GROUP_RESP_CODE_OK = 0;
-    APPLY_GROUP_RESP_CODE_GROUP_DISBANDED = 1;
+    // APPLY_GROUP_RESP_CODE_GROUP_DISBANDED = 1;
     APPLY_GROUP_RESP_CODE_USER_IN_GROUP = 2;
     APPLY_GROUP_RESP_CODE_NO_GROUP = 3;
   }
@@ -149,5 +149,6 @@ service IMRelation {
   // im-relay调用, 处理申请
   rpc HandleApply(HandleApplyReq) returns (HandleApplyResp);
   // im-relay调用, 退出群
-  rpc QuitGroup(QuitGroupReq) returns (QuitGroupResp);
+  // TODO: 先不care退群逻辑, 跑起整体流程了再做
+  // rpc QuitGroup(QuitGroupReq) returns (QuitGroupResp);
 }

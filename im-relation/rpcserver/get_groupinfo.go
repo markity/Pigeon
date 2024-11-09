@@ -3,7 +3,6 @@ package rpcserver
 import (
 	"context"
 	"log"
-	"strconv"
 
 	"pigeon/im-relation/db"
 	"pigeon/kitex_gen/service/imrelation"
@@ -15,16 +14,10 @@ imrelay在一致性转发消息前得先判断group是否存在, 如果
 */
 func (s *RPCServer) GetGroupInfo(ctx context.Context, req *imrelation.GetGroupInfoReq) (
 	res *imrelation.GetGroupInfoResp, err error) {
-	groupId, err := strconv.ParseInt(req.GroupId, 10, 64)
-	if err != nil {
-		log.Printf("failed to parse group id: %v\n", err)
-		return nil, err
-	}
-
 	txn := s.DB.Txn()
 	defer txn.Rollback()
 
-	group, err := db.GetGroupInfo(txn, groupId)
+	group, err := db.GetGroupInfo(txn, req.GroupId)
 	if err != nil {
 		log.Printf("failed to get group info: %v\n", err)
 		return nil, err
@@ -39,11 +32,9 @@ func (s *RPCServer) GetGroupInfo(ctx context.Context, req *imrelation.GetGroupIn
 	return &imrelation.GetGroupInfoResp{
 		Exists: true,
 		Info: &imrelation.GroupInfo{
-			GroupId:    req.GroupId,
-			OwnerId:    group.OwnerId,
-			CreateAt:   group.CreatedAt,
-			Disbanded:  group.Disbaned,
-			DisbanedAt: group.DisbanedAt,
+			GroupId:  req.GroupId,
+			OwnerId:  group.OwnerId,
+			CreateAt: group.CreatedAt,
 		},
 	}, nil
 }
