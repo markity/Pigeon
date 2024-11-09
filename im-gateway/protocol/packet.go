@@ -22,6 +22,8 @@ func PackData(data []byte) []byte {
 	return buf.Bytes()
 }
 
+// 从buffer中解析出一个包
+// 4字节包头 + 包体, 函数返回值为包体字节
 // 如果包的长度太长, error != nil
 func UnpackDataFromBuffer(buf buffer.Buffer) ([]byte, bool, error) {
 	if buf.ReadableBytes() <= 4 {

@@ -1,11 +1,30 @@
 package bizprotocol
 
+// 客户端发给服务端的包体
+
 // chat-create-group
 type BizCreateGroup struct {
 	// empty
 }
 
+func (*BizCreateGroup) String() string {
+	return "chat-create-group"
+}
+
 type BizPullRelations struct {
+	// empty
+}
+
+func (*BizPullRelations) String() string {
+	return "chat-pull-relations"
+}
+
+type BizPullApply struct {
+	// empty
+}
+
+func (*BizPullApply) String() string {
+	return "chat-pull-apply"
 }
 
 type BizSendMessage struct {
@@ -15,9 +34,17 @@ type BizSendMessage struct {
 	IdempotentKey   string `json:"idempotent_key"`
 }
 
+func (*BizSendMessage) String() string {
+	return "chat-send-message"
+}
+
 type BizSendApply struct {
 	GroupId  string `json:"group_id"`
 	ApplyMsg string `json:"apply_msg"`
+}
+
+func (*BizSendApply) String() string {
+	return "chat-send-apply"
 }
 
 type BizHandleApply struct {
@@ -26,6 +53,14 @@ type BizHandleApply struct {
 	Accept  bool   `json:"accept"`
 }
 
+func (*BizHandleApply) String() string {
+	return "chat-handle-apply"
+}
+
 type BizSub struct {
 	GroupId string `json:"group_id"`
+}
+
+func (*BizSub) String() string {
+	return "chat-sub"
 }

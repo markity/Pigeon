@@ -65,7 +65,7 @@ func (s *RPCServer) QuitGroup(ctx context.Context, req *imrelation.QuitGroupReq)
 	relation.UpdatedAt = now.UnixMilli()
 	relation.Status = base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP
 	relation.ChangeType = base.RelationChangeType_RELATION_CHANGE_TYPE_MEMBER_QUIT
-	relation.RelationCounter++
+	relation.RelationVersion++
 
 	// pending状态, 直接打入evloop
 	resp, err := s.RelayCli.RedirectToChatEventLoop(context.Background(),
@@ -79,7 +79,7 @@ func (s *RPCServer) QuitGroup(ctx context.Context, req *imrelation.QuitGroupReq)
 							UserId:          req.Session.Username,
 							Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
 							ChangeType:      base.RelationChangeType_RELATION_CHANGE_TYPE_MEMBER_QUIT,
-							RelationVersion: relation.RelationCounter,
+							RelationVersion: relation.RelationVersion,
 							ChangeAt:        0,
 						},
 					},
@@ -110,7 +110,7 @@ func (s *RPCServer) QuitGroup(ctx context.Context, req *imrelation.QuitGroupReq)
 				AuthRoute:  s.AuthRouteCli,
 				Username:   req.Session.Username,
 				GroupId:    fmt.Sprint(groupIdInt),
-				Version:    relation.RelationCounter,
+				Version:    relation.RelationVersion,
 				Status:     relation.Status,
 				ChangeAt:   now.UnixMilli(),
 				ChangeType: relation.ChangeType,
@@ -122,20 +122,20 @@ func (s *RPCServer) QuitGroup(ctx context.Context, req *imrelation.QuitGroupReq)
 			push.QuitGroupResp(req.Session, &push.QuitGroupRespInput{
 				EchoCode:        req.EchoCode,
 				Code:            imrelation.QuitGroupResp_QUIT_GROUP_OK,
-				RelationVersion: relation.RelationCounter,
+				RelationVersion: relation.RelationVersion,
 			})
 		}()
 
 		return &imrelation.QuitGroupResp{
 			Code:            imrelation.QuitGroupResp_QUIT_GROUP_OK,
-			RelationVersion: relation.RelationCounter,
+			RelationVersion: relation.RelationVersion,
 		}, nil
 	case evloopio.AlterGroupMemberResponse_GROUP_DISBANDED:
 		go func() {
 			push.QuitGroupResp(req.Session, &push.QuitGroupRespInput{
 				EchoCode:        req.EchoCode,
 				Code:            imrelation.QuitGroupResp_QUIT_GROUP_DISBANED,
-				RelationVersion: relation.RelationCounter,
+				RelationVersion: relation.RelationVersion,
 			})
 		}()
 		// push echo

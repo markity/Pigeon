@@ -28,7 +28,7 @@ func (s *RPCServer) FetchAllRelations(ctx context.Context, req *imrelation.Fetch
 		relations = append(relations, &imrelation.RelationEntry{
 			UserId:          v.OwnerId,
 			GroupId:         fmt.Sprint(v.GroupId),
-			RelationVersion: v.RelationCounter,
+			RelationVersion: v.RelationVersion,
 			Status:          v.Status,
 			UpdatedAt:       v.UpdatedAt,
 		})

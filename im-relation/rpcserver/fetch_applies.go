@@ -28,7 +28,7 @@ func (s *RPCServer) FetchAllApplications(ctx context.Context, req *imrelation.Fe
 		applications = append(applications, &imrelation.ApplyEntry{
 			UserId:       v.OwnerId,
 			GroupId:      fmt.Sprint(v.GroupId),
-			ApplyVersion: v.ApplyCounter,
+			ApplyVersion: v.ApplyVersion,
 			ApplyAt:      v.UpdatedAt,
 			ApplyMsg:     v.ApplyMsg,
 			Status:       v.Status,

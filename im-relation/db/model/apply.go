@@ -9,7 +9,7 @@ type ApplyModel struct {
 	GroupId int64  `gorm:"column:group_id;uniqueIndex:idx_ownerid_groupid"`
 	// 这里给unique, 1062错误, TODO: 后续需要改进
 	// 申请自增id, 一个用户最多一条applyModel记录, 多次申请则递增
-	ApplyCounter int64 `gorm:"column:apply_counter"`
+	ApplyVersion int64 `gorm:"column:apply_version"`
 	// 申请原因, 同qq的入群理由
 	ApplyMsg     string           `gorm:"column:apply_msg"`
 	CreatedAt    int64            `gorm:"column:created_at"`

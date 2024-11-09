@@ -51,7 +51,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		GroupId:         groupIdInt,
 		Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
 		ChangeType:      0,
-		RelationCounter: 0,
+		RelationVersion: 0,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),
 	})
@@ -63,7 +63,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	apply, err := db.InsertOrSelectForUpdateApplyByUsernameGroupId(txn, &model.ApplyModel{
 		OwnerId:      req.UserId,
 		GroupId:      groupIdInt,
-		ApplyCounter: 0,
+		ApplyVersion: 0,
 		ApplyMsg:     "",
 		CreatedAt:    now.UnixMilli(),
 		UpdatedAt:    now.UnixMilli(),
@@ -92,7 +92,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	// 如果已经disbaned, 无论接受还是拒绝, 都返回ok, 但是不更新关系
 	if groupInfo.Disbaned {
 		apply.Status = base.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
-		apply.ApplyCounter++
+		apply.ApplyVersion++
 		apply.UpdatedAt = now.UnixMilli()
 
 		err := db.UpdateApply(txn, apply)
@@ -113,7 +113,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 				Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
 				ApplyMsg:     apply.ApplyMsg,
 				ApplyAt:      applyAt,
-				ApplyVersion: apply.ApplyCounter,
+				ApplyVersion: apply.ApplyVersion,
 				ApplyStatus:  apply.Status,
 				HandleAt:     now.UnixMilli(),
 
@@ -127,7 +127,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 			ApplyMsg:        apply.ApplyMsg,
 			ApplyAt:         applyAt,
 			HandleAt:        now.UnixMilli(),
-			ApplyVersion:    apply.ApplyCounter,
+			ApplyVersion:    apply.ApplyVersion,
 			ApplyStatus:     apply.Status,
 		}, nil
 	}
@@ -136,7 +136,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 	if !req.Accept {
 		apply.Status = base.ApplyStatus_APPLY_STATUS_REJECTED
-		apply.ApplyCounter++
+		apply.ApplyVersion++
 		apply.UpdatedAt = now.UnixMilli()
 		err := db.UpdateApply(txn, apply)
 		if err != nil {
@@ -156,7 +156,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 				OwnerId:      groupInfo.OwnerId,
 				Username:     apply.OwnerId,
 				GroupId:      req.GroupId,
-				ApplyVersion: apply.ApplyCounter,
+				ApplyVersion: apply.ApplyVersion,
 				ApplyMsg:     apply.ApplyMsg,
 				ApplyStatus:  apply.Status,
 				ApplyAt:      applyAt,
@@ -170,11 +170,11 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 				Code: imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
 
-				RelationVersion: relation.RelationCounter,
+				RelationVersion: relation.RelationVersion,
 
 				ApplyMsg:     apply.ApplyMsg,
 				ApplyAt:      applyAt,
-				ApplyVersion: apply.ApplyCounter,
+				ApplyVersion: apply.ApplyVersion,
 
 				HandleAt: now.UnixMilli(),
 			})
@@ -182,11 +182,11 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 		return &imrelation.HandleApplyResp{
 			Code:            imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
-			RelationVersion: relation.RelationCounter,
+			RelationVersion: relation.RelationVersion,
 
 			ApplyMsg:     apply.ApplyMsg,
 			ApplyAt:      applyAt,
-			ApplyVersion: apply.ApplyCounter,
+			ApplyVersion: apply.ApplyVersion,
 
 			HandleAt: now.UnixMilli(),
 		}, nil
@@ -206,7 +206,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 							UserId:          req.UserId,
 							Status:          base.RelationStatus_RELATION_STATUS_MEMBER,
 							ChangeType:      base.RelationChangeType_RELATION_CHANGE_TYPE_OWNER_ACCEPT,
-							RelationVersion: apply.ApplyCounter,
+							RelationVersion: apply.ApplyVersion,
 							ChangeAt:        0,
 						},
 					},
@@ -221,7 +221,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	switch out.AlterGroupMember.Code {
 	case evloopio.AlterGroupMemberResponse_GROUP_DISBANDED:
 		apply.Status = base.ApplyStatus_APPLY_STATUS_GROUP_DISBANDED
-		apply.ApplyCounter++
+		apply.ApplyVersion++
 		apply.UpdatedAt = now.UnixMilli()
 		err := db.UpdateApply(txn, apply)
 		if err != nil {
@@ -241,7 +241,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 				Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
 				ApplyMsg:     apply.ApplyMsg,
 				ApplyAt:      applyAt,
-				ApplyVersion: apply.ApplyCounter,
+				ApplyVersion: apply.ApplyVersion,
 				ApplyStatus:  apply.Status,
 				HandleAt:     now.UnixMilli(),
 
@@ -252,7 +252,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 			Code:         imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
 			ApplyMsg:     apply.ApplyMsg,
 			ApplyAt:      applyAt,
-			ApplyVersion: apply.ApplyCounter,
+			ApplyVersion: apply.ApplyVersion,
 			ApplyStatus:  apply.Status,
 			HandleAt:     now.UnixMilli(),
 
@@ -268,7 +268,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 		relation.Status = base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP
 		relation.ChangeType = base.RelationChangeType_RELATION_CHANGE_TYPE_OWNER_ACCEPT
-		relation.RelationCounter++
+		relation.RelationVersion++
 		relation.UpdatedAt = now.UnixMilli()
 		err = db.UpdateRelation(txn, relation)
 		if err != nil {
@@ -289,7 +289,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 				Username:   relation.OwnerId,
 				GroupId:    fmt.Sprint(relation.GroupId),
-				Version:    relation.RelationCounter,
+				Version:    relation.RelationVersion,
 				Status:     base.RelationStatus_RELATION_STATUS_MEMBER,
 				ChangeType: relation.ChangeType, // relation变更场景, 是因为群主接受申请
 				ChangeAt:   now.UnixMilli(),
@@ -303,7 +303,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 				OwnerId:      groupInfo.OwnerId,
 				Username:     apply.OwnerId,
 				GroupId:      req.GroupId,
-				ApplyVersion: apply.ApplyCounter,
+				ApplyVersion: apply.ApplyVersion,
 				ApplyMsg:     apply.ApplyMsg,
 				ApplyStatus:  apply.Status,
 				ApplyAt:      applyAt,
@@ -316,20 +316,20 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
 				EchoCode:        req.EchoCode,
 				Code:            imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
-				RelationVersion: relation.RelationCounter,
+				RelationVersion: relation.RelationVersion,
 				ApplyMsg:        apply.ApplyMsg,
 				ApplyAt:         applyAt,
-				ApplyVersion:    apply.ApplyCounter,
+				ApplyVersion:    apply.ApplyVersion,
 				HandleAt:        now.UnixMilli(),
 			})
 		}()
 
 		return &imrelation.HandleApplyResp{
 			Code:            imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
-			RelationVersion: apply.ApplyCounter,
+			RelationVersion: apply.ApplyVersion,
 			ApplyMsg:        apply.ApplyMsg,
 			ApplyAt:         applyAt,
-			ApplyVersion:    apply.ApplyCounter,
+			ApplyVersion:    apply.ApplyVersion,
 			ApplyStatus:     apply.Status,
 			HandleAt:        now.UnixMilli(),
 		}, nil

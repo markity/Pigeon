@@ -78,6 +78,7 @@ func (s *RPCServer) CreateChatEventLoop(ctx context.Context,
 		}, nil
 	}
 }
+
 func (s *RPCServer) RedirectToChatEventLoop(ctx context.Context,
 	req *imrelay.RedirectToChatEventLoopReq) (*imrelay.RedirectToChatEventLoopResp, error) {
 

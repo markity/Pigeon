@@ -71,7 +71,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		OwnerId:         req.Session.Username,
 		GroupId:         groupIdInt,
 		Status:          base.RelationStatus_RELATION_STATUS_NOT_IN_GROUP,
-		RelationCounter: 0,
+		RelationVersion: 0,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),
 	})
@@ -97,7 +97,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	apply, err := db.InsertOrSelectForUpdateApplyByUsernameGroupId(txn, &model.ApplyModel{
 		OwnerId:      req.Session.Username,
 		GroupId:      groupIdInt,
-		ApplyCounter: 0,
+		ApplyVersion: 0,
 		ApplyMsg:     "",
 		CreatedAt:    now.UnixMilli(),
 		UpdatedAt:    now.UnixMilli(),
@@ -110,7 +110,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	}
 
 	// none, pending reject三种状态, 更新为pendding状态
-	apply.ApplyCounter++
+	apply.ApplyVersion++
 	apply.ApplyMsg = req.ApplyMsg
 	apply.Status = base.ApplyStatus_APPLY_STATUS_PENDING
 	apply.UpdatedAt = now.UnixMilli()
@@ -133,7 +133,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 			Username:     apply.OwnerId,
 			GroupId:      fmt.Sprint(apply.GroupId),
 			ApplyMsg:     apply.ApplyMsg,
-			ApplyVersion: apply.ApplyCounter,
+			ApplyVersion: apply.ApplyVersion,
 			ApplyAt:      apply.UpdatedAt,
 		})
 	}()

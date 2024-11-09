@@ -13,7 +13,7 @@ type RelationModel struct {
 	Status     base.RelationStatus     `gorm:"column:status"`
 	ChangeType base.RelationChangeType `gorm:"column:change_type"`
 	// relation_counter 用于记录关系version, 越大的就是更新的关系, 一个用户关于一个群只有一条RelationModel
-	RelationCounter int64 `gorm:"column:relation_counter"`
+	RelationVersion int64 `gorm:"column:relation_version"`
 	CreatedAt       int64 `gorm:"column:created_at"`
 	UpdatedAt       int64 `gorm:"column:updated_at"`
 }

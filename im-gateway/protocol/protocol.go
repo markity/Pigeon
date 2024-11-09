@@ -28,6 +28,8 @@ type PacketType int
 // 	PacketTypeS2CPush
 // )
 
+// Packet带上WithEchoCode则拥有code字段
+// 也就实现了WithEchoCoder interface
 type WithEchoCode struct {
 	code string
 }
@@ -45,44 +47,60 @@ type WithEchoCoder interface {
 	SetEchoCode(code string)
 }
 
-type HeartbeatPacket struct {
-	WithEchoCode
-}
+// 心跳包, 客户端和服务端都互相发
+type HeartbeatPacket struct{}
 
 type C2SQueryStatusPacket struct {
+	// c2s的请求带上echo code, 服务端的响应也会带有echo code
+	// 这样可以用来识别请求的响应
 	WithEchoCode
 }
 
 type S2CQueryStatusRespPacket struct {
+	// c2s的请求带上echo code, 服务端的响应也会带有echo code
+	// 这样可以用来识别请求的响应
 	WithEchoCode
-	Status    string                `json:"status"`
-	Username  string                `json:"username"`
-	SessionId string                `json:"session_id"`
-	Version   int64                 `json:"version"`
-	Sessions  []*DeviceSessionEntry `json:"sessions"`
+
+	// login or unlogin
+	Status string `json:"status"`
+	// empty if unlogin
+	Username  string `json:"username"`
+	SessionId string `json:"session_id"`
+
+	// 0 if unlogin
+	Version int64 `json:"version"`
+
+	// empty if unlogin
+	Sessions []*DeviceSessionEntry `json:"sessions"`
 }
 
 type C2SLoginPacket struct {
 	WithEchoCode
-	Username   string `json:"username"`
-	Password   string `json:"password"`
+
+	Username string `json:"username"`
+	Password string `json:"password"`
+
+	// 描述设备信息, 用于多设备登录, 描述设备的信息
+	// 例如Android 5.11
 	DeviceDesc string `json:"device_desc"`
 }
 
+// 登录错误代码
 type LoginRespCode int
 
 const (
-	LoginRespCodeUnKnown LoginRespCode = iota
-	LoginRespCodeSuccess
-	LoginRespCodeAuthError
-	LoginRespCodeDeviceNumLimit
-	LoginRespCodeAlreadyLogin
+	LoginRespCodeUnUsed         LoginRespCode = iota // useless
+	LoginRespCodeSuccess                             // 成功
+	LoginRespCodeAuthError                           // 账号或密码错误
+	LoginRespCodeDeviceNumLimit                      // 设备数量限制
+	LoginRespCodeAlreadyLogin                        // 当前状态已登录
 )
 
 type S2CLoginRespPacket struct {
 	WithEchoCode
-	Code      LoginRespCode `json:"code"`       // code
-	SessionId string        `json:"session_id"` // 只有当success == true时才有值
+	Code LoginRespCode `json:"code"` // code
+	// LoginRespCodeSuccess或者LoginRespCodeAlreadyLogin有值
+	SessionId string `json:"session_id"`
 	// 特殊语意，deviceNumLimit, alreadyLogin也有会下面的值
 	Version  int64                 `json:"version"`     // 在线信息版本号
 	Sessions []*DeviceSessionEntry `json:"all_devices"` // 所有在线的设备
@@ -92,6 +110,7 @@ type C2SLogoutPacket struct {
 	WithEchoCode
 }
 
+// logout退出后, 会有此用户最新的sessions
 type S2CLogoutRespPacket struct {
 	WithEchoCode
 	Success bool `json:"success"` // success == false只有一种可能, 就是当前状态为未登录
@@ -108,6 +127,14 @@ type C2SKickOtherDevicePacket struct {
 
 type S2CKickOhterDeviceRespPacket struct {
 	WithEchoCode
+	// success == false有两周可能, 就是当前状态为未登录, 或者sessionId为自身的session
+	// success == false的情况下, 其余字段皆为空
+	Success bool `json:"success"`
+	// kick ok代表route是否真正的删除了这个device
+	// 假如用户界面显示了这个session, 然后用户点击了
+	// 踢出按钮, 但是在此刻之前这个session已经被删除了
+	// kick ok则为false, 但是客户端能用version和
+	// sessions判断最新的sessions视图, 做客户端的显示补偿
 	KickOK bool `json:"kick_ok"`
 	// 无论是否踢下线成功, 都会返回当前在线设备信息
 	Version  int64                 `json:"version"`
