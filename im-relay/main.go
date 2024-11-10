@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	chatevloopconfig "pigeon/common/chatevloop-config"
-	regetcd "pigeon/common/kitex-registry/etcd"
+	chatevloopconfig "pigeon/common/chatevloop_config"
+	regetcd "pigeon/common/kitex_registry/etcd"
 	"pigeon/im-relay/api"
 	"pigeon/im-relay/config"
 	"pigeon/im-relay/rpcserver"

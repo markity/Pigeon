@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	regetcd "pigeon/common/kitex-registry/etcd"
+	regetcd "pigeon/common/kitex_registry/etcd"
 	"pigeon/im-auth-route/api"
 	authroute "pigeon/kitex_gen/service/imauthroute"
 	"pigeon/kitex_gen/service/imauthroute/imauthroute"

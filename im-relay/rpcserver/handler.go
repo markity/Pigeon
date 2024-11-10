@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	chatevloopconfig "pigeon/common/chatevloop-config"
+	chatevloopconfig "pigeon/common/chatevloop_config"
 	"pigeon/im-relay/api"
 	"pigeon/im-relay/handle"
 	"pigeon/im-relay/handle/chat"

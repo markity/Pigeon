@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net"
 
-	regetcd "pigeon/common/kitex-registry/etcd"
+	regetcd "pigeon/common/kitex_registry/etcd"
 	"pigeon/im-relation/api"
 	"pigeon/im-relation/config"
 	"pigeon/im-relation/db"

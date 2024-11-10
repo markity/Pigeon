@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net"
 
-	regetcd "pigeon/common/kitex-registry/etcd"
+	regetcd "pigeon/common/kitex_registry/etcd"
 	"pigeon/im-auth-route/config"
 	"pigeon/im-auth-route/db"
 	"pigeon/im-auth-route/db/model"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
-	regetcd "pigeon/common/kitex-registry/etcd"
+	regetcd "pigeon/common/kitex_registry/etcd"
 	"pigeon/im-chat-evloop/api"
 	"pigeon/im-chat-evloop/config"
 	rpcserver "pigeon/im-chat-evloop/rpc-server"

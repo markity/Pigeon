@@ -1,7 +1,7 @@
 package handle
 
 import (
-	chatevloopconfig "pigeon/common/chatevloop-config"
+	chatevloopconfig "pigeon/common/chatevloop_config"
 	"pigeon/kitex_gen/service/imrelation/imrelation"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
-	regetcd "pigeon/common/kitex-registry/etcd"
+	regetcd "pigeon/common/kitex_registry/etcd"
 	"pigeon/im-gateway/api"
 	"pigeon/im-gateway/config"
 	metrics "pigeon/im-gateway/mertics"
