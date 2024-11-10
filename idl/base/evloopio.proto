@@ -27,6 +27,7 @@ message AlterGroupMemberResponse {
 // 订阅群组, 由im-relay调用, 某个人订阅群组, im-relay先确认是否存在这个群(请求im-relation), 然后一致性hash
 message SubscribeGroupRequest {
   base.SessionEntry session = 1;
+  string echo_code = 2;
 }
 
 message SubscribeGroupResponse {
@@ -44,9 +45,10 @@ message SubscribeGroupResponse {
 // 发送消息
 message SendMessageRequest {
   base.SessionEntry session = 1;
-  bytes message_data = 2;
-  bool check_idempotent = 3;   // 是否需要检查幂等
-  string idempotent_key = 4;  // 幂等key
+  string echo_code = 2;
+  bytes message_data = 3;
+  bool check_idempotent = 4;   // 是否需要检查幂等
+  string idempotent_key = 5;  // 幂等key
 }
 
 message SendMessageResponse {

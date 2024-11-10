@@ -13,6 +13,7 @@ import (
 type SubRespInput struct {
 	GwAddrPort      string
 	SessionId       string
+	EchoCode        string
 	GroupId         string
 	SubOk           bool
 	RelationVersion int64
@@ -25,7 +26,7 @@ func SeqResp(input *SubRespInput) {
 		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
 			SessionId: input.SessionId,
 			PushType:  "push-sub-resp",
-			EchoCode:  "",
+			EchoCode:  input.EchoCode,
 			Data: mustMarshal(map[string]interface{}{
 				"group_id":         input.GroupId,
 				"sub_ok":           input.SubOk,
@@ -75,6 +76,7 @@ func SeqNotify(input *SeqNotifyInput) {
 type SendMessageRespInput struct {
 	GwAddrPort      string
 	SessionId       string
+	EchoCode        string
 	RelationVersion int64
 	Code            evloopio.SendMessageResponse_SendMessageCode // 0发送成功, 1幂等检查已发送, 2无权限
 	// code为 2 时, SeqId无意义
@@ -87,7 +89,7 @@ func SendMessageResp(input *SendMessageRespInput) {
 		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
 			SessionId: input.SessionId,
 			PushType:  "push-send-msg-resp",
-			EchoCode:  "",
+			EchoCode:  input.EchoCode,
 			Data: mustMarshal(map[string]interface{}{
 				"code":   input.Code,
 				"seq_id": input.SeqId,

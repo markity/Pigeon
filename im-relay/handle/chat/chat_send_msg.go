@@ -43,6 +43,7 @@ func handleSendMsg(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 				Input: &evloopio.UniversalGroupEvloopInput_SendMessage{
 					SendMessage: &evloopio.SendMessageRequest{
 						Session:         req.Session,
+						EchoCode:        req.EchoCode,
 						MessageData:     []byte(sendMsgReq.Msg),
 						CheckIdempotent: sendMsgReq.CheckIdempotent,
 						IdempotentKey:   sendMsgReq.IdempotentKey,

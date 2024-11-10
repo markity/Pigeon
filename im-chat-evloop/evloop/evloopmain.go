@@ -78,6 +78,7 @@ func (c *ChatEvLoop) start() {
 							go push.SendMessageResp(&push.SendMessageRespInput{
 								GwAddrPort:      inputSpec.SendMessage.Session.GwAdvertiseAddrport,
 								SessionId:       inputSpec.SendMessage.Session.SessionId,
+								EchoCode:        inputSpec.SendMessage.EchoCode,
 								RelationVersion: version,
 								Code:            evloopio.SendMessageResponse_NO_PERMISSION,
 								SeqId:           0,
@@ -94,6 +95,7 @@ func (c *ChatEvLoop) start() {
 							go push.SendMessageResp(&push.SendMessageRespInput{
 								GwAddrPort: inputSpec.SendMessage.Session.GwAdvertiseAddrport,
 								SessionId:  inputSpec.SendMessage.Session.SessionId,
+								EchoCode:   inputSpec.SendMessage.EchoCode,
 								Code:       evloopio.SendMessageResponse_OK,
 								SeqId:      msgSeq,
 							})
@@ -117,6 +119,7 @@ func (c *ChatEvLoop) start() {
 								push.SeqResp(&push.SubRespInput{
 									GwAddrPort:      inputSpec.SubscribeGroup.Session.GwAdvertiseAddrport,
 									SessionId:       inputSpec.SubscribeGroup.Session.SessionId,
+									EchoCode:        inputSpec.SubscribeGroup.EchoCode,
 									GroupId:         c.chatId,
 									SubOk:           false,
 									RelationVersion: 0,
@@ -145,6 +148,7 @@ func (c *ChatEvLoop) start() {
 							push.SeqResp(&push.SubRespInput{
 								GwAddrPort:      inputSpec.SubscribeGroup.Session.GwAdvertiseAddrport,
 								SessionId:       inputSpec.SubscribeGroup.Session.SessionId,
+								EchoCode:        inputSpec.SubscribeGroup.EchoCode,
 								GroupId:         c.chatId,
 								SubOk:           true,
 								RelationVersion: relationVersion,

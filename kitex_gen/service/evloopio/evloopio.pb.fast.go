@@ -110,6 +110,11 @@ func (x *SubscribeGroupRequest) FastRead(buf []byte, _type int8, number int32) (
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -131,6 +136,11 @@ func (x *SubscribeGroupRequest) fastReadField1(buf []byte, _type int8) (offset i
 	}
 	x.Session = &v
 	return offset, nil
+}
+
+func (x *SubscribeGroupRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.EchoCode, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
 }
 
 func (x *SubscribeGroupResponse) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
@@ -205,6 +215,11 @@ func (x *SendMessageRequest) FastRead(buf []byte, _type int8, number int32) (off
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 5:
+		offset, err = x.fastReadField5(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -229,16 +244,21 @@ func (x *SendMessageRequest) fastReadField1(buf []byte, _type int8) (offset int,
 }
 
 func (x *SendMessageRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.MessageData, offset, err = fastpb.ReadBytes(buf, _type)
+	x.EchoCode, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
 
 func (x *SendMessageRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
-	x.CheckIdempotent, offset, err = fastpb.ReadBool(buf, _type)
+	x.MessageData, offset, err = fastpb.ReadBytes(buf, _type)
 	return offset, err
 }
 
 func (x *SendMessageRequest) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+	x.CheckIdempotent, offset, err = fastpb.ReadBool(buf, _type)
+	return offset, err
+}
+
+func (x *SendMessageRequest) fastReadField5(buf []byte, _type int8) (offset int, err error) {
 	x.IdempotentKey, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
@@ -499,6 +519,7 @@ func (x *SubscribeGroupRequest) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
@@ -507,6 +528,14 @@ func (x *SubscribeGroupRequest) fastWriteField1(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteMessage(buf[offset:], 1, x.GetSession())
+	return offset
+}
+
+func (x *SubscribeGroupRequest) fastWriteField2(buf []byte) (offset int) {
+	if x.EchoCode == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetEchoCode())
 	return offset
 }
 
@@ -552,6 +581,7 @@ func (x *SendMessageRequest) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
 	offset += x.fastWriteField4(buf[offset:])
+	offset += x.fastWriteField5(buf[offset:])
 	return offset
 }
 
@@ -564,26 +594,34 @@ func (x *SendMessageRequest) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *SendMessageRequest) fastWriteField2(buf []byte) (offset int) {
-	if len(x.MessageData) == 0 {
+	if x.EchoCode == "" {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 2, x.GetMessageData())
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetEchoCode())
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField3(buf []byte) (offset int) {
-	if !x.CheckIdempotent {
+	if len(x.MessageData) == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBool(buf[offset:], 3, x.GetCheckIdempotent())
+	offset += fastpb.WriteBytes(buf[offset:], 3, x.GetMessageData())
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField4(buf []byte) (offset int) {
+	if !x.CheckIdempotent {
+		return offset
+	}
+	offset += fastpb.WriteBool(buf[offset:], 4, x.GetCheckIdempotent())
+	return offset
+}
+
+func (x *SendMessageRequest) fastWriteField5(buf []byte) (offset int) {
 	if x.IdempotentKey == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 4, x.GetIdempotentKey())
+	offset += fastpb.WriteString(buf[offset:], 5, x.GetIdempotentKey())
 	return offset
 }
 
@@ -762,6 +800,7 @@ func (x *SubscribeGroupRequest) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
+	n += x.sizeField2()
 	return n
 }
 
@@ -770,6 +809,14 @@ func (x *SubscribeGroupRequest) sizeField1() (n int) {
 		return n
 	}
 	n += fastpb.SizeMessage(1, x.GetSession())
+	return n
+}
+
+func (x *SubscribeGroupRequest) sizeField2() (n int) {
+	if x.EchoCode == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetEchoCode())
 	return n
 }
 
@@ -815,6 +862,7 @@ func (x *SendMessageRequest) Size() (n int) {
 	n += x.sizeField2()
 	n += x.sizeField3()
 	n += x.sizeField4()
+	n += x.sizeField5()
 	return n
 }
 
@@ -827,26 +875,34 @@ func (x *SendMessageRequest) sizeField1() (n int) {
 }
 
 func (x *SendMessageRequest) sizeField2() (n int) {
-	if len(x.MessageData) == 0 {
+	if x.EchoCode == "" {
 		return n
 	}
-	n += fastpb.SizeBytes(2, x.GetMessageData())
+	n += fastpb.SizeString(2, x.GetEchoCode())
 	return n
 }
 
 func (x *SendMessageRequest) sizeField3() (n int) {
-	if !x.CheckIdempotent {
+	if len(x.MessageData) == 0 {
 		return n
 	}
-	n += fastpb.SizeBool(3, x.GetCheckIdempotent())
+	n += fastpb.SizeBytes(3, x.GetMessageData())
 	return n
 }
 
 func (x *SendMessageRequest) sizeField4() (n int) {
+	if !x.CheckIdempotent {
+		return n
+	}
+	n += fastpb.SizeBool(4, x.GetCheckIdempotent())
+	return n
+}
+
+func (x *SendMessageRequest) sizeField5() (n int) {
 	if x.IdempotentKey == "" {
 		return n
 	}
-	n += fastpb.SizeString(4, x.GetIdempotentKey())
+	n += fastpb.SizeString(5, x.GetIdempotentKey())
 	return n
 }
 
@@ -974,6 +1030,7 @@ var fieldIDToName_AlterGroupMemberResponse = map[int32]string{
 
 var fieldIDToName_SubscribeGroupRequest = map[int32]string{
 	1: "Session",
+	2: "EchoCode",
 }
 
 var fieldIDToName_SubscribeGroupResponse = map[int32]string{
@@ -984,9 +1041,10 @@ var fieldIDToName_SubscribeGroupResponse = map[int32]string{
 
 var fieldIDToName_SendMessageRequest = map[int32]string{
 	1: "Session",
-	2: "MessageData",
-	3: "CheckIdempotent",
-	4: "IdempotentKey",
+	2: "EchoCode",
+	3: "MessageData",
+	4: "CheckIdempotent",
+	5: "IdempotentKey",
 }
 
 var fieldIDToName_SendMessageResponse = map[int32]string{

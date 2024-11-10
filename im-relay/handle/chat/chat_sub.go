@@ -43,7 +43,8 @@ func handleSub(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 			Input: &evloopio.UniversalGroupEvloopInput{
 				Input: &evloopio.UniversalGroupEvloopInput_SubscribeGroup{
 					SubscribeGroup: &evloopio.SubscribeGroupRequest{
-						Session: req.Session,
+						Session:  req.Session,
+						EchoCode: req.EchoCode,
 					},
 				},
 			},
