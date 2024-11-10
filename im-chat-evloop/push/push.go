@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"pigeon/im-relation/api"
+	"pigeon/kitex_gen/service/evloopio"
 	"pigeon/kitex_gen/service/imgateway"
 	"time"
 )
@@ -64,6 +65,36 @@ func SeqNotify(input *SeqNotifyInput) {
 		})
 		if err != nil {
 			log.Printf("push SeqNotify: %v\n", err)
+			time.Sleep(time.Millisecond * 50)
+			continue
+		}
+		break
+	}
+}
+
+type SendMessageRespInput struct {
+	GwAddrPort      string
+	SessionId       string
+	RelationVersion int64
+	Code            evloopio.SendMessageResponse_SendMessageCode // 0发送成功, 1幂等检查已发送, 2无权限
+	// code为 2 时, SeqId无意义
+	SeqId int64
+}
+
+func SendMessageResp(input *SendMessageRespInput) {
+	cli := api.NewGatewayClientFromAdAddr(input.GwAddrPort)
+	for {
+		_, err := cli.PushMessage(context.Background(), &imgateway.PushMessageReq{
+			SessionId: input.SessionId,
+			PushType:  "push-send-msg-resp",
+			EchoCode:  "",
+			Data: mustMarshal(map[string]interface{}{
+				"code":   input.Code,
+				"seq_id": input.SeqId,
+			}),
+		})
+		if err != nil {
+			log.Printf("push SendMessageResp: %v\n", err)
 			time.Sleep(time.Millisecond * 50)
 			continue
 		}

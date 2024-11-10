@@ -200,6 +200,11 @@ func (x *SendMessageRequest) FastRead(buf []byte, _type int8, number int32) (off
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 4:
+		offset, err = x.fastReadField4(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -214,16 +219,26 @@ ReadFieldError:
 }
 
 func (x *SendMessageRequest) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	var v base.SessionEntry
+	offset, err = fastpb.ReadMessage(buf, _type, &v)
+	if err != nil {
+		return offset, err
+	}
+	x.Session = &v
+	return offset, nil
+}
+
+func (x *SendMessageRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	x.MessageData, offset, err = fastpb.ReadBytes(buf, _type)
 	return offset, err
 }
 
-func (x *SendMessageRequest) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+func (x *SendMessageRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
 	x.CheckIdempotent, offset, err = fastpb.ReadBool(buf, _type)
 	return offset, err
 }
 
-func (x *SendMessageRequest) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+func (x *SendMessageRequest) fastReadField4(buf []byte, _type int8) (offset int, err error) {
 	x.IdempotentKey, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
@@ -274,7 +289,7 @@ func (x *SendMessageResponse) fastReadField1(buf []byte, _type int8) (offset int
 }
 
 func (x *SendMessageResponse) fastReadField2(buf []byte, _type int8) (offset int, err error) {
-	x.RelationId, offset, err = fastpb.ReadInt64(buf, _type)
+	x.RelationVersion, offset, err = fastpb.ReadInt64(buf, _type)
 	return offset, err
 }
 
@@ -536,30 +551,39 @@ func (x *SendMessageRequest) FastWrite(buf []byte) (offset int) {
 	offset += x.fastWriteField1(buf[offset:])
 	offset += x.fastWriteField2(buf[offset:])
 	offset += x.fastWriteField3(buf[offset:])
+	offset += x.fastWriteField4(buf[offset:])
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField1(buf []byte) (offset int) {
-	if len(x.MessageData) == 0 {
+	if x.Session == nil {
 		return offset
 	}
-	offset += fastpb.WriteBytes(buf[offset:], 1, x.GetMessageData())
+	offset += fastpb.WriteMessage(buf[offset:], 1, x.GetSession())
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField2(buf []byte) (offset int) {
-	if !x.CheckIdempotent {
+	if len(x.MessageData) == 0 {
 		return offset
 	}
-	offset += fastpb.WriteBool(buf[offset:], 2, x.GetCheckIdempotent())
+	offset += fastpb.WriteBytes(buf[offset:], 2, x.GetMessageData())
 	return offset
 }
 
 func (x *SendMessageRequest) fastWriteField3(buf []byte) (offset int) {
+	if !x.CheckIdempotent {
+		return offset
+	}
+	offset += fastpb.WriteBool(buf[offset:], 3, x.GetCheckIdempotent())
+	return offset
+}
+
+func (x *SendMessageRequest) fastWriteField4(buf []byte) (offset int) {
 	if x.IdempotentKey == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 3, x.GetIdempotentKey())
+	offset += fastpb.WriteString(buf[offset:], 4, x.GetIdempotentKey())
 	return offset
 }
 
@@ -583,10 +607,10 @@ func (x *SendMessageResponse) fastWriteField1(buf []byte) (offset int) {
 }
 
 func (x *SendMessageResponse) fastWriteField2(buf []byte) (offset int) {
-	if x.RelationId == 0 {
+	if x.RelationVersion == 0 {
 		return offset
 	}
-	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetRelationId())
+	offset += fastpb.WriteInt64(buf[offset:], 2, x.GetRelationVersion())
 	return offset
 }
 
@@ -790,30 +814,39 @@ func (x *SendMessageRequest) Size() (n int) {
 	n += x.sizeField1()
 	n += x.sizeField2()
 	n += x.sizeField3()
+	n += x.sizeField4()
 	return n
 }
 
 func (x *SendMessageRequest) sizeField1() (n int) {
-	if len(x.MessageData) == 0 {
+	if x.Session == nil {
 		return n
 	}
-	n += fastpb.SizeBytes(1, x.GetMessageData())
+	n += fastpb.SizeMessage(1, x.GetSession())
 	return n
 }
 
 func (x *SendMessageRequest) sizeField2() (n int) {
-	if !x.CheckIdempotent {
+	if len(x.MessageData) == 0 {
 		return n
 	}
-	n += fastpb.SizeBool(2, x.GetCheckIdempotent())
+	n += fastpb.SizeBytes(2, x.GetMessageData())
 	return n
 }
 
 func (x *SendMessageRequest) sizeField3() (n int) {
+	if !x.CheckIdempotent {
+		return n
+	}
+	n += fastpb.SizeBool(3, x.GetCheckIdempotent())
+	return n
+}
+
+func (x *SendMessageRequest) sizeField4() (n int) {
 	if x.IdempotentKey == "" {
 		return n
 	}
-	n += fastpb.SizeString(3, x.GetIdempotentKey())
+	n += fastpb.SizeString(4, x.GetIdempotentKey())
 	return n
 }
 
@@ -837,10 +870,10 @@ func (x *SendMessageResponse) sizeField1() (n int) {
 }
 
 func (x *SendMessageResponse) sizeField2() (n int) {
-	if x.RelationId == 0 {
+	if x.RelationVersion == 0 {
 		return n
 	}
-	n += fastpb.SizeInt64(2, x.GetRelationId())
+	n += fastpb.SizeInt64(2, x.GetRelationVersion())
 	return n
 }
 
@@ -950,14 +983,15 @@ var fieldIDToName_SubscribeGroupResponse = map[int32]string{
 }
 
 var fieldIDToName_SendMessageRequest = map[int32]string{
-	1: "MessageData",
-	2: "CheckIdempotent",
-	3: "IdempotentKey",
+	1: "Session",
+	2: "MessageData",
+	3: "CheckIdempotent",
+	4: "IdempotentKey",
 }
 
 var fieldIDToName_SendMessageResponse = map[int32]string{
 	1: "Code",
-	2: "RelationId",
+	2: "RelationVersion",
 	3: "MaxSeqId",
 	4: "MessageSeq",
 }

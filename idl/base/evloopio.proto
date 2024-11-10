@@ -43,9 +43,10 @@ message SubscribeGroupResponse {
 
 // 发送消息
 message SendMessageRequest {
-  bytes message_data = 1;
-  bool check_idempotent = 2;   // 是否需要检查幂等
-  string idempotent_key = 3;  // 幂等key
+  base.SessionEntry session = 1;
+  bytes message_data = 2;
+  bool check_idempotent = 3;   // 是否需要检查幂等
+  string idempotent_key = 4;  // 幂等key
 }
 
 message SendMessageResponse {
@@ -57,7 +58,7 @@ message SendMessageResponse {
   }
   
   SendMessageCode code = 1;
-  int64 relation_id = 2;
+  int64 relation_version = 2;
   int64 max_seq_id = 3;
   int64 message_seq = 4;
 }
