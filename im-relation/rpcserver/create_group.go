@@ -3,7 +3,6 @@ package rpcserver
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -53,7 +52,7 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 		return nil, err
 	}
 
-	err = db.InsertRelation(txn, &model.RelationModel{
+	relation := &model.RelationModel{
 		OwnerId:         req.Session.Username,
 		GroupId:         groupId,
 		Status:          base.RelationStatus_RELATION_STATUS_OWNER,
@@ -61,14 +60,15 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 		RelationVersion: 1,
 		CreatedAt:       now.UnixMilli(),
 		UpdatedAt:       now.UnixMilli(),
-	})
+	}
+	err = db.InsertRelation(txn, relation)
 	if err != nil {
 		log.Printf("failed to insert or select for update relation: %v\n", err)
 		return nil, err
 	}
 
 	resp, err := s.RelayCli.CreateChatEventLoop(context.Background(), &relay.CreateChatEventLoopReq{
-		GroupId: fmt.Sprint(group.Id),
+		GroupId: group.GroupId,
 		OwnerId: ownerId,
 	})
 	if err != nil {
@@ -90,13 +90,26 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 		push.CreateGroupResp(req.Session, &push.CreateGroupRespInput{
 			EchoCode:  req.EchoCode,
 			OwnerId:   group.OwnerId,
-			GroupId:   fmt.Sprint(group.Id),
+			GroupId:   group.GroupId,
 			CreatedAt: group.CreatedAt,
 		})
 	}()
 
+	// 给此用户的所有session推送关于这个群聊的关系
+	go func() {
+		push.RelationChangeNotify(&push.RelationChangeNotifyInput{
+			AuthRoute:  s.AuthRouteCli,
+			Username:   req.Session.Username,
+			GroupId:    groupId,
+			Version:    1,
+			Status:     base.RelationStatus_RELATION_STATUS_OWNER,
+			ChangeAt:   relation.UpdatedAt,
+			ChangeType: base.RelationChangeType_RELATION_CHANGE_TYPE_CREATE_GROUP,
+		})
+	}()
+
 	return &imrelation.CreateGroupResp{
-		GroupId:  fmt.Sprint(group.Id),
+		GroupId:  group.GroupId,
 		CreateAt: group.CreatedAt,
 	}, nil
 }

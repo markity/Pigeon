@@ -18,6 +18,7 @@ etcd:
 
 # 业务相关配置
 app:
+  debug: true
   # 作为etcd的key名字使用
   name: im-gateway-node-1
   # 发送心跳间隔

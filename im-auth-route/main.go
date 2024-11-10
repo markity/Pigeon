@@ -19,6 +19,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var cfgFilePath = flag.String("cfg", "../config/im-auth-route/config.yaml", "config file path")
@@ -41,9 +42,15 @@ func main() {
 		panic(err)
 	}
 
+	debugModeLogger := logger.Default.LogMode(logger.Info)
+	if !cfg.AppConfig.Debug {
+		debugModeLogger = nil
+	}
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.MysqlConfig.User, cfg.MysqlConfig.Pwd, cfg.MysqlConfig.Host, cfg.MysqlConfig.Port, cfg.MysqlConfig.Db)
-	gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: debugModeLogger,
+	})
 	if err != nil {
 		panic(err)
 	}

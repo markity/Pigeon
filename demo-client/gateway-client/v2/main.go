@@ -107,6 +107,8 @@ func parseCommand(line string) interface{} {
 			return &cmdKickOtherSession{SessionId: cmds[1], EchoCode: nil}
 		}
 	case "exit":
+	case "quit":
+	case "q":
 		if len(cmds) == 1 {
 			return &exitCmd{}
 		}
@@ -410,10 +412,12 @@ func main() {
 				}
 			case *protocol.S2CKickOhterDeviceRespPacket:
 				win.SendLineBack("recv: packet kick resp")
+				success := pkt.Success
 				ok := pkt.KickOK
 				version := pkt.Version
 				devices := pkt.Sessions
 				ec := pkt.EchoCode()
+				win.SendLineBack("    success: " + fmt.Sprint(success))
 				win.SendLineBack("    kickOk: " + fmt.Sprint(ok))
 				win.SendLineBack("    version: " + fmt.Sprint(version))
 				win.SendLineBack("    echoCode: " + ec)

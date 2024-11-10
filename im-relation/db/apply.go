@@ -25,7 +25,7 @@ func GetApplyByUsernameAndGroupId(txn *gorm.DB, username string, groupId string)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
-	return nil, err
+	return &m, err
 }
 
 // InsertApply 插入申请
@@ -35,7 +35,7 @@ func InsertApply(txn *gorm.DB, apply *model.ApplyModel) (inserted bool, err erro
 		return false, nil
 	}
 
-	return false, err
+	return true, err
 }
 
 func UpdateApply(txn *gorm.DB, apply *model.ApplyModel) error {

@@ -21,4 +21,5 @@ mysql:
   db: im_relation
 
 app:
+  debug: true
   advertise-addrport: "127.0.0.1:6001"

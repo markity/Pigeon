@@ -25,7 +25,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		log.Printf("failed to get group info: %v\n", err)
 		return nil, err
 	}
-	if groupInfo.OwnerId != req.Session.Username {
+	if groupInfo == nil || groupInfo.OwnerId != req.Session.Username {
 		go func() {
 			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
 				EchoCode: req.EchoCode,
@@ -187,7 +187,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 				Input: &evloopio.UniversalGroupEvloopInput_AlterGroupMember{
 					AlterGroupMember: &evloopio.AlterGroupMemberRequest{
 						Relation: &base.RelationEntry{
-							GroupId:         fmt.Sprint(groupInfo.Id),
+							GroupId:         groupInfo.GroupId,
 							UserId:          req.UserId,
 							Status:          base.RelationStatus_RELATION_STATUS_MEMBER,
 							ChangeType:      base.RelationChangeType_RELATION_CHANGE_TYPE_OWNER_ACCEPT,

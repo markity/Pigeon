@@ -64,7 +64,7 @@ func GetRelationByUsernameGroupId(txn *gorm.DB, username string, groupId string)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
-	return nil, err
+	return &m, err
 }
 
 func SelectForUpdateRelationByUsernameGroupId(txn *gorm.DB, username string, groupId int64) (*model.RelationModel, error) {

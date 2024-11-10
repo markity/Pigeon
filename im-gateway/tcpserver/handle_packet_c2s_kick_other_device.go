@@ -39,6 +39,8 @@ func handleC2SKickOtherDevice(conn goreactor.TCPConnection, pack *protocol.C2SKi
 		return
 	}
 
+	send.Success = true
+
 	// 调用rpc
 	kickResp, err := evloopCtx.AuthRouteCli.ForceOffline(context.Background(), &imauthroute.ForceOfflineReq{
 		Username:        connState.LoginSession.Username,

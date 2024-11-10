@@ -31,6 +31,7 @@ type RedisConfig struct {
 }
 
 type AppConfig struct {
+	Debug                bool   `yaml:"debug"`
 	RPCAdvertiseAddrport string `yaml:"rpc-advertise-addrport"`
 	DeviceNumLimit       int    `yaml:"device-num-limit"`
 }

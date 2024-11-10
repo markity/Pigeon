@@ -281,7 +281,6 @@ func ParseC2SPacket(data []byte) (interface{}, error) {
 		err = json.Unmarshal(data, &header)
 	case "heartbeat":
 		header.Data = new(HeartbeatPacket)
-		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	case "kick-other":
 		header.Data = new(C2SKickOtherDevicePacket)
@@ -336,7 +335,6 @@ func ParseS2CPacket(data []byte) (interface{}, error) {
 		err = json.Unmarshal(data, &header)
 	case "heartbeat":
 		header.Data = new(HeartbeatPacket)
-		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
 	case "kick-other-resp":
 		header.Data = new(S2CKickOhterDeviceRespPacket)

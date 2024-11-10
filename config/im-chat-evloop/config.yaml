@@ -15,4 +15,5 @@ mysql:
   db: im_chatevloop
 
 app:
+  debug: true
   rpc-advertise-addrport: "127.0.0.1:8001"

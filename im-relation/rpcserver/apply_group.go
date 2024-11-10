@@ -67,6 +67,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		return nil, err
 	}
 
+	fmt.Println(relation)
+
 	// 如果是member或owner, 则不能apply, user in group错误
 	if relation != nil && (relation.Status == base.RelationStatus_RELATION_STATUS_MEMBER ||
 		relation.Status == base.RelationStatus_RELATION_STATUS_OWNER) {
@@ -87,8 +89,10 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 		return nil, err
 	}
 
+	fmt.Println(apply)
+
 	if apply == nil {
-		inserted, err := db.InsertApply(txn, &model.ApplyModel{
+		apply = &model.ApplyModel{
 			OwnerId:      req.Session.Username,
 			GroupId:      group.GroupId,
 			ApplyVersion: 0,
@@ -97,7 +101,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 			UpdatedAt:    now.UnixMilli(),
 			Status:       0,
 			GroupOwnerId: group.OwnerId,
-		})
+		}
+		inserted, err := db.InsertApply(txn, apply)
 		if err != nil || !inserted {
 			if err == nil {
 				err = errors.New("dupkey")

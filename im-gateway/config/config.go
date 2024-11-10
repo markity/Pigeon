@@ -23,6 +23,7 @@ type EtcdConfig struct {
 }
 
 type AppConfig struct {
+	Debug                   bool   `yaml:"debug"`
 	Name                    string `yaml:"name"`
 	HeartbeatIntervalMs     int    `yaml:"heartbeat-interval-ms"`
 	CloseConnIntervalMs     int    `yaml:"close-conn-interval-ms"`

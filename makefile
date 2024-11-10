@@ -17,6 +17,6 @@ remake:
 	mysql -uroot -e "create database im_relation"
 	mysql -uroot -e "create database im_auth_route"
 
-	go run cmd/init_mysql_user/main.go
+	./cmd/init_mysql_user/init_mysql_user
 
 	

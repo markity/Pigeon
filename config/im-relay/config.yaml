@@ -12,5 +12,6 @@ etcd:
 
 # 业务相关配置
 app:
+  debug: true
   # 对外提供服务的ip:port
   advertise-addrport: "127.0.0.1:5001"

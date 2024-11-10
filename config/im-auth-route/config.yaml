@@ -26,6 +26,7 @@ mysql:
 
   # 业务相关配置
 app:
+  debug: true
   # 路由服务对外提供rpc服务的地址
   rpc-advertise-addrport: "127.0.0.1:4001"
   # 同一username上线设备限制, -1为不限制

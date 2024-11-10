@@ -21,6 +21,7 @@ type AppConfig struct {
 }
 
 type Config struct {
+	Debug            bool             `yaml:"debug"`
 	HTTPServerConfig HTTPServerConfig `yaml:"http-server"`
 	EtcdConfig       []EtcdConfig     `yaml:"etcd"`
 	AppConfig        AppConfig        `yaml:"app"`
