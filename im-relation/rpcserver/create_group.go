@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
+	"pigeon/im-relation/bizpush"
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
-	"pigeon/im-relation/push"
 	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imrelation"
 	relay "pigeon/kitex_gen/service/imrelay"
@@ -44,7 +44,7 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 	var group = model.GroupModel{
 		GroupId:   groupId,
 		OwnerId:   ownerId,
-		CreatedAt: time.Now().UnixMilli(),
+		CreatedAt: now.UnixMilli(),
 	}
 	err = db.CreateGroup(txn, &group)
 	if err != nil {
@@ -87,7 +87,8 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 
 	go func() {
 		// push里面自带重试逻辑
-		push.CreateGroupResp(req.Session, &push.CreateGroupRespInput{
+		s.BPush.CreateGroupResp(&bizpush.CreateGroupRespInput{
+			Session:   req.Session,
 			EchoCode:  req.EchoCode,
 			OwnerId:   group.OwnerId,
 			GroupId:   group.GroupId,
@@ -97,13 +98,12 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroup
 
 	// 给此用户的所有session推送关于这个群聊的关系
 	go func() {
-		push.RelationChangeNotify(&push.RelationChangeNotifyInput{
-			AuthRoute:  s.AuthRouteCli,
+		s.BPush.RelationChangeNotify(&bizpush.RelationChangeNotifyInput{
 			Username:   req.Session.Username,
 			GroupId:    groupId,
 			Version:    1,
 			Status:     base.RelationStatus_RELATION_STATUS_OWNER,
-			ChangeAt:   relation.UpdatedAt,
+			UpdatedAt:  relation.UpdatedAt,
 			ChangeType: base.RelationChangeType_RELATION_CHANGE_TYPE_CREATE_GROUP,
 		})
 	}()

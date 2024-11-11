@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
+	"pigeon/im-relation/bizpush"
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
-	"pigeon/im-relation/push"
 	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/evloopio"
 	"pigeon/kitex_gen/service/imrelation"
@@ -27,7 +27,8 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 	}
 	if groupInfo == nil || groupInfo.OwnerId != req.Session.Username {
 		go func() {
-			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
+			s.BPush.HandleApplyResp(&bizpush.HandleApplyRespInput{
+				Session:  req.Session,
 				EchoCode: req.EchoCode,
 				Code:     imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_NO_PERMISSION,
 			})
@@ -61,7 +62,8 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 	if apply == nil || apply.Status != base.ApplyStatus_APPLY_STATUS_PENDING {
 		go func() {
-			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
+			s.BPush.HandleApplyResp(&bizpush.HandleApplyRespInput{
+				Session:  req.Session,
 				EchoCode: req.EchoCode,
 				Code:     imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_NO_APPLY,
 			})
@@ -136,8 +138,7 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 		// 拒绝更新ok, 需要把消息推送group owner
 		go func() {
-			push.HandleApplyNotify(&push.HandleApplyNotifyInput{
-				AuthRoute:    s.AuthRouteCli,
+			s.BPush.HandleApplyNotify(&bizpush.HandleApplyNotifyInput{
 				OwnerId:      groupInfo.OwnerId,
 				Username:     apply.OwnerId,
 				GroupId:      req.GroupId,
@@ -150,7 +151,9 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 		}()
 
 		go func() {
-			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
+			s.BPush.HandleApplyResp(&bizpush.HandleApplyRespInput{
+				Session: req.Session,
+
 				EchoCode: req.EchoCode,
 
 				Code: imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
@@ -289,22 +292,19 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 		// 发送relation变更notify
 		go func() {
-			push.RelationChangeNotify(&push.RelationChangeNotifyInput{
-				AuthRoute: s.AuthRouteCli,
-
+			s.BPush.RelationChangeNotify(&bizpush.RelationChangeNotifyInput{
 				Username:   relation.OwnerId,
 				GroupId:    fmt.Sprint(relation.GroupId),
 				Version:    relation.RelationVersion,
 				Status:     base.RelationStatus_RELATION_STATUS_MEMBER,
 				ChangeType: relation.ChangeType, // relation变更场景, 是因为群主接受申请
-				ChangeAt:   now.UnixMilli(),
+				UpdatedAt:  now.UnixMilli(),
 			})
 		}()
 
 		// 给group owner发处理apply的通知
 		go func() {
-			push.HandleApplyNotify(&push.HandleApplyNotifyInput{
-				AuthRoute:    s.AuthRouteCli,
+			s.BPush.HandleApplyNotify(&bizpush.HandleApplyNotifyInput{
 				OwnerId:      groupInfo.OwnerId,
 				Username:     apply.OwnerId,
 				GroupId:      req.GroupId,
@@ -318,8 +318,8 @@ func (s *RPCServer) HandleApply(ctx context.Context, req *imrelation.HandleApply
 
 		// 推消息, 告诉group owner以及新relation的建立
 		go func() {
-			push.HandleApplyResp(req.Session, &push.HandleApplyRespInput{
-				EchoCode:        req.EchoCode,
+			s.BPush.HandleApplyResp(&bizpush.HandleApplyRespInput{
+				Session:         req.Session,
 				Code:            imrelation.HandleApplyResp_HANDLE_APPLY_RESP_CODE_OK,
 				RelationVersion: relation.RelationVersion,
 				ApplyMsg:        apply.ApplyMsg,

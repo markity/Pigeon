@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"pigeon/im-relation/bizpush"
 	"pigeon/im-relation/db"
-	"pigeon/im-relation/push"
 	"pigeon/kitex_gen/service/imrelation"
 )
 
@@ -35,8 +35,8 @@ func (s *RPCServer) FetchAllRelations(ctx context.Context, req *imrelation.Fetch
 	}
 
 	go func() {
-		push.FetchAllRelationsResp(req.Session, &push.FetchAllRelationsRespInput{
-			EchoCode:  req.EchoCode,
+		s.BPush.FetchAllRelationsResp(&bizpush.FetchAllRelationsRespInput{
+			Session:   req.Session,
 			Relations: relations,
 		})
 	}()

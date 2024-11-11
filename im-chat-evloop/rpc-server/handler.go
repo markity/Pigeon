@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"pigeon/common/keylock"
 	"pigeon/im-chat-evloop/api"
+	"pigeon/im-chat-evloop/bizpush"
 	"pigeon/im-chat-evloop/evloop"
 	"pigeon/kitex_gen/service/imchatevloop"
 	relay "pigeon/kitex_gen/service/imrelay"
@@ -17,6 +18,7 @@ import (
 // 创建群聊
 type RPCServer struct {
 	RelayCli imrelay.Client
+	BPush    *bizpush.BizPusher
 
 	// 读写current version, 需要加锁
 	CurrentVersionMu sync.Mutex
@@ -64,6 +66,7 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imchatevloop.CreateGro
 	lp, createdAt := evloop.NewChatEvLoopAndStart(&evloop.NewChatEvLoopInput{
 		ChatId:  req.GroupId,
 		OwnerId: req.GroupOwnerId,
+		PushMan: s.BPush,
 	})
 	s.ChatEventloops.Store(req.GroupId, lp)
 	return &imchatevloop.CreateGroupResponse{
@@ -113,7 +116,7 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 				unlockFunc()
 				return nil, err
 			}
-			lp = evloop.NewMigrateEvLoop(migrateResp)
+			lp = evloop.NewMigrateEvLoop(migrateResp, s.BPush)
 
 			// todo这里可以幂等重试
 			_, err = evloopCli.MigrateDone(context.Background(), &imchatevloop.MigrateDoneReq{

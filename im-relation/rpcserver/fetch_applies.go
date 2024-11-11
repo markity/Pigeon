@@ -2,11 +2,10 @@ package rpcserver
 
 import (
 	"context"
-	"fmt"
 	"log"
 
+	"pigeon/im-relation/bizpush"
 	"pigeon/im-relation/db"
-	"pigeon/im-relation/push"
 	"pigeon/kitex_gen/service/imrelation"
 )
 
@@ -28,7 +27,7 @@ func (s *RPCServer) FetchAllApplications(ctx context.Context, req *imrelation.Fe
 	for _, v := range data {
 		applications = append(applications, &imrelation.ApplyEntry{
 			UserId:       v.OwnerId,
-			GroupId:      fmt.Sprint(v.GroupId),
+			GroupId:      v.GroupId,
 			ApplyVersion: v.ApplyVersion,
 			ApplyAt:      v.UpdatedAt,
 			ApplyMsg:     v.ApplyMsg,
@@ -37,9 +36,9 @@ func (s *RPCServer) FetchAllApplications(ctx context.Context, req *imrelation.Fe
 	}
 
 	go func() {
-		push.FetchAllAppliesResp(req.Session, &push.FetchAllAppliesRespInput{
-			EchoCode: req.EchoCode,
-			Applies:  applications,
+		s.BPush.FetchAllAppliesResp(&bizpush.FetchAllAppliesRespInput{
+			Session: req.Session,
+			Applies: applications,
 		})
 	}()
 

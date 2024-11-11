@@ -3,8 +3,7 @@ package evloop
 import (
 	"fmt"
 	"log"
-	"pigeon/im-chat-evloop/push"
-	"pigeon/kitex_gen/service/base"
+	"pigeon/im-chat-evloop/bizpush"
 	"pigeon/kitex_gen/service/evloopio"
 	"time"
 )
@@ -75,9 +74,8 @@ func (c *ChatEvLoop) start() {
 						// 2.权限检查
 						version, canSub := c.relationManager.CanSubscribe(inputSpec.SendMessage.Session.Username)
 						if !canSub {
-							go push.SendMessageResp(&push.SendMessageRespInput{
-								GwAddrPort:      inputSpec.SendMessage.Session.GwAdvertiseAddrport,
-								SessionId:       inputSpec.SendMessage.Session.SessionId,
+							go c.bPush.SendMessageResp(&bizpush.SendMessageRespInput{
+								Session:         inputSpec.SendMessage.Session,
 								EchoCode:        inputSpec.SendMessage.EchoCode,
 								RelationVersion: version,
 								Code:            evloopio.SendMessageResponse_NO_PERMISSION,
@@ -92,14 +90,13 @@ func (c *ChatEvLoop) start() {
 							// 广播seq id
 							now := time.Now()
 
-							go push.SendMessageResp(&push.SendMessageRespInput{
-								GwAddrPort: inputSpec.SendMessage.Session.GwAdvertiseAddrport,
-								SessionId:  inputSpec.SendMessage.Session.SessionId,
-								EchoCode:   inputSpec.SendMessage.EchoCode,
-								Code:       evloopio.SendMessageResponse_OK,
-								SeqId:      msgSeq,
+							go c.bPush.SendMessageResp(&bizpush.SendMessageRespInput{
+								Session:  inputSpec.SendMessage.Session,
+								EchoCode: inputSpec.SendMessage.EchoCode,
+								Code:     evloopio.SendMessageResponse_OK,
+								SeqId:    msgSeq,
 							})
-							startBroadcastSeqId(c.subscribeManager.SnapshotAllSubs(), c.chatId, msgSeq, now)
+							c.bPush.StartBroadcastSeqId(c.subscribeManager.SnapshotAllSubs(), c.chatId, msgSeq, now)
 						}
 					case *evloopio.UniversalGroupEvloopInput_SubscribeGroup:
 						// 判断relation是否ok
@@ -116,9 +113,8 @@ func (c *ChatEvLoop) start() {
 								},
 							}
 							go func() {
-								push.SeqResp(&push.SubRespInput{
-									GwAddrPort:      inputSpec.SubscribeGroup.Session.GwAdvertiseAddrport,
-									SessionId:       inputSpec.SubscribeGroup.Session.SessionId,
+								c.bPush.SubResp(&bizpush.SubRespInput{
+									Session:         inputSpec.SubscribeGroup.Session,
 									EchoCode:        inputSpec.SubscribeGroup.EchoCode,
 									GroupId:         c.chatId,
 									SubOk:           false,
@@ -145,9 +141,8 @@ func (c *ChatEvLoop) start() {
 							},
 						}
 						go func() {
-							push.SeqResp(&push.SubRespInput{
-								GwAddrPort:      inputSpec.SubscribeGroup.Session.GwAdvertiseAddrport,
-								SessionId:       inputSpec.SubscribeGroup.Session.SessionId,
+							c.bPush.SubResp(&bizpush.SubRespInput{
+								Session:         inputSpec.SubscribeGroup.Session,
 								EchoCode:        inputSpec.SubscribeGroup.EchoCode,
 								GroupId:         c.chatId,
 								SubOk:           true,
@@ -221,22 +216,6 @@ func (c *ChatEvLoop) start() {
 				fmt.Println("evloop exit")
 				return
 			}
-		}
-	}()
-}
-
-func startBroadcastSeqId(subs []*base.SessionEntry, groupId string, seqId int64, sendAt time.Time) {
-	// 先拷贝subs, 再异步下行seqid
-
-	go func() {
-		for _, sub := range subs {
-			push.SeqNotify(&push.SeqNotifyInput{
-				GwAddrPort: sub.GwAdvertiseAddrport,
-				SessionId:  sub.SessionId,
-				SeqId:      seqId,
-				GroupId:    groupId,
-				SendAt:     sendAt.UnixMilli(),
-			})
 		}
 	}()
 }

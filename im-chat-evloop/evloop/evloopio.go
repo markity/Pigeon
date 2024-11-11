@@ -1,6 +1,7 @@
 package evloop
 
 import (
+	"pigeon/im-chat-evloop/bizpush"
 	subscribemanager "pigeon/im-chat-evloop/evloop/subscribe_manager"
 	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/evloopio"
@@ -43,4 +44,5 @@ type NewChatEvLoopInput struct {
 	ChatId string
 	// 群主id
 	OwnerId string
+	PushMan *bizpush.BizPusher
 }

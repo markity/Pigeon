@@ -2,6 +2,7 @@ package evloop
 
 import (
 	"fmt"
+	"pigeon/im-chat-evloop/bizpush"
 	relationmanager "pigeon/im-chat-evloop/evloop/relation_manager"
 	subscribemanager "pigeon/im-chat-evloop/evloop/subscribe_manager"
 	"pigeon/kitex_gen/service/base"
@@ -36,6 +37,8 @@ type ChatEvLoop struct {
 	// 订阅者信息, key是userId
 	subscribeManager *subscribemanager.SubscribeManager
 
+	bPush *bizpush.BizPusher
+
 	// 作用1: 保护queue
 	// 作用2: 变更status
 	queueMu sync.Mutex
@@ -67,7 +70,7 @@ func NewChatEvLoopAndStart(in *NewChatEvLoopInput) (loop *ChatEvLoop, createdAt 
 	return lp, now.UnixMilli()
 }
 
-func NewMigrateEvLoop(resp *imchatevloop.DoMigrateResp) *ChatEvLoop {
+func NewMigrateEvLoop(resp *imchatevloop.DoMigrateResp, pushMan *bizpush.BizPusher) *ChatEvLoop {
 	relationMan := relationmanager.NewRelationManagerFromMigrage(resp)
 	subscrberMan := subscribemanager.NewSubscrbieManagerFromMigrage(resp)
 
@@ -77,6 +80,7 @@ func NewMigrateEvLoop(resp *imchatevloop.DoMigrateResp) *ChatEvLoop {
 		createdAt:        resp.CreatedAt,
 		relationManager:  relationMan,
 		subscribeManager: subscrberMan,
+		bPush:            pushMan,
 		queueMu:          sync.Mutex{},
 		cond:             nil,
 		status:           statusRunning,

@@ -5,9 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"time"
 
 	regetcd "pigeon/common/kitex_registry/etcd"
+	"pigeon/common/push"
 	"pigeon/im-relation/api"
+	"pigeon/im-relation/bizpush"
 	"pigeon/im-relation/config"
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
@@ -80,12 +83,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	authroute := api.MustNewIMAuthRouteClient(res)
 	server := imrelation.NewServer(&rpcserver.RPCServer{
 		RPCContext: rpcserver.RPCContext{
-			DB:           db.NewDB(gormDB),
-			RelayCli:     api.MustNewIMRelayClient(res),
-			AuthRouteCli: api.MustNewIMAuthRouteClient(res),
-			RdsAct:       rds.NewRdsAction(rdsCli, cfg.RedisConfig.KeyPrefix),
+			DB:       db.NewDB(gormDB),
+			RelayCli: api.MustNewIMRelayClient(res),
+			RdsAct:   rds.NewRdsAction(rdsCli, cfg.RedisConfig.KeyPrefix),
+			BPush:    bizpush.NewBizPusher(push.NewPushManager(time.Millisecond*50, authroute)),
 		},
 	}, server.WithRegistry(reg), server.WithServiceAddr(listenAddr),
 		server.WithRegistryInfo(&registry.Info{

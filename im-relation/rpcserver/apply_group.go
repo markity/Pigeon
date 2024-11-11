@@ -7,9 +7,9 @@ import (
 	"log"
 	"time"
 
+	bpush "pigeon/im-relation/bizpush"
 	"pigeon/im-relation/db"
 	"pigeon/im-relation/db/model"
-	"pigeon/im-relation/push"
 	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imrelation"
 )
@@ -26,7 +26,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	}
 	if group == nil {
 		go func() {
-			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
+			s.BPush.ApplyGroupResp(&bpush.ApplyGroupRespInput{
+				Session:  req.Session,
 				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_NO_GROUP,
 				EchoCode: req.EchoCode,
 			})
@@ -73,7 +74,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 	if relation != nil && (relation.Status == base.RelationStatus_RELATION_STATUS_MEMBER ||
 		relation.Status == base.RelationStatus_RELATION_STATUS_OWNER) {
 		go func() {
-			push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
+			s.BPush.ApplyGroupResp(&bpush.ApplyGroupRespInput{
+				Session:  req.Session,
 				Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_USER_IN_GROUP,
 				EchoCode: req.EchoCode,
 			})
@@ -134,8 +136,7 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 
 	// 给申请方, 推多端notify
 	go func() {
-		push.ApplyGroupNotify(&push.ApplyGroupNotifyInput{
-			AuthRoute:    s.AuthRouteCli,
+		s.BPush.ApplyGroupNotify(&bpush.ApplyGroupNotifyInput{
 			OwnerId:      group.OwnerId,
 			Username:     apply.OwnerId,
 			GroupId:      fmt.Sprint(apply.GroupId),
@@ -147,7 +148,8 @@ func (s *RPCServer) ApplyGroup(ctx context.Context, req *imrelation.ApplyGroupRe
 
 	// 推带有echo code的resp
 	go func() {
-		push.ApplyGroupResp(req.Session, &push.ApplyGroupRespInput{
+		s.BPush.ApplyGroupResp(&bpush.ApplyGroupRespInput{
+			Session:  req.Session,
 			EchoCode: req.EchoCode,
 			Code:     imrelation.ApplyGroupResp_APPLY_GROUP_RESP_CODE_OK,
 		})
