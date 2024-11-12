@@ -13,8 +13,10 @@ remake:
 	redis-cli flushdb
 
 	mysql -uroot -e "drop database if exists im_relation"
+	mysql -uroot -e "drop database if exists im_chatevloop"
 	mysql -uroot -e "drop database if exists im_auth_route"
 	mysql -uroot -e "create database im_relation"
+	mysql -uroot -e "create database im_chatevloop"
 	mysql -uroot -e "create database im_auth_route"
 
 	./cmd/init_mysql_user/init_mysql_user

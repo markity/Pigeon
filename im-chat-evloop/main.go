@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
+
 	regetcd "pigeon/common/kitex_registry/etcd"
 	"pigeon/common/push"
 	"pigeon/im-chat-evloop/api"
 	"pigeon/im-chat-evloop/bizpush"
 	"pigeon/im-chat-evloop/config"
+	"pigeon/im-chat-evloop/db/model"
 	rpcserver "pigeon/im-chat-evloop/rpc-server"
 	"pigeon/kitex_gen/service/imchatevloop/imchatevloop"
-	"time"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/cloudwego/kitex/pkg/registry"
@@ -43,6 +45,10 @@ func main() {
 	gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: debugModeLogger,
 	})
+	if err != nil {
+		panic(err)
+	}
+	err = model.Migrate(gormDB)
 	if err != nil {
 		panic(err)
 	}
@@ -78,9 +84,9 @@ func main() {
 	}
 	server := imchatevloop.NewServer(
 		&rpcserver.RPCServer{
-			RelayCli: api.MustNewIMRelayClient(res),
-			BPush:    bizpush.NewBizPusher(push.NewPushManager(time.Millisecond*50, nil)),
-			DB:       gormDB,
+			RelayCli:  api.MustNewIMRelayClient(res),
+			BPush:     bizpush.NewBizPusher(push.NewPushManager(time.Millisecond*50, nil)),
+			DB:        gormDB,
 			Snowflake: sn,
 		},
 		server.WithServiceAddr(rpcserverAddr),

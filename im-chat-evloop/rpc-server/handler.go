@@ -80,10 +80,11 @@ func (s *RPCServer) CreateGroup(ctx context.Context, req *imchatevloop.CreateGro
 	defer s.CreateLock.Lock(req.GroupId)()
 
 	lp := evloop.NewChatEvLoopAndStart(&evloop.NewChatEvLoopInput{
-		ChatId:  req.GroupId,
-		OwnerId: req.GroupOwnerId,
-		PushMan: s.BPush,
-		DB:      s.DB,
+		ChatId:    req.GroupId,
+		OwnerId:   req.GroupOwnerId,
+		PushMan:   s.BPush,
+		DB:        s.DB,
+		Snowflake: s.Snowflake,
 	})
 	s.ChatEventloops.Store(req.GroupId, lp)
 	return &imchatevloop.CreateGroupResponse{

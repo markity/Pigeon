@@ -3,9 +3,12 @@ package evloop
 import (
 	"fmt"
 	"log"
-	"pigeon/im-chat-evloop/bizpush"
-	"pigeon/kitex_gen/service/evloopio"
 	"time"
+
+	"pigeon/im-chat-evloop/bizpush"
+	"pigeon/im-chat-evloop/db"
+	"pigeon/im-chat-evloop/db/model"
+	"pigeon/kitex_gen/service/evloopio"
 )
 
 func (c *ChatEvLoop) start() {
@@ -70,6 +73,23 @@ func (c *ChatEvLoop) start() {
 					// case *evloopio.UniversalGroupEvloopInput_DisbandGroup:
 					case *evloopio.UniversalGroupEvloopInput_SendMessage:
 						// 1.做幂等检查
+						key := fmt.Sprintf("%v-%v", inputSpec.SendMessage.Session.Username, inputSpec.SendMessage.IdempotentKey)
+						if inputSpec.SendMessage.CheckIdempotent {
+							m, err := db.GetMessageByIdempotentKey(c.db, key)
+							if err != nil {
+								fmt.Printf("failed to GetMessageByIdempotentKey: %v\n", err)
+								break
+							}
+							if m != nil {
+								go c.bPush.SendMessageResp(&bizpush.SendMessageRespInput{
+									Session:  inputSpec.SendMessage.Session,
+									EchoCode: inputSpec.SendMessage.EchoCode,
+									Code:     evloopio.SendMessageResponse_OK,
+									SeqId:    m.SeqId,
+								})
+								break
+							}
+						}
 
 						// 2.权限检查
 						version, canSub := c.relationManager.CanSubscribe(inputSpec.SendMessage.Session.Username)
@@ -85,11 +105,17 @@ func (c *ChatEvLoop) start() {
 							// 先定序
 							c.seqId++
 							msgSeq := c.seqId
-							// TODO 需要存消息
-							// store(inputSpec, msgSeq)
-							// 广播seq id
 							now := time.Now()
-
+							db.InsertMessage(c.db, &model.MessageModel{
+								OwnerId:       inputSpec.SendMessage.Session.Username,
+								GroupId:       c.chatId,
+								SeqId:         msgSeq,
+								MsgId:         c.idGen.Generate().Base64(),
+								Data:          string(inputSpec.SendMessage.MessageData),
+								IdempotentKey: key,
+								CreatedAt:     now.UnixMilli(),
+							})
+							// 广播seq id
 							go c.bPush.SendMessageResp(&bizpush.SendMessageRespInput{
 								Session:  inputSpec.SendMessage.Session,
 								EchoCode: inputSpec.SendMessage.EchoCode,
