@@ -13,6 +13,7 @@ var sendApplyReq bizprotocol.BizSendApply
 var handleApplyReq bizprotocol.BizHandleApply
 var pullRelationsReq bizprotocol.BizPullRelations
 var pullApplyReq bizprotocol.BizPullApply
+var pullMsgReq bizprotocol.BizPullMessage
 
 func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 	switch req.Biz {
@@ -41,5 +42,7 @@ func HandleChat(ctx *handle.HandleContext, req *imrelay.BizMessageReq) {
 	// 拉全量申请
 	case pullApplyReq.String():
 		handlePullApply(ctx, req)
+	case pullMsgReq.String():
+		handlePullMessages(ctx, req)
 	}
 }

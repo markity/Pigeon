@@ -16,6 +16,14 @@ type EtcdConfig struct {
 	Port int    `yaml:"port"`
 }
 
+type MysqlConfig struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+	User string `yaml:"user"`
+	Pwd  string `yaml:"pwd"`
+	Db   string `yaml:"db"`
+}
+
 type AppConfig struct {
 	Debug                bool   `yaml:"debug"`
 	RPCAdvertiseAddrport string `yaml:"rpc-advertise-addrport"`
@@ -24,6 +32,7 @@ type AppConfig struct {
 type Config struct {
 	RPCServerConfig RPCServerConfig `yaml:"rpc-server"`
 	EtcdConfig      []EtcdConfig    `yaml:"etcd"`
+	MysqlConfig     MysqlConfig     `yaml:"mysql"`
 	AppConfig       AppConfig       `yaml:"app"`
 }
 

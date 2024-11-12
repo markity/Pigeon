@@ -10,6 +10,14 @@ etcd:
     host: 127.0.0.1
     port: 2379
 
+# 会读消息库, pull消息走im relay
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: debian-sys-maint
+  pwd : 8B2e4SuzKFCpn7AD
+  db: im_chatevloop
+
 # 业务相关配置
 app:
   debug: true

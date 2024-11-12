@@ -135,6 +135,18 @@ message QuitGroupResp {
   int64 relation_version = 2;
 }
 
+message GetGroupMemberInfoReq {
+  string group_id = 1;
+  string username = 2;
+}
+
+message GetGroupMemberInfoResp {
+  base.RelationStatus stauts = 1;
+  int64 relation_version = 2;
+  base.RelationChangeType change_type = 3;
+  int64 updated_at = 4;
+}
+
 service IMRelation {
   // im-relay调用, 创建群
   rpc CreateGroup(CreateGroupReq) returns (CreateGroupResp);
@@ -148,6 +160,8 @@ service IMRelation {
   rpc ApplyGroup(ApplyGroupReq) returns (ApplyGroupResp);
   // im-relay调用, 处理申请
   rpc HandleApply(HandleApplyReq) returns (HandleApplyResp);
+  
+  rpc GetGroupMemberInfo(GetGroupMemberInfoReq) returns (GetGroupMemberInfoResp);
   // im-relay调用, 退出群
   // TODO: 先不care退群逻辑, 跑起整体流程了再做
   // rpc QuitGroup(QuitGroupReq) returns (QuitGroupResp);

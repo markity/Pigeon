@@ -4,16 +4,23 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"time"
 
 	chatevloopconfig "pigeon/common/chatevloop_config"
 	regetcd "pigeon/common/kitex_registry/etcd"
+	"pigeon/common/push"
+	"pigeon/im-relation/db/model"
 	"pigeon/im-relay/api"
+	"pigeon/im-relay/bizpush"
 	"pigeon/im-relay/config"
 	"pigeon/im-relay/rpcserver"
 	"pigeon/kitex_gen/service/imrelay/imrelay"
 
 	"github.com/cloudwego/kitex/pkg/registry"
 	"github.com/cloudwego/kitex/server"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var cfgFilePath = flag.String("cfg", "../config/im-relay/config.yaml", "config file path")
@@ -45,6 +52,26 @@ func main() {
 
 	relationCli := api.MustNewIMRelationClient(res)
 
+	debugModeLogger := logger.Default.LogMode(logger.Info)
+	if !cfg.AppConfig.Debug {
+		debugModeLogger = nil
+	}
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local",
+		cfg.MysqlConfig.User, cfg.MysqlConfig.Pwd, cfg.MysqlConfig.Host, cfg.MysqlConfig.Port, cfg.MysqlConfig.Db)
+	gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: debugModeLogger,
+	})
+	if err != nil {
+		panic(err)
+	}
+	err = model.Migrate(gormDB)
+	if err != nil {
+		panic(err)
+	}
+
+	pushMan := push.NewPushManager(time.Millisecond*50, nil)
+	bp := bizpush.NewBisPusher(pushMan)
+
 	listenAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%v", cfg.RPCServerConfig.Host, cfg.RPCServerConfig.Port))
 	if err != nil {
 		panic(err)
@@ -58,6 +85,8 @@ func main() {
 			RPCContext: rpcserver.RPCContext{
 				EvCfgWatcher: chatevloopconfig.NewWatcher(etcdEndpoints),
 				RelationCli:  relationCli,
+				BPush:        bp,
+				DB:           gormDB,
 			},
 		},
 		server.WithRegistry(reg), server.WithServiceAddr(listenAddr),

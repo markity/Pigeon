@@ -8,17 +8,22 @@ import (
 
 	chatevloopconfig "pigeon/common/chatevloop_config"
 	"pigeon/im-relay/api"
+	"pigeon/im-relay/bizpush"
 	"pigeon/im-relay/handle"
 	"pigeon/im-relay/handle/chat"
 	"pigeon/im-relay/handle/echo"
 	"pigeon/kitex_gen/service/imchatevloop"
 	"pigeon/kitex_gen/service/imrelation/imrelation"
 	"pigeon/kitex_gen/service/imrelay"
+
+	"gorm.io/gorm"
 )
 
 type RPCContext struct {
 	EvCfgWatcher *chatevloopconfig.ChatevWatcher
 	RelationCli  imrelation.Client
+	BPush        *bizpush.BizPusher
+	DB           *gorm.DB
 }
 
 type RPCServer struct {
@@ -41,9 +46,9 @@ func (s *RPCServer) handleBizMessage(req *imrelay.BizMessageReq) {
 	}
 	switch splits[0] {
 	case "echo":
-		echo.HandleEcho(&handle.HandleContext{RelationCli: s.RelationCli, EvCfgWatcher: s.EvCfgWatcher}, req)
+		echo.HandleEcho(&handle.HandleContext{RelationCli: s.RelationCli, EvCfgWatcher: s.EvCfgWatcher, BPush: s.BPush, DB: s.DB}, req)
 	case "chat":
-		chat.HandleChat(&handle.HandleContext{RelationCli: s.RelationCli, EvCfgWatcher: s.EvCfgWatcher}, req)
+		chat.HandleChat(&handle.HandleContext{RelationCli: s.RelationCli, EvCfgWatcher: s.EvCfgWatcher, BPush: s.BPush, DB: s.DB}, req)
 	default:
 	}
 }

@@ -64,3 +64,13 @@ type BizSub struct {
 func (*BizSub) String() string {
 	return "chat-sub"
 }
+
+type BizPullMessage struct {
+	GroupId  string `json:"group_id"`
+	MaxSeqId int64  `json:"max_seq_id"`
+	Limit    int64  `json:"limit"`
+}
+
+func (*BizPullMessage) String() string {
+	return "chat-pull-msg"
+}

@@ -37,7 +37,7 @@ enum RelationChangeType {
   RELATION_CHANGE_TYPE_UNUSED = 0;
   RELATION_CHANGE_TYPE_CREATE_GROUP = 1; // 因为创建群聊, 群主关于这个群的change type只能是这个, 且关系version为1
   RELATION_CHANGE_TYPE_OWNER_ACCEPT = 2; // 因为群聊owner接受申请, 成为群员
-  RELATION_CHANGE_TYPE_MEMBER_QUIT = 3;  // 因为群员主动退出, 成为非群员
+  // RELATION_CHANGE_TYPE_MEMBER_QUIT = 3;  // 因为群员主动退出, 成为非群员
 }
 
 enum ApplyStatus {
