@@ -16,4 +16,5 @@ mysql:
 
 app:
   debug: true
+  node-id: 1
   rpc-advertise-addrport: "127.0.0.1:8001"

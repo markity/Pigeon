@@ -10,7 +10,7 @@ type cmdAutoHeartbeat struct {
 // hb
 type cmdHeartbeat struct{}
 
-// login username password echocode
+// login username password [echocode]
 type cmdLogin struct {
 	Username   string
 	Password   string
@@ -18,34 +18,43 @@ type cmdLogin struct {
 	EchoCode   *string
 }
 
+// logout [echocode]
 type cmdLogout struct {
 	EchoCode *string
 }
 
+// kick sessionId [echocode]
 type cmdKickOtherSession struct {
 	SessionId string
 	EchoCode  *string
 }
 
+// send bizType data [echocode]
 type cmdSendBiz struct {
 	Biz      string
 	Data     string
 	EchoCode *string
 }
 
+// exit
 type exitCmd struct{}
 
+// help
 type helpCmd struct{}
 
+// clear
 type clearCmd struct{}
 
+// status [echocode]
 type statusCmd struct {
 	EchoCode *string
 }
 
-type emptyCmd struct{}
-
+// hidehb
 type hideHeartbeatInfo struct{}
+
+// trim space后为空, 相当于打了空行
+type emptyCmd struct{}
 
 func parseCommand(line string) interface{} {
 	line = strings.TrimSpace(line)
@@ -139,5 +148,4 @@ func parseCommand(line string) interface{} {
 		}
 	}
 	return nil
-
 }

@@ -22,6 +22,8 @@ insert拿到自增主键: groupId TODO: 这里以后优化, 增加id生成器来
 commit txn
 return info
 */
+
+// TODO: im-relay可能因为网络错误多次调用create group, 此处是否应该幂?
 func (s *RPCServer) CreateGroup(ctx context.Context, req *imrelation.CreateGroupReq) (res *imrelation.CreateGroupResp, err error) {
 	now := time.Now()
 	// TODO: 此处应该有重试/降级策略, 当redis出故障的时候生成group id怎么办

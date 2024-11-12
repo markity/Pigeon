@@ -2,14 +2,18 @@ package evloop
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"pigeon/im-chat-evloop/bizpush"
 	relationmanager "pigeon/im-chat-evloop/evloop/relation_manager"
 	subscribemanager "pigeon/im-chat-evloop/evloop/subscribe_manager"
 	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/evloopio"
 	"pigeon/kitex_gen/service/imchatevloop"
-	"sync"
-	"time"
+
+	"github.com/bwmarrin/snowflake"
+	"gorm.io/gorm"
 )
 
 type chatEvloopStatus int
@@ -24,11 +28,16 @@ const (
 )
 
 type ChatEvLoop struct {
-	chatId  string
+	// 群聊id
+	chatId string
+
+	// 群主username
 	ownerId string
 
+	// 创建时间, 群聊创建时间, 消息发送时间都由evloop server定
 	createdAt int64
 
+	// 当前消息序列号
 	seqId int64
 
 	// 全量群员信息, key是userId
@@ -37,7 +46,14 @@ type ChatEvLoop struct {
 	// 订阅者信息, key是userId
 	subscribeManager *subscribemanager.SubscribeManager
 
+	// 用来生成消息的幂等唯一id, 雪花算法
+	idGen *snowflake.Node
+
+	// push工具类
 	bPush *bizpush.BizPusher
+
+	// 数据库
+	db *gorm.DB
 
 	// 作用1: 保护queue
 	// 作用2: 变更status
@@ -47,12 +63,17 @@ type ChatEvLoop struct {
 	queue   []*evInput
 }
 
+func (c *ChatEvLoop) GetCreatedAt() int64 {
+	return c.createdAt
+}
+
 // 群聊创建时间由chat-evloop server生成
-func NewChatEvLoopAndStart(in *NewChatEvLoopInput) (loop *ChatEvLoop, createdAt int64) {
+func NewChatEvLoopAndStart(in *NewChatEvLoopInput) (loop *ChatEvLoop) {
 	now := time.Now()
 	lp := &ChatEvLoop{
-		chatId:  in.ChatId,
-		ownerId: in.OwnerId,
+		chatId:    in.ChatId,
+		ownerId:   in.OwnerId,
+		createdAt: now.UnixMilli(),
 		relationManager: relationmanager.NewRelationManager(&base.RelationEntry{
 			GroupId:         in.ChatId,
 			UserId:          in.OwnerId,
@@ -62,15 +83,18 @@ func NewChatEvLoopAndStart(in *NewChatEvLoopInput) (loop *ChatEvLoop, createdAt 
 			ChangeAt:        now.UnixMilli(),
 		}),
 		subscribeManager: subscribemanager.NewSubscribeManager(),
+		bPush:            in.PushMan,
+		db:               in.DB,
+		idGen:            in.Snowflake,
 		status:           statusRunning,
 		queue:            make([]*evInput, 0, 1024),
 	}
 	lp.cond = sync.NewCond(&lp.queueMu)
 	lp.start()
-	return lp, now.UnixMilli()
+	return lp
 }
 
-func NewMigrateEvLoop(resp *imchatevloop.DoMigrateResp, pushMan *bizpush.BizPusher) *ChatEvLoop {
+func NewMigrateEvLoopAndStart(resp *imchatevloop.DoMigrateResp, pushMan *bizpush.BizPusher, db *gorm.DB, sn *snowflake.Node) *ChatEvLoop {
 	relationMan := relationmanager.NewRelationManagerFromMigrage(resp)
 	subscrberMan := subscribemanager.NewSubscrbieManagerFromMigrage(resp)
 
@@ -81,6 +105,8 @@ func NewMigrateEvLoop(resp *imchatevloop.DoMigrateResp, pushMan *bizpush.BizPush
 		relationManager:  relationMan,
 		subscribeManager: subscrberMan,
 		bPush:            pushMan,
+		db:               db,
+		idGen:            sn,
 		queueMu:          sync.Mutex{},
 		cond:             nil,
 		status:           statusRunning,

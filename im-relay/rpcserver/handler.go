@@ -106,7 +106,11 @@ func (s *RPCServer) RedirectToChatEventLoop(ctx context.Context,
 
 func (s *RPCServer) GetLastVersionConfig(ctx context.Context,
 	req *imrelay.GetLastVersionConfigReq) (res *imrelay.GetLastVersionConfigResp, err error) {
-	n, _ := s.EvCfgWatcher.GetLastVersionNode(req.GroupId)
+	n, v := s.EvCfgWatcher.GetLastVersionNode(req.GroupId)
+	if v != req.Version {
+		s.EvCfgWatcher.ForceUpdate(req.Version)
+		n, _ = s.EvCfgWatcher.GetLastVersionNode(req.GroupId)
+	}
 	return &imrelay.GetLastVersionConfigResp{
 		EvloopServerAddrPort: n.IPPort,
 	}, nil

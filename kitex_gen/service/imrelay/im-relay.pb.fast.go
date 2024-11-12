@@ -234,6 +234,11 @@ func (x *GetLastVersionConfigReq) FastRead(buf []byte, _type int8, number int32)
 		if err != nil {
 			goto ReadFieldError
 		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
 	default:
 		offset, err = fastpb.Skip(buf, _type, number)
 		if err != nil {
@@ -248,6 +253,11 @@ ReadFieldError:
 }
 
 func (x *GetLastVersionConfigReq) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.Version, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *GetLastVersionConfigReq) fastReadField2(buf []byte, _type int8) (offset int, err error) {
 	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
 	return offset, err
 }
@@ -423,14 +433,23 @@ func (x *GetLastVersionConfigReq) FastWrite(buf []byte) (offset int) {
 		return offset
 	}
 	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
 	return offset
 }
 
 func (x *GetLastVersionConfigReq) fastWriteField1(buf []byte) (offset int) {
+	if x.Version == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 1, x.GetVersion())
+	return offset
+}
+
+func (x *GetLastVersionConfigReq) fastWriteField2(buf []byte) (offset int) {
 	if x.GroupId == "" {
 		return offset
 	}
-	offset += fastpb.WriteString(buf[offset:], 1, x.GetGroupId())
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetGroupId())
 	return offset
 }
 
@@ -596,14 +615,23 @@ func (x *GetLastVersionConfigReq) Size() (n int) {
 		return n
 	}
 	n += x.sizeField1()
+	n += x.sizeField2()
 	return n
 }
 
 func (x *GetLastVersionConfigReq) sizeField1() (n int) {
+	if x.Version == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(1, x.GetVersion())
+	return n
+}
+
+func (x *GetLastVersionConfigReq) sizeField2() (n int) {
 	if x.GroupId == "" {
 		return n
 	}
-	n += fastpb.SizeString(1, x.GetGroupId())
+	n += fastpb.SizeString(2, x.GetGroupId())
 	return n
 }
 
@@ -652,7 +680,8 @@ var fieldIDToName_RedirectToChatEventLoopResp = map[int32]string{
 }
 
 var fieldIDToName_GetLastVersionConfigReq = map[int32]string{
-	1: "GroupId",
+	1: "Version",
+	2: "GroupId",
 }
 
 var fieldIDToName_GetLastVersionConfigResp = map[int32]string{

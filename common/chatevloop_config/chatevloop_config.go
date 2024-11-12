@@ -32,40 +32,6 @@ type ConfigEntry struct {
 	IPPort   string `json:"ipport"`
 }
 
-// TODO: remove me, 写死最初的config
-func InitConfig(cli *clientv3.Client) {
-	cfg := Config{
-		Version: 1,
-		Nodes: []*ConfigEntry{
-			{
-				NodeName: "node1",
-				IPPort:   "127.0.0.1:8001",
-			},
-			{
-				NodeName: "node2",
-				IPPort:   "127.0.0.1:8002",
-			},
-			{
-				NodeName: "node3",
-				IPPort:   "127.0.0.1:8002",
-			},
-		},
-	}
-
-	jsonBs, err := json.Marshal(cfg)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = cli.KV.Txn(context.Background()).
-		If(clientv3.Compare(clientv3.ModRevision("/chatevloop_config/version"), "=", 0)).
-		Then(clientv3.OpPut("/chatevloop_config/version", "1"),
-			clientv3.OpPut("/chatevloop_config/node_info/1", string(jsonBs))).Commit()
-	if err != nil {
-		panic(err)
-	}
-}
-
 type updateChan struct {
 	version  int64
 	respChan chan int64
@@ -103,7 +69,6 @@ func NewWatcher(eps []string) *ChatevWatcher {
 	if err != nil {
 		panic(err)
 	}
-	InitConfig(cli)
 	resp, err := cli.KV.Get(context.Background(), "/chatevloop_config", clientv3.WithPrefix())
 	if err != nil {
 		panic(err)
@@ -278,7 +243,7 @@ func NewWatcher(eps []string) *ChatevWatcher {
 					ch:      v.respChan,
 				})
 
-				go ewc.mu.Unlock()
+				ewc.mu.Unlock()
 			}
 		}
 	}()

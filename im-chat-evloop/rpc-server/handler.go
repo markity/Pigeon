@@ -3,6 +3,9 @@ package rpcserver
 import (
 	"context"
 	"fmt"
+	"sync"
+	"sync/atomic"
+
 	"pigeon/common/keylock"
 	"pigeon/im-chat-evloop/api"
 	"pigeon/im-chat-evloop/bizpush"
@@ -11,83 +14,94 @@ import (
 	relay "pigeon/kitex_gen/service/imrelay"
 	"pigeon/kitex_gen/service/imrelay/imrelay"
 
-	"sync"
-	"sync/atomic"
+	"github.com/bwmarrin/snowflake"
+	"gorm.io/gorm"
 )
 
 // 创建群聊
 type RPCServer struct {
-	RelayCli imrelay.Client
-	BPush    *bizpush.BizPusher
+	RelayCli  imrelay.Client
+	BPush     *bizpush.BizPusher
+	DB        *gorm.DB
+	Snowflake *snowflake.Node
 
 	// 读写current version, 需要加锁
 	CurrentVersionMu sync.Mutex
 	CurrentVersion   atomic.Int64
 
 	// key: group id, value: chat eventloop
-	CreateChatEventloopMu sync.Mutex
-	ChatEventloops        sync.Map
+	ChatEventloops sync.Map
+
+	// 创建群聊锁, 防止并发创建群聊
+	CreateLock keylock.KeyedMutex
 
 	// 迁移锁, 防止并发迁移eventloop
 	MoveLock keylock.KeyedMutex
 }
 
+func (s *RPCServer) updateVersion(reqVersion int64) int64 {
+	currentVersion := s.CurrentVersion.Load()
+	if reqVersion > currentVersion {
+		s.CurrentVersionMu.Lock()
+		currentVersion = s.CurrentVersion.Load()
+		if reqVersion > currentVersion {
+			s.CurrentVersion.Store(reqVersion)
+		}
+		s.CurrentVersionMu.Unlock()
+	}
+	return currentVersion
+}
+
 // 创建群聊rpc
 func (s *RPCServer) CreateGroup(ctx context.Context, req *imchatevloop.CreateGroupRequest) (
 	res *imchatevloop.CreateGroupResponse, err error) {
-	currentVersion := s.CurrentVersion.Load()
-	if req.Version > currentVersion {
-		s.CurrentVersionMu.Lock()
-		currentVersion = s.CurrentVersion.Load()
-		if req.Version > currentVersion {
-			s.CurrentVersion.Store(req.Version)
-		}
-		s.CurrentVersionMu.Unlock()
+	currentVersion := s.updateVersion(req.Version)
+	if req.Version < currentVersion {
+		return &imchatevloop.CreateGroupResponse{
+			Success: false,
+			Version: currentVersion,
+		}, nil
 	}
 
 	// 可以尝试创建chat eventloop
 
 	// 下面检查一次是因为有可能rpc失败, 连续两次创建event loop, 防止出现多个event loop
-	if _, ok := s.ChatEventloops.Load(req.GroupId); ok {
+	// 因此当create group网络错误时可以安全的重试
+	if lp, ok := s.ChatEventloops.Load(req.GroupId); ok {
 		return &imchatevloop.CreateGroupResponse{
-			Success: true,
-			Version: currentVersion,
+			Success:   true,
+			Version:   currentVersion,
+			CreatedAt: lp.(*evloop.ChatEvLoop).GetCreatedAt(),
 		}, nil
 	}
 
-	s.CreateChatEventloopMu.Lock()
-	defer s.CreateChatEventloopMu.Unlock()
-	if _, ok := s.ChatEventloops.Load(req.GroupId); ok {
-		return &imchatevloop.CreateGroupResponse{
-			Success: true,
-			Version: currentVersion,
-		}, nil
-	}
-	lp, createdAt := evloop.NewChatEvLoopAndStart(&evloop.NewChatEvLoopInput{
+	// 防止创建群聊并发, 可能调用方请求失败重试, 导致同时跑同一个群聊的
+	// 两个创建流程, 产生并发, 这里用key lock防止并发
+	defer s.CreateLock.Lock(req.GroupId)()
+
+	lp := evloop.NewChatEvLoopAndStart(&evloop.NewChatEvLoopInput{
 		ChatId:  req.GroupId,
 		OwnerId: req.GroupOwnerId,
 		PushMan: s.BPush,
+		DB:      s.DB,
 	})
 	s.ChatEventloops.Store(req.GroupId, lp)
 	return &imchatevloop.CreateGroupResponse{
 		Success:   true,
 		Version:   currentVersion,
-		CreatedAt: createdAt,
+		CreatedAt: lp.GetCreatedAt(),
 	}, nil
 }
+
 func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 	req *imchatevloop.UniversalGroupEvloopRequestReq) (res *imchatevloop.UniversalGroupEvloopRequestResp, err error) {
-	currentVersion := s.CurrentVersion.Load()
-	if req.Version > currentVersion {
-		s.CurrentVersionMu.Lock()
-		currentVersion = s.CurrentVersion.Load()
-		if req.Version > currentVersion {
-			s.CurrentVersion.Store(req.Version)
-		}
-		s.CurrentVersionMu.Unlock()
+	currentVersion := s.updateVersion(req.Version)
+	if req.Version < currentVersion {
+		return &imchatevloop.UniversalGroupEvloopRequestResp{
+			Success: false,
+			Version: currentVersion,
+		}, nil
 	}
-
-	fmt.Println("universal group request in")
 
 	lp, ok := s.ChatEventloops.Load(req.GroupId)
 	if !ok {
@@ -98,8 +112,10 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 		if ok {
 			unlockFunc()
 		} else {
-			// 还是不存在, 不释放迁移lock, 做迁移, todo: 重试流程, 这里重试是幂等的, 理论可以无限重试
+			// 还是不存在, 不释放迁移lock, 做迁移
+			// TODO: 重试流程, 这里重试是幂等的, 理论可以无限重试
 			resp, err := s.RelayCli.GetLastVersionConfig(context.Background(), &relay.GetLastVersionConfigReq{
+				Version: currentVersion,
 				GroupId: req.GroupId,
 			})
 			if err != nil {
@@ -116,7 +132,7 @@ func (s *RPCServer) UniversalGroupEvloopRequest(ctx context.Context,
 				unlockFunc()
 				return nil, err
 			}
-			lp = evloop.NewMigrateEvLoop(migrateResp, s.BPush)
+			lp = evloop.NewMigrateEvLoopAndStart(migrateResp, s.BPush, s.DB, s.Snowflake)
 
 			// todo这里可以幂等重试
 			_, err = evloopCli.MigrateDone(context.Background(), &imchatevloop.MigrateDoneReq{
