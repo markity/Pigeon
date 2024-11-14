@@ -49,5 +49,5 @@ func (bp *BizPusher) PullMsgResp(input *PullMsgRespInput) {
 		"end_seq_id":   input.EndSeqId,
 		"data":         input.Data,
 	}
-	bp.pushMan.PushToSessionByMap(input.Session, "push-pull-resp", input.EchoCode, m)
+	bp.pushMan.PushToSessionByAny(input.Session, "push-pull-resp", input.EchoCode, m)
 }

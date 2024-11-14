@@ -7,6 +7,7 @@ import (
 
 	"pigeon/im-relation/bizpush"
 	"pigeon/im-relation/db"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imrelation"
 )
 
@@ -23,14 +24,15 @@ func (s *RPCServer) FetchAllRelations(ctx context.Context, req *imrelation.Fetch
 		return nil, err
 	}
 
-	relations := make([]*imrelation.RelationEntry, 0, len(data))
+	relations := make([]*base.RelationEntry, 0, len(data))
 	for _, v := range data {
-		relations = append(relations, &imrelation.RelationEntry{
+		relations = append(relations, &base.RelationEntry{
 			UserId:          v.OwnerId,
 			GroupId:         fmt.Sprint(v.GroupId),
 			RelationVersion: v.RelationVersion,
 			Status:          v.Status,
-			UpdatedAt:       v.UpdatedAt,
+			ChangeAt:        v.UpdatedAt,
+			ChangeType:      v.ChangeType,
 		})
 	}
 

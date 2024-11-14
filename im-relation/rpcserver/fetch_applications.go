@@ -6,6 +6,7 @@ import (
 
 	"pigeon/im-relation/bizpush"
 	"pigeon/im-relation/db"
+	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imrelation"
 )
 
@@ -23,9 +24,9 @@ func (s *RPCServer) FetchAllApplications(ctx context.Context, req *imrelation.Fe
 		return nil, err
 	}
 
-	applications := make([]*imrelation.ApplyEntry, 0, len(data))
+	applications := make([]*base.ApplyEntry, 0, len(data))
 	for _, v := range data {
-		applications = append(applications, &imrelation.ApplyEntry{
+		applications = append(applications, &base.ApplyEntry{
 			UserId:       v.OwnerId,
 			GroupId:      v.GroupId,
 			ApplyVersion: v.ApplyVersion,
@@ -37,8 +38,8 @@ func (s *RPCServer) FetchAllApplications(ctx context.Context, req *imrelation.Fe
 
 	go func() {
 		s.BPush.FetchAllAppliesResp(&bizpush.FetchAllAppliesRespInput{
-			Session: req.Session,
-			Applies: applications,
+			Session:      req.Session,
+			Applications: applications,
 		})
 	}()
 

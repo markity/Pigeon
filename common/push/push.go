@@ -36,7 +36,7 @@ func NewPushManager(retryWaitTime time.Duration, routeCli imauthroute.Client) *P
 	}
 }
 
-func (pm *PushManager) PushToSessionByMap(session *base.SessionEntry, pushType string, echoCode string, data map[string]interface{}) {
+func (pm *PushManager) PushToSessionByAny(session *base.SessionEntry, pushType string, echoCode string, data interface{}) {
 	cli := newGatewayClientFromAdAddr(session.GwAdvertiseAddrport)
 	for {
 		_, err := cli.PushMessage(context.Background(), &gateway.PushMessageReq{
@@ -58,7 +58,7 @@ func (pm *PushManager) PushToSessionByMap(session *base.SessionEntry, pushType s
 }
 
 // TODO: 改造推送, 让推送下发服务化, 支持合并推送, 并发push
-func (pm *PushManager) PushToUserByMap(username string, pushType string, echoCode string, data map[string]interface{}) {
+func (pm *PushManager) PushToUserByAny(username string, pushType string, echoCode string, data interface{}) {
 	var queryResp *authroute.QueryUserRouteResp
 	for {
 		var err error

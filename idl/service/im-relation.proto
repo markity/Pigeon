@@ -15,22 +15,13 @@ message CreateGroupResp {
   int64 create_at = 2;
 };
 
-message RelationEntry {
-  string user_id = 1;
-  string group_id = 2;
-  int64 relation_version = 3;
-  base.RelationStatus status = 4;
-  base.RelationChangeType change_type = 5;
-  int64 updated_at = 6;
-}
-
 message GroupInfo {
   string group_id = 2;
   string owner_id = 3;
   int64 create_at = 4;
   // bool disbanded = 5;
   int64 disbaned_at = 6;
-  repeated RelationEntry relations = 7;
+  repeated base.RelationEntry relations = 7;
 }
 
 message GetGroupInfoReq {
@@ -49,7 +40,7 @@ message FetchAllRelationsReq {
 }
 
 message FetchAllRelationsResp {
-  repeated RelationEntry relations = 1;
+  repeated base.RelationEntry relations = 1;
 }
 
 // 申请加入群
@@ -72,22 +63,13 @@ message ApplyGroupResp {
   ApplyGroupRespCode code = 1;
 }
 
-message ApplyEntry {
-  string user_id = 1;
-  string group_id = 2;
-  int64 apply_version = 3;
-  int64 apply_at = 4;
-  string apply_msg = 5;
-  base.ApplyStatus status = 6;
-}
-
 message FetchAllApplicationsReq {
   base.SessionEntry session = 1;
   string echo_code = 2;
 }
 
 message FetchAllApplicationsResp {
-  repeated ApplyEntry applications = 1;
+  repeated base.ApplyEntry applications = 1;
 }
 
 message HandleApplyReq {

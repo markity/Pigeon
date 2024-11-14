@@ -175,6 +175,86 @@ func (x *RelationEntry) fastReadField6(buf []byte, _type int8) (offset int, err 
 	return offset, err
 }
 
+func (x *ApplyEntry) FastRead(buf []byte, _type int8, number int32) (offset int, err error) {
+	switch number {
+	case 1:
+		offset, err = x.fastReadField1(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 2:
+		offset, err = x.fastReadField2(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 3:
+		offset, err = x.fastReadField3(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 4:
+		offset, err = x.fastReadField4(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 5:
+		offset, err = x.fastReadField5(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	case 6:
+		offset, err = x.fastReadField6(buf, _type)
+		if err != nil {
+			goto ReadFieldError
+		}
+	default:
+		offset, err = fastpb.Skip(buf, _type, number)
+		if err != nil {
+			goto SkipFieldError
+		}
+	}
+	return offset, nil
+SkipFieldError:
+	return offset, fmt.Errorf("%T cannot parse invalid wire-format data, error: %s", x, err)
+ReadFieldError:
+	return offset, fmt.Errorf("%T read field %d '%s' error: %s", x, number, fieldIDToName_ApplyEntry[number], err)
+}
+
+func (x *ApplyEntry) fastReadField1(buf []byte, _type int8) (offset int, err error) {
+	x.UserId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *ApplyEntry) fastReadField2(buf []byte, _type int8) (offset int, err error) {
+	x.GroupId, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *ApplyEntry) fastReadField3(buf []byte, _type int8) (offset int, err error) {
+	x.ApplyVersion, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *ApplyEntry) fastReadField4(buf []byte, _type int8) (offset int, err error) {
+	x.ApplyAt, offset, err = fastpb.ReadInt64(buf, _type)
+	return offset, err
+}
+
+func (x *ApplyEntry) fastReadField5(buf []byte, _type int8) (offset int, err error) {
+	x.ApplyMsg, offset, err = fastpb.ReadString(buf, _type)
+	return offset, err
+}
+
+func (x *ApplyEntry) fastReadField6(buf []byte, _type int8) (offset int, err error) {
+	var v int32
+	v, offset, err = fastpb.ReadInt32(buf, _type)
+	if err != nil {
+		return offset, err
+	}
+	x.Status = ApplyStatus(v)
+	return offset, nil
+}
+
 func (x *Empty) FastWrite(buf []byte) (offset int) {
 	if x == nil {
 		return offset
@@ -292,6 +372,67 @@ func (x *RelationEntry) fastWriteField6(buf []byte) (offset int) {
 		return offset
 	}
 	offset += fastpb.WriteInt64(buf[offset:], 6, x.GetChangeAt())
+	return offset
+}
+
+func (x *ApplyEntry) FastWrite(buf []byte) (offset int) {
+	if x == nil {
+		return offset
+	}
+	offset += x.fastWriteField1(buf[offset:])
+	offset += x.fastWriteField2(buf[offset:])
+	offset += x.fastWriteField3(buf[offset:])
+	offset += x.fastWriteField4(buf[offset:])
+	offset += x.fastWriteField5(buf[offset:])
+	offset += x.fastWriteField6(buf[offset:])
+	return offset
+}
+
+func (x *ApplyEntry) fastWriteField1(buf []byte) (offset int) {
+	if x.UserId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 1, x.GetUserId())
+	return offset
+}
+
+func (x *ApplyEntry) fastWriteField2(buf []byte) (offset int) {
+	if x.GroupId == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 2, x.GetGroupId())
+	return offset
+}
+
+func (x *ApplyEntry) fastWriteField3(buf []byte) (offset int) {
+	if x.ApplyVersion == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 3, x.GetApplyVersion())
+	return offset
+}
+
+func (x *ApplyEntry) fastWriteField4(buf []byte) (offset int) {
+	if x.ApplyAt == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt64(buf[offset:], 4, x.GetApplyAt())
+	return offset
+}
+
+func (x *ApplyEntry) fastWriteField5(buf []byte) (offset int) {
+	if x.ApplyMsg == "" {
+		return offset
+	}
+	offset += fastpb.WriteString(buf[offset:], 5, x.GetApplyMsg())
+	return offset
+}
+
+func (x *ApplyEntry) fastWriteField6(buf []byte) (offset int) {
+	if x.Status == 0 {
+		return offset
+	}
+	offset += fastpb.WriteInt32(buf[offset:], 6, int32(x.GetStatus()))
 	return offset
 }
 
@@ -415,6 +556,67 @@ func (x *RelationEntry) sizeField6() (n int) {
 	return n
 }
 
+func (x *ApplyEntry) Size() (n int) {
+	if x == nil {
+		return n
+	}
+	n += x.sizeField1()
+	n += x.sizeField2()
+	n += x.sizeField3()
+	n += x.sizeField4()
+	n += x.sizeField5()
+	n += x.sizeField6()
+	return n
+}
+
+func (x *ApplyEntry) sizeField1() (n int) {
+	if x.UserId == "" {
+		return n
+	}
+	n += fastpb.SizeString(1, x.GetUserId())
+	return n
+}
+
+func (x *ApplyEntry) sizeField2() (n int) {
+	if x.GroupId == "" {
+		return n
+	}
+	n += fastpb.SizeString(2, x.GetGroupId())
+	return n
+}
+
+func (x *ApplyEntry) sizeField3() (n int) {
+	if x.ApplyVersion == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(3, x.GetApplyVersion())
+	return n
+}
+
+func (x *ApplyEntry) sizeField4() (n int) {
+	if x.ApplyAt == 0 {
+		return n
+	}
+	n += fastpb.SizeInt64(4, x.GetApplyAt())
+	return n
+}
+
+func (x *ApplyEntry) sizeField5() (n int) {
+	if x.ApplyMsg == "" {
+		return n
+	}
+	n += fastpb.SizeString(5, x.GetApplyMsg())
+	return n
+}
+
+func (x *ApplyEntry) sizeField6() (n int) {
+	if x.Status == 0 {
+		return n
+	}
+	n += fastpb.SizeInt32(6, int32(x.GetStatus()))
+	return n
+}
+
 var fieldIDToName_Empty = map[int32]string{}
 
 var fieldIDToName_SessionEntry = map[int32]string{
@@ -432,4 +634,13 @@ var fieldIDToName_RelationEntry = map[int32]string{
 	4: "ChangeType",
 	5: "RelationVersion",
 	6: "ChangeAt",
+}
+
+var fieldIDToName_ApplyEntry = map[int32]string{
+	1: "UserId",
+	2: "GroupId",
+	3: "ApplyVersion",
+	4: "ApplyAt",
+	5: "ApplyMsg",
+	6: "Status",
 }

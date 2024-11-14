@@ -1,6 +1,7 @@
 package bizpush
 
 import (
+	pushprotocol "pigeon/common/push_protocol"
 	"pigeon/kitex_gen/service/base"
 )
 
@@ -17,15 +18,15 @@ type ApplyGroupNotifyInput struct {
 }
 
 func (bp *BizPusher) ApplyGroupNotify(input *ApplyGroupNotifyInput) {
-	m := map[string]interface{}{
-		"user_id":       input.Username,
-		"group_id":      input.GroupId,
-		"apply_version": input.ApplyVersion,
-		"apply_msg":     input.ApplyMsg,
-		"apply_at":      input.ApplyAt,
+	m := &pushprotocol.ApplyGroupNotify{
+		Username:     input.Username,
+		GroupId:      input.GroupId,
+		ApplyVersion: input.ApplyVersion,
+		ApplyMsg:     input.ApplyMsg,
+		ApplyAt:      input.ApplyAt,
 	}
 
-	bp.pushMan.PushToUserByMap(input.OwnerId, "push-apply-notify", "", m)
+	bp.pushMan.PushToUserByAny(input.OwnerId, m.String(), "", m)
 }
 
 type HandleApplyNotifyInput struct {
@@ -42,16 +43,16 @@ type HandleApplyNotifyInput struct {
 
 // 用户处理了apply, 需要把新版本的apply推送给group owner
 func (bp *BizPusher) HandleApplyNotify(input *HandleApplyNotifyInput) {
-	m := map[string]interface{}{
-		"user_id":       input.Username,
-		"group_id":      input.GroupId,
-		"apply_version": input.ApplyVersion,
-		"apply_msg":     input.ApplyMsg,
-		"apply_status":  input.ApplyStatus,
-		"apply_at":      input.ApplyAt,
-		"handle_at":     input.HandleAt,
+	m := &pushprotocol.HandleApplyNotify{
+		Username:     input.Username,
+		GroupId:      input.GroupId,
+		ApplyVersion: input.ApplyVersion,
+		ApplyMsg:     input.ApplyMsg,
+		ApplyStatus:  input.ApplyStatus,
+		ApplyAt:      input.ApplyAt,
+		HandleAt:     input.HandleAt,
 	}
-	bp.pushMan.PushToUserByMap(input.OwnerId, "push-handle-apply-notify", "", m)
+	bp.pushMan.PushToUserByAny(input.OwnerId, m.String(), "", m)
 }
 
 // 比如a成功加入了群, 那么a加入群的消息将下发给a的全部设备
@@ -65,16 +66,16 @@ type RelationChangeNotifyInput struct {
 }
 
 func (bp *BizPusher) RelationChangeNotify(input *RelationChangeNotifyInput) {
-	m := map[string]interface{}{
-		"username":             input.Username,
-		"group_id":             input.GroupId,
-		"relation_version":     input.Version,
-		"relation_status":      input.Status,
-		"relation_change_type": input.ChangeType,
-		"updated_at":           input.UpdatedAt,
+	m := &pushprotocol.RelationChangeNotify{
+		Username:           input.Username,
+		GroupId:            input.GroupId,
+		RelationVersion:    input.Version,
+		RelationStatus:     input.Status,
+		RelationChangeType: input.ChangeType,
+		UpdatedAt:          input.UpdatedAt,
 	}
 
-	bp.pushMan.PushToUserByMap(input.Username, "push-relation-change-notify", "", m)
+	bp.pushMan.PushToUserByAny(input.Username, m.String(), "", m)
 }
 
 // TODO: 暂时不支持退出群, 先做好主要功能

@@ -40,6 +40,15 @@ enum RelationChangeType {
   // RELATION_CHANGE_TYPE_MEMBER_QUIT = 3;  // 因为群员主动退出, 成为非群员
 }
 
+message ApplyEntry {
+  string user_id = 1;
+  string group_id = 2;
+  int64 apply_version = 3;
+  int64 apply_at = 4;
+  string apply_msg = 5;
+  ApplyStatus status = 6;
+}
+
 enum ApplyStatus {
   APPLY_STATUS_UNUSED = 0;
   APPLY_STATUS_PENDING = 1;     // 等待处理
