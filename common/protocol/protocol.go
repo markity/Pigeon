@@ -3,7 +3,6 @@ package protocol
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 )
 
 type PacketType int
@@ -272,9 +271,6 @@ func ParseC2SPacket(data []byte) (interface{}, error) {
 		header.Data = new(C2SLoginPacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)
 		err = json.Unmarshal(data, &header)
-		if !IsUsernameValid(header.Data.(*C2SLoginPacket).Username) || !IsPasswordValid(header.Data.(*C2SLoginPacket).Password) {
-			return nil, errors.New("login packet validate failed: " + fmt.Sprint(header.Data.(*C2SLoginPacket)))
-		}
 	case "logout":
 		header.Data = new(C2SLogoutPacket)
 		header.Data.(WithEchoCoder).SetEchoCode(header.EchoCode)

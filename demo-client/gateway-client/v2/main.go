@@ -9,7 +9,7 @@ import (
 	"net"
 	"time"
 
-	"pigeon/im-gateway/protocol"
+	"pigeon/common/protocol"
 
 	"github.com/google/uuid"
 	interactive "github.com/markity/Interactive-Console"

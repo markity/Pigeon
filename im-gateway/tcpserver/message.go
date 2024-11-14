@@ -1,7 +1,7 @@
 package tcpserver
 
 import (
-	"pigeon/im-gateway/protocol"
+	"pigeon/common/protocol"
 
 	goreactor "github.com/markity/go-reactor"
 	"github.com/markity/go-reactor/pkg/buffer"

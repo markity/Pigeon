@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"pigeon/im-gateway/protocol"
+	"pigeon/common/protocol"
 	"time"
 )
 

@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"pigeon/im-gateway/protocol"
+	"pigeon/common/protocol"
 
 	goreactor "github.com/markity/go-reactor"
 )

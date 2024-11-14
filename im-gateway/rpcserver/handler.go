@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"pigeon/im-gateway/protocol"
+	"pigeon/common/protocol"
 	"pigeon/im-gateway/tcpserver"
 	"pigeon/kitex_gen/service/imgateway"
 

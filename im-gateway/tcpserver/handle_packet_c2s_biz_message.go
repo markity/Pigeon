@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"pigeon/im-gateway/protocol"
+	"pigeon/common/protocol"
 	"pigeon/kitex_gen/service/imrelay"
 
 	goreactor "github.com/markity/go-reactor"

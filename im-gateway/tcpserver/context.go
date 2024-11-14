@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"pigeon/im-gateway/protocol"
+	"pigeon/common/protocol"
 	"pigeon/kitex_gen/service/base"
 	"pigeon/kitex_gen/service/imauthroute"
 	authroute "pigeon/kitex_gen/service/imauthroute/imauthroute"

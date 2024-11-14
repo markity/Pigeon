@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
+	"time"
+
 	regetcd "pigeon/common/kitex_registry/etcd"
 	"pigeon/im-gateway/api"
 	"pigeon/im-gateway/config"
@@ -12,8 +15,6 @@ import (
 	"pigeon/im-gateway/rpcserver"
 	"pigeon/im-gateway/tcpserver"
 	"pigeon/kitex_gen/service/imgateway/imgateway"
-	"sync"
-	"time"
 
 	"github.com/cloudwego/kitex/pkg/registry"
 	"github.com/cloudwego/kitex/server"
