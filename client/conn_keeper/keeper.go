@@ -2,14 +2,18 @@ package connkeeper
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"net"
+	"sync"
+	"time"
+
 	"pigeon/client/conn_keeper/events"
 	bizprotocol "pigeon/common/biz_protocol"
 	"pigeon/common/protocol"
+	pushprotocol "pigeon/common/push_protocol"
 	unboundedqueue "pigeon/common/unbounded_queue"
-	"sync"
-	"time"
+	"pigeon/kitex_gen/service/base"
 )
 
 type ConnKeeper struct {
@@ -66,7 +70,7 @@ func (ck *ConnKeeper) goReader() {
 			ck.ioErrChan <- err
 			return
 		}
-		d, err := protocol.ParseC2SPacket(data)
+		d, err := protocol.ParseS2CPacket(data)
 		if err != nil {
 			ck.conn.Close()
 			ck.ioErrChan <- err
@@ -83,6 +87,10 @@ func (ck *ConnKeeper) resetTimer() {
 	ck.timeoutTimer = time.NewTimer(ck.config.HbTimeout)
 }
 
+func (ck *ConnKeeper) sendHb() {
+	ck.sendMsgUq.Push(protocol.PackData(protocol.MustEncodePacket(&protocol.HeartbeatPacket{})))
+}
+
 func (ck *ConnKeeper) goStart() {
 	// 第一件事是, 先发登录包
 	loginPkt := protocol.C2SLoginPacket{
@@ -95,18 +103,25 @@ func (ck *ConnKeeper) goStart() {
 	ck.sendMsgUq.Push(loginPktBs)
 
 	stateNow := "waiting-login-resp"
-	waitLoginBufferPackets := make([]interface{}, 0)
+	// waitLoginBufferPackets := make([]interface{}, 0)
 
+	// pulling-full状态下使用的变量
 	var sessionsFull []*protocol.DeviceSessionEntry
+	fmt.Println(sessionsFull)
+
+	// string是群聊id
+	var subRecv int = 0
 	var relationAndSeqFull map[string]*events.RelationAndSeqEntry
+	var applyFull []*base.ApplyEntry
 
 	timerChan := ck.hbTicker.C
+	ck.sendHb()
 	for {
 		select {
 		case <-ck.timeoutTimer.C:
 			ck.conn.Close()
 		case <-timerChan:
-			ck.sendMsgUq.Push(protocol.PackData(protocol.MustEncodePacket(&protocol.HeartbeatPacket{})))
+			ck.sendHb()
 		case <-ck.ioErrChan:
 			ck.eventChan <- &events.EventClose{
 				CloseReason: events.CloseReasonUserNetwork,
@@ -118,6 +133,8 @@ func (ck *ConnKeeper) goStart() {
 				ck.resetTimer()
 				continue
 			}
+
+			// 被踢
 			if kickPkt, ok := packet.(*protocol.S2COtherDeviceKickNotifyPacket); ok {
 				ck.eventChan <- &events.EventClose{
 					CloseReason:     events.CloseReasonOtherKick,
@@ -126,6 +143,8 @@ func (ck *ConnKeeper) goStart() {
 				}
 				return
 			}
+
+			// login resp packet
 			if loginRespPacket, ok := packet.(*protocol.S2CLoginRespPacket); ok {
 				if stateNow != "waiting-login-resp" {
 					panic(stateNow)
@@ -140,62 +159,102 @@ func (ck *ConnKeeper) goStart() {
 
 				// 登录完成, 拉全量
 				stateNow = "pulling-full"
+
 				// 多设备管理全量
 				sessionsFull = loginRespPacket.Sessions
+
+				// relations全量请求
 				pullRelationsPkt := protocol.C2SBizMessagePacket{
 					BizType: (&bizprotocol.BizPullRelations{}).String(),
 					Data:    &bizprotocol.BizPullRelations{},
 				}
 				pullRelationsPkt.SetEchoCode("pull-relation")
-				ck.sendMsgUq.Push(protocol.PackData(protocol.MustEncodePacket(&protocol.C2SBizMessagePacket{})))
-			}
-			if pushPkt, ok := packet.(*protocol.S2CPushMessagePacket); ok {
-	
-			}
+				ck.sendMsgUq.Push(protocol.PackData(protocol.MustEncodePacket(&pullRelationsPkt)))
 
-			switch stateNow {
-			case "waiting-login-resp":
-				switch respPacket := packet.(type) {
-				case *protocol.S2CLoginRespPacket:
-
-					// 登录完成, 拉全量
-					stateNow = "pulling-full"
-					// 多设备管理全量
-					sessionsFull = respPacket.Sessions
-					// 关系管理全量
-					pullRelationsPkt := protocol.C2SBizMessagePacket{
-						BizType: (&bizprotocol.BizPullRelations{}).String(),
-						Data:    &bizprotocol.BizPullRelations{},
-					}
-					pullRelationsPkt.SetEchoCode("pull-relation")
-					ck.sendMsgUq.Push(protocol.PackData(protocol.MustEncodePacket(&protocol.C2SBizMessagePacket{})))
-				default:
-					waitLoginBufferPackets = append(waitLoginBufferPackets, respPacket)
+				// apply全量请求
+				applyPkt := protocol.C2SBizMessagePacket{
+					BizType: (&bizprotocol.BizPullApply{}).String(),
+					Data:    &bizprotocol.BizPullApply{},
 				}
-			case "pull-relation":
-				// 等着push下发
-				switch respPacket := packet.(type) {
-				case *protocol.S2CPushMessagePacket:
-					if respPacket.Code != protocol.LoginRespCodeSuccess {
+				applyPkt.SetEchoCode("pull-apply")
+				fmt.Println(string(protocol.MustEncodePacket(&applyPkt)))
+				ck.sendMsgUq.Push(protocol.PackData(protocol.MustEncodePacket(&applyPkt)))
+			}
+
+			// biz packet
+			if pushPacket, ok := packet.(*protocol.S2CPushMessagePacket); ok {
+				pushPkt, ec, err := pushprotocol.ParsePush(pushPacket)
+				fmt.Printf("%T %v\n", pushPkt, ec)
+				if err != nil {
+					ck.conn.Close()
+					ck.eventChan <- &events.EventClose{
+						CloseReason: events.CloseReasonUserNetwork,
+					}
+					return
+				}
+				switch pkt := pushPkt.(type) {
+				case (*pushprotocol.FetchAllRelationsResp):
+					if stateNow != "pulling-full" {
+						ck.conn.Close()
 						ck.eventChan <- &events.EventClose{
-							CloseReason: events.CloseReasonLoginFail,
+							CloseReason: events.CloseReasonUserNetwork,
 						}
 						return
 					}
 
-					// 登录完成, 拉全量
-					stateNow = "pulling-full"
-					// 多设备管理全量
-					sessionsFull = respPacket.Sessions
-					// 关系管理全量
-					pullRelationsPkt := protocol.C2SBizMessagePacket{
-						BizType: (&bizprotocol.BizPullRelations{}).String(),
-						Data:    &bizprotocol.BizPullRelations{},
+					relationAndSeqFull = make(map[string]*events.RelationAndSeqEntry)
+					for _, v := range pkt.Relations {
+						relationAndSeqFull[v.GroupId] = &events.RelationAndSeqEntry{
+							RelationEntry: v,
+							SeqId:         0,
+						}
+						sendPkt := &protocol.C2SBizMessagePacket{
+							BizType: (&bizprotocol.BizSub{}).String(),
+							Data: &bizprotocol.BizSub{
+								GroupId: v.GroupId,
+							},
+						}
+						sendPkt.SetEchoCode("sub-" + v.GroupId)
+						ck.sendMsgUq.Push(protocol.PackData(protocol.MustEncodePacket(sendPkt)))
 					}
-					pullRelationsPkt.SetEchoCode("pull-relation")
-					ck.sendMsgUq.Push(protocol.PackData(protocol.MustEncodePacket(&protocol.C2SBizMessagePacket{})))
-				default:
-					waitLoginBufferPackets = append(waitLoginBufferPackets, respPacket)
+					if relationAndSeqFull != nil && len(relationAndSeqFull) == subRecv && applyFull != nil {
+						stateNow = "ruinng"
+						fmt.Println("running")
+					}
+				case (*pushprotocol.FetchAllApplicationsResp):
+					if stateNow != "pulling-full" {
+						ck.conn.Close()
+						ck.eventChan <- &events.EventClose{
+							CloseReason: events.CloseReasonUserNetwork,
+						}
+						return
+					}
+
+					applyFull = pkt.Applications
+					if relationAndSeqFull != nil && len(relationAndSeqFull) == subRecv && applyFull != nil {
+						stateNow = "running"
+						fmt.Println("running")
+					}
+				case (*pushprotocol.SubResp):
+					if stateNow == "pulling-full" {
+						subRecv++
+						if pkt.RelationVersion >= relationAndSeqFull[pkt.GroupId].RelationVersion {
+							relationAndSeqFull[pkt.GroupId].SeqId = pkt.SeqId
+							relationAndSeqFull[pkt.GroupId].RelationVersion = pkt.RelationVersion
+						}
+						if relationAndSeqFull != nil && len(relationAndSeqFull) == subRecv && applyFull != nil {
+							stateNow = "running"
+							fmt.Println("running")
+						}
+					} else if stateNow == "running" {
+
+					} else {
+						ck.conn.Close()
+						ck.eventChan <- &events.EventClose{
+							CloseReason: events.CloseReasonUserNetwork,
+						}
+						return
+					}
 				}
 			}
 		}

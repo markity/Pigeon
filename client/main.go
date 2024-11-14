@@ -16,6 +16,9 @@ func main() {
 	ck := connkeeper.NewConnKeeper(conn, connkeeper.Config{
 		HbInterval: time.Second,
 		HbTimeout:  time.Second * 3,
+		Username:   "markity",
+		Password:   "mark2004",
+		DeviceDesc: "Android",
 	})
 	eventC := ck.Start()
 	for {

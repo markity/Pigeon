@@ -2,7 +2,6 @@ package tcpserver
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"pigeon/common/protocol"
@@ -59,7 +58,6 @@ func handleC2SLogin(conn goreactor.TCPConnection, pack *protocol.C2SLoginPacket)
 		return
 	}
 
-	fmt.Println("dsds")
 	// 调用登录接口
 	loginResp, err := evloopCtx.AuthRouteCli.Login(context.Background(), &imauthroute.LoginReq{
 		GwAdvertiseAddrPort: evloopCtx.RPCAdAddr,
@@ -67,13 +65,11 @@ func handleC2SLogin(conn goreactor.TCPConnection, pack *protocol.C2SLoginPacket)
 		Password:            pack.Password,
 		DeviceDesc:          pack.DeviceDesc,
 	})
-	fmt.Println("outout")
 	if err != nil {
 		log.Printf("failed to call auth route: %v\n", err)
 		conn.ForceClose()
 		return
 	}
-
 	sessions := make([]*protocol.DeviceSessionEntry, 0, len(loginResp.Sessions))
 	var selfSession *base.SessionEntry
 	for _, v := range loginResp.Sessions {

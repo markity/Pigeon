@@ -15,7 +15,7 @@ const (
 )
 
 type RelationAndSeqEntry struct {
-	base.RelationEntry
+	*base.RelationEntry
 	SeqId int64
 }
 
