@@ -39,6 +39,7 @@ func (s *RPCServer) FetchAllRelations(ctx context.Context, req *imrelation.Fetch
 	go func() {
 		s.BPush.FetchAllRelationsResp(&bizpush.FetchAllRelationsRespInput{
 			Session:   req.Session,
+			EchoCode:  req.EchoCode,
 			Relations: relations,
 		})
 	}()

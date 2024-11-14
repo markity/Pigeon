@@ -39,6 +39,7 @@ func (s *RPCServer) FetchAllApplications(ctx context.Context, req *imrelation.Fe
 	go func() {
 		s.BPush.FetchAllAppliesResp(&bizpush.FetchAllAppliesRespInput{
 			Session:      req.Session,
+			EchoCode:     req.EchoCode,
 			Applications: applications,
 		})
 	}()
